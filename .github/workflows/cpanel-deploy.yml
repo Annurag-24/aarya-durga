@@ -137,12 +137,35 @@ jobs:
             - name: Configure SSH
               env:
                   CPANEL_HOST: ${{ env.CPANEL_HOST }}
+                  CPANEL_USERNAME: ${{ env.CPANEL_USERNAME }}
                   CPANEL_SSH_PRIVATE_KEY: ${{ secrets.CPANEL_SSH_PRIVATE_KEY }}
               run: |
+                  echo "Preparing SSH for $CPANEL_USERNAME@$CPANEL_HOST:$SSH_PORT"
                   mkdir -p ~/.ssh
                   printf '%s\n' "$CPANEL_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+                  # Normalize line endings in case the key was pasted from Windows.
+                  sed -i 's/\r$//' ~/.ssh/id_ed25519
                   chmod 600 ~/.ssh/id_ed25519
-                  ssh-keyscan -p "$SSH_PORT" -H "$CPANEL_HOST" >> ~/.ssh/known_hosts
+
+                  # Validate private key content before attempting remote commands.
+                  if ! ssh-keygen -y -f ~/.ssh/id_ed25519 >/dev/null 2>&1; then
+                    echo "Invalid CPANEL_SSH_PRIVATE_KEY format."
+                    echo "Use the private key content (not .pub), including BEGIN/END lines."
+                    exit 1
+                  fi
+
+                  # Prefer known_hosts pinning, but fall back to non-interactive mode for hosts that block keyscan.
+                  if ssh-keyscan -T 20 -p "$SSH_PORT" -H "$CPANEL_HOST" >> ~/.ssh/known_hosts 2>/dev/null; then
+                    echo "Host key added to known_hosts."
+                  else
+                    echo "::warning::ssh-keyscan failed for $CPANEL_HOST:$SSH_PORT. Falling back to StrictHostKeyChecking=no"
+                    printf 'Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile /dev/null\n' > ~/.ssh/config
+                    chmod 600 ~/.ssh/config
+                  fi
+
+                  # Fail fast with a clear auth/network error if SSH is not reachable.
+                  ssh -i ~/.ssh/id_ed25519 -p "$SSH_PORT" -o BatchMode=yes -o ConnectTimeout=20 \
+                    "$CPANEL_USERNAME@$CPANEL_HOST" "echo SSH connection established"
 
             - name: Ensure remote deploy directories exist
               env:
