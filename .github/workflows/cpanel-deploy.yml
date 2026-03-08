@@ -223,6 +223,9 @@ jobs:
                     mkdir -p storage/framework/views
                     mkdir -p storage/logs
 
+                    # Remove stale cached container/config files from previous deploys.
+                    rm -f bootstrap/cache/*.php
+
                     php artisan migrate --force
                     php artisan config:cache
                     php artisan view:cache
