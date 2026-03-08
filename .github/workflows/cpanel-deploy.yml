@@ -21,8 +21,8 @@ env:
     VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://api.aarya-durga.demosystem.in/api' }}
     CPANEL_HOST: ${{ secrets.CPANEL_HOST || '9.12.109.208.host.secureserver.net' }}
     CPANEL_USERNAME: ${{ secrets.CPANEL_USERNAME || 'demosystem' }}
-    CPANEL_FRONTEND_PATH: ${{ secrets.CPANEL_FRONTEND_PATH || '/public_html/aarya-durga/aarya-durga-frontend/dist' }}
-    CPANEL_BACKEND_PATH: ${{ secrets.CPANEL_BACKEND_PATH || '/public_html/aarya-durga/aarya-durga-backend' }}
+    CPANEL_FRONTEND_PATH: ${{ secrets.CPANEL_FRONTEND_PATH || '/home/demosystem/public_html/aarya-durga/aarya-durga-frontend/dist' }}
+    CPANEL_BACKEND_PATH: ${{ secrets.CPANEL_BACKEND_PATH || '/home/demosystem/public_html/aarya-durga/aarya-durga-backend' }}
     SSH_PORT: ${{ secrets.CPANEL_SSH_PORT || '22' }}
 
 jobs:
