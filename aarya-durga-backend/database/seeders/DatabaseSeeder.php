@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
         $this->call(DemoDataSeeder::class);
         $this->call(HomePageSeeder::class);
         $this->call(AboutUsSeeder::class);
+        $this->call(CommitteeMembersSeeder::class);
         $this->call(HistoryPageSeeder::class);
         $this->call(PoojaAndDonationPageSeeder::class);
         $this->call(EventsGalleryPageSeeder::class);

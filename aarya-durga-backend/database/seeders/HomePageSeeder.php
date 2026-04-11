@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Media;
 use App\Models\PageContent;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class HomePageSeeder extends Seeder
@@ -313,16 +312,6 @@ class HomePageSeeder extends Seeder
             ['page_key' => 'home', 'section_key' => 'visit_image'],
             [
                 'image_id' => $visitMedia->id,
-            ]
-        );
-
-        // Footer Title / Devotional Quote (TRANSLATABLE)
-        PageContent::updateOrCreate(
-            ['page_key' => 'home', 'section_key' => 'footer_title'],
-            [
-                'content_en' => 'Where there is devotion, there is divine power.',
-                'content_hi' => 'जहां भक्ति है, वहां दिव्य शक्ति है।',
-                'content_mr' => 'जेथे भक्ती आहे, तेथे दिव्य शक्ती आहे।',
             ]
         );
 

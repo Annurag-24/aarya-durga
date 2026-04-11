@@ -347,21 +347,5 @@ class HistoryPageSeeder extends Seeder
             ]
         );
 
-        // ========== BANNER QUOTE ==========
-        PageContent::updateOrCreate(
-            ['page_key' => 'history', 'section_key' => 'banner_quote'],
-            [
-                'content_en' => 'The roots of devotion planted by our ancestors continue to bear the fruits of faith today.',
-                'content_hi' => 'हमारे पूर्वजों द्वारा बोई गई भक्ति की जड़ें आज विश्वास के फल दे रही हैं।',
-                'content_mr' => 'आमच्या पूर्वजांनी लावलेल्या भक्तीच्या मुळा आज श्रद्धेची फळे देत आहेत।',
-            ]
-        );
-
-        PageContent::updateOrCreate(
-            ['page_key' => 'history', 'section_key' => 'banner_image'],
-            [
-                'image_id' => $heroImageMedia->id,
-            ]
-        );
     }
 }

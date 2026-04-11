@@ -1,10 +1,14 @@
 import { motion } from "framer-motion";
-import { Heart, Users, BookOpen, Star } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Users, MapPin, Phone, X } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import Navbar from "@/components/temple/Navbar";
 import Footer from "@/components/temple/Footer";
-import DevotionalQuote from "@/components/temple/DevotionalQuote";
-import AboutSection from "@/components/temple/AboutSection";
 import { useLanguage } from "@/i18n/LanguageContext";
 import {
     fetchPageContent,
@@ -16,6 +20,24 @@ import { useLoader } from "@/contexts/LoaderContext";
 import { HomePageProvider } from "@/contexts/HomePageContext";
 import { useImagesLoaded } from "@/hooks/useImagesLoaded";
 import { RichTextContent } from "@/components/global/RichTextContent";
+import { constructImageUrl } from "@/api/imageUrl";
+import client from "@/api/client";
+
+interface CommitteeMember {
+    id: number;
+    name: string;
+    role_en?: string;
+    role_hi?: string;
+    role_mr?: string;
+    address_en?: string;
+    address_hi?: string;
+    address_mr?: string;
+    phone?: string;
+    photo?: {
+        file_url?: string;
+        url?: string;
+    };
+}
 
 const About = () => {
     const { language } = useLanguage();
@@ -23,26 +45,31 @@ const About = () => {
     const [heroMainTitle, setHeroMainTitle] = useState<string>("");
     const [heroMainSubtitle, setHeroMainSubtitle] = useState<string>("");
     const [heroImage, setHeroImage] = useState<string>("");
-    const [missionTitle, setMissionTitle] = useState<string>("");
-    const [missionDesc, setMissionDesc] = useState<string>("");
-    const [valuesTitle, setValuesTitle] = useState<string>("");
-    const [devotionTitle, setDevotionTitle] = useState<string>("");
-    const [devotionDesc, setDevotionDesc] = useState<string>("");
-    const [communityTitle, setCommunityTitle] = useState<string>("");
-    const [communityDesc, setCommunityDesc] = useState<string>("");
-    const [traditionTitle, setTraditionTitle] = useState<string>("");
-    const [traditionDesc, setTraditionDesc] = useState<string>("");
-    const [serviceTitle, setServiceTitle] = useState<string>("");
-    const [serviceDesc, setServiceDesc] = useState<string>("");
-    const [bannerTitle, setBannerTitle] = useState<string>("");
-    const [bannerImage, setBannerImage] = useState<string>("");
     const [committeeTitle, setCommitteeTitle] = useState<string>("");
     const [committeeDesc, setCommitteeDesc] = useState<string>("");
-    const [member1Title, setMember1Title] = useState<string>("");
-    const [member2Title, setMember2Title] = useState<string>("");
-    const [member3Title, setMember3Title] = useState<string>("");
+    const [selectedAddress, setSelectedAddress] = useState<{
+        name: string;
+        address: string;
+    } | null>(null);
+    const [committeeMembers, setCommitteeMembers] = useState<CommitteeMember[]>(
+        [],
+    );
     const [loading, setLoading] = useState(true);
-    const imagesLoaded = useImagesLoaded([heroImage, bannerImage]);
+    const memberImageUrls = useMemo(
+        () =>
+            committeeMembers.map((member) =>
+                member.photo?.file_url
+                    ? constructImageUrl(member.photo.file_url)
+                    : member.photo?.url
+                      ? constructImageUrl(member.photo.url)
+                      : "",
+            ),
+        [committeeMembers],
+    );
+    const imagesLoaded = useImagesLoaded([
+        heroImage,
+        JSON.stringify(memberImageUrls),
+    ]);
 
     useEffect(() => {
         if (loading || !imagesLoaded) {
@@ -57,8 +84,12 @@ const About = () => {
         const fetchAboutContent = async () => {
             setLoading(true);
             try {
-                const aboutData = await fetchPageContent("about");
-                const homeData = await fetchPageContent("home");
+                const [aboutData, homeData, committeeMembersResponse] =
+                    await Promise.all([
+                        fetchPageContent("about"),
+                        fetchPageContent("home"),
+                        client.get("/public/committee-members"),
+                    ]);
                 const lang = language as "en" | "hi" | "mr";
 
                 const getContent = (arr: any[], key: string) =>
@@ -68,42 +99,17 @@ const About = () => {
 
                 // Hero overlay content comes from the about page
                 setHeroMainTitle(getContent(aboutData, "hero_main_title"));
-                setHeroMainSubtitle(getContent(aboutData, "hero_main_subtitle"));
+                setHeroMainSubtitle(
+                    getContent(aboutData, "hero_main_subtitle"),
+                );
                 setHeroImage(getImg(homeData, "about_image"));
-
-                // Mission section
-                setMissionTitle(getContent(aboutData, "mission_title"));
-                setMissionDesc(getContent(aboutData, "mission_description"));
-
-                // Values title
-                setValuesTitle(getContent(aboutData, "values_title"));
-
-                // Core values
-                setDevotionTitle(getContent(aboutData, "devotion_title"));
-                setDevotionDesc(getContent(aboutData, "devotion_description"));
-                setCommunityTitle(getContent(aboutData, "community_title"));
-                setCommunityDesc(
-                    getContent(aboutData, "community_description"),
-                );
-                setTraditionTitle(getContent(aboutData, "tradition_title"));
-                setTraditionDesc(
-                    getContent(aboutData, "tradition_description"),
-                );
-                setServiceTitle(getContent(aboutData, "service_title"));
-                setServiceDesc(getContent(aboutData, "service_description"));
 
                 // Committee section
                 setCommitteeTitle(getContent(aboutData, "committee_title"));
                 setCommitteeDesc(
                     getContent(aboutData, "committee_description"),
                 );
-                setMember1Title(getContent(aboutData, "member1_title"));
-                setMember2Title(getContent(aboutData, "member2_title"));
-                setMember3Title(getContent(aboutData, "member3_title"));
-
-                // Banner section
-                setBannerTitle(getContent(aboutData, "banner_title"));
-                setBannerImage(getImg(aboutData, "banner_image"));
+                setCommitteeMembers(committeeMembersResponse.data || []);
             } catch (error) {
                 console.error("Error fetching about content:", error);
             } finally {
@@ -113,15 +119,6 @@ const About = () => {
 
         fetchAboutContent();
     }, [language, setGlobalLoading]);
-
-    const values = [
-        { icon: Heart, title: devotionTitle, desc: devotionDesc },
-        { icon: Users, title: communityTitle, desc: communityDesc },
-        { icon: BookOpen, title: traditionTitle, desc: traditionDesc },
-        { icon: Star, title: serviceTitle, desc: serviceDesc },
-    ];
-
-    const roles = [member1Title, member2Title, member3Title];
 
     return (
         <HomePageProvider>
@@ -153,89 +150,6 @@ const About = () => {
                         />
                     </div>
                 </section>
-
-                <AboutSection showReadMore={false} />
-
-                <section className="py-20 bg-accent mandala-bg">
-                    <div className="container mx-auto px-4 text-center">
-                        <div className="gold-line mx-auto mb-4" />
-                        <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-6">
-                            {missionTitle}
-                        </h2>
-                        <RichTextContent
-                            content={missionDesc}
-                            className="mx-auto mb-6 max-w-3xl text-muted-foreground"
-                        />
-                    </div>
-                </section>
-
-                <section className="py-20 bg-card">
-                    <div className="container mx-auto px-4">
-                        <div className="text-center mb-12">
-                            <div className="gold-line mx-auto mb-4" />
-                            <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground">
-                                {valuesTitle}
-                            </h2>
-                        </div>
-                        <div className="grid md:grid-cols-4 gap-8">
-                            {values.map((item, i) => (
-                                <motion.div
-                                    key={i}
-                                    initial={{ opacity: 0, y: 30 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{
-                                        duration: 0.5,
-                                        delay: i * 0.1,
-                                    }}
-                                    className="bg-accent rounded-lg p-6 text-center shadow-md border border-border hover:shadow-lg transition-shadow"
-                                >
-                                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                                        <item.icon
-                                            className="text-primary"
-                                            size={30}
-                                        />
-                                    </div>
-                                    <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
-                                        {item.title}
-                                    </h3>
-                                    <RichTextContent
-                                        content={item.desc}
-                                        className="text-sm text-muted-foreground"
-                                    />
-                                </motion.div>
-                            ))}
-                        </div>
-                    </div>
-                </section>
-
-                <section className="relative py-24 overflow-hidden">
-                    <div className="absolute inset-0">
-                        <img
-                            src={bannerImage}
-                            alt="Banner"
-                            className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-r from-primary/80 via-primary/60 to-primary/80" />
-                    </div>
-                    <div className="relative z-10 text-center px-4">
-                        <div className="lotus-divider mb-6">
-                            <span className="text-3xl">🪷</span>
-                        </div>
-                        <motion.h2
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            viewport={{ once: true }}
-                            className="font-heading text-2xl md:text-4xl font-semibold text-primary-foreground max-w-3xl mx-auto leading-relaxed"
-                        >
-                            {bannerTitle}
-                        </motion.h2>
-                        <div className="lotus-divider mt-6">
-                            <span className="text-3xl">🪷</span>
-                        </div>
-                    </div>
-                </section>
-
                 <section className="py-20 bg-card">
                     <div className="container mx-auto px-4 text-center">
                         <div className="gold-line mx-auto mb-4" />
@@ -246,32 +160,141 @@ const About = () => {
                             content={committeeDesc}
                             className="mx-auto mb-10 max-w-2xl text-muted-foreground"
                         />
-                        <div className="grid md:grid-cols-3 gap-8">
-                            {roles.map((role, i) => (
-                                <motion.div
-                                    key={i}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ delay: i * 0.1 }}
-                                    className="bg-accent rounded-lg p-6 border border-border"
-                                >
-                                    <div className="w-20 h-20 rounded-full bg-primary/10 mx-auto mb-4 flex items-center justify-center">
-                                        <Users
-                                            className="text-primary"
-                                            size={32}
-                                        />
-                                    </div>
-                                    <h3 className="font-heading text-lg font-semibold text-foreground">
-                                        {role}
-                                    </h3>
-                                </motion.div>
-                            ))}
-                        </div>
+                        {committeeMembers.length === 0 ? (
+                            <p className="mx-auto max-w-2xl text-muted-foreground">
+                                Committee member details will be updated soon.
+                            </p>
+                        ) : (
+                            <div className="mx-auto grid w-full max-w-5xl gap-6 md:grid-cols-2 xl:grid-cols-3 items-stretch">
+                                {committeeMembers.map((member, i) => {
+                                    const designation =
+                                        language === "mr"
+                                            ? member.role_mr
+                                            : language === "hi"
+                                              ? member.role_hi
+                                              : member.role_en;
+                                    const address =
+                                        language === "mr"
+                                            ? member.address_mr
+                                            : language === "hi"
+                                              ? member.address_hi
+                                              : member.address_en;
+                                    const imageUrl = member.photo?.file_url
+                                        ? constructImageUrl(
+                                              member.photo.file_url,
+                                          )
+                                        : member.photo?.url
+                                          ? constructImageUrl(member.photo.url)
+                                          : "";
+                                    const mapUrl = address
+                                        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
+                                        : undefined;
+
+                                    return (
+                                        <motion.div
+                                            key={member.id}
+                                            initial={{ opacity: 0, y: 20 }}
+                                            whileInView={{ opacity: 1, y: 0 }}
+                                            viewport={{ once: true }}
+                                            transition={{ delay: i * 0.1 }}
+                                            className="flex flex-col items-center rounded-[2rem] border border-border/80 bg-card px-6 py-8 shadow-sm"
+                                        >
+                                            <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-4 border-background bg-accent shadow-md">
+                                                {imageUrl ? (
+                                                    <img
+                                                        src={imageUrl}
+                                                        alt={member.name}
+                                                        className="h-full w-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <Users
+                                                        className="text-primary"
+                                                        size={32}
+                                                    />
+                                                )}
+                                            </div>
+                                            <h3 className="font-heading text-xl font-bold text-foreground text-center">
+                                                {member.name}
+                                            </h3>
+                                            <div className="mt-auto pt-4 w-full">
+                                                <p className="font-heading text-2xl font-semibold text-primary text-center">
+                                                    {designation}
+                                                </p>
+                                                <p
+                                                    className="mt-2 w-full truncate font-body text-sm text-muted-foreground text-center"
+                                                    title={address}
+                                                >
+                                                    {address}
+                                                </p>
+                                                <div className="mt-4 w-full">
+                                                    <div className="mb-4 h-px w-full bg-border" />
+                                                    <div className="flex items-center justify-center gap-4">
+                                                        {member.phone && (
+                                                            <a
+                                                                href={`tel:${member.phone}`}
+                                                                className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-secondary/40 text-primary transition-colors hover:bg-accent"
+                                                                aria-label={`Call ${member.name}`}
+                                                            >
+                                                                <Phone
+                                                                    size={18}
+                                                                />
+                                                            </a>
+                                                        )}
+                                                        {address && (
+                                                            <button
+                                                                onClick={() =>
+                                                                    setSelectedAddress(
+                                                                        {
+                                                                            name: member.name,
+                                                                            address,
+                                                                        },
+                                                                    )
+                                                                }
+                                                                className="inline-flex h-12 w-12 items-center justify-center rounded-3xl border border-secondary/40 text-primary transition-colors hover:bg-accent"
+                                                                aria-label={`View address for ${member.name}`}
+                                                            >
+                                                                <MapPin
+                                                                    size={18}
+                                                                />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
                 </section>
 
-                <DevotionalQuote />
+                <Dialog
+                    open={!!selectedAddress}
+                    onOpenChange={(open) => !open && setSelectedAddress(null)}
+                >
+                    <DialogContent className="max-w-sm text-center">
+                        <DialogHeader>
+                            <DialogTitle className="font-heading text-lg">
+                                {selectedAddress?.name}
+                            </DialogTitle>
+                        </DialogHeader>
+                        <p className="mt-2 text-muted-foreground leading-relaxed">
+                            {selectedAddress?.address}
+                        </p>
+                        {selectedAddress?.address && (
+                            <a
+                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedAddress.address)}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="mt-4 inline-flex items-center justify-center gap-2 rounded-full border border-secondary/40 px-4 py-2 text-sm text-primary hover:bg-accent transition-colors"
+                            >
+                                <MapPin size={14} /> Open in Maps
+                            </a>
+                        )}
+                    </DialogContent>
+                </Dialog>
+
                 <Footer />
             </div>
         </HomePageProvider>

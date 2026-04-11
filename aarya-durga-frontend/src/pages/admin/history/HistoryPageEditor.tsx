@@ -77,14 +77,6 @@ interface TraditionItem {
     description_mr: string;
 }
 
-interface BannerContent {
-    quote_en: string;
-    quote_hi: string;
-    quote_mr: string;
-    image_id?: number;
-    existingImageUrl?: string;
-}
-
 interface HomeHistoryContent {
     title_en: string;
     title_hi: string;
@@ -115,7 +107,12 @@ interface HomeHistoryContent {
 const HistoryPageEditor = () => {
     const { setLoading: setGlobalLoading } = useLoader();
     const [activeSection, setActiveSection] = useState<
-        "hero" | "origin" | "timeline" | "traditions" | "banner" | "home-history"
+        | "hero"
+        | "origin"
+        | "timeline"
+        | "traditions"
+        | "banner"
+        | "home-history"
     >("hero");
     const [saving, setSaving] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -257,12 +254,6 @@ const HistoryPageEditor = () => {
             ],
         });
 
-    const [bannerContent, setBannerContent] = useState<BannerContent>({
-        quote_en: "",
-        quote_hi: "",
-        quote_mr: "",
-    });
-
     const [homeHistoryContent, setHomeHistoryContent] =
         useState<HomeHistoryContent>({
             title_en: "",
@@ -294,7 +285,6 @@ const HistoryPageEditor = () => {
     const imagesLoaded = useImagesLoaded([
         heroContent.existingImageUrl,
         originContent.existingImageUrl,
-        bannerContent.existingImageUrl,
     ]);
 
     useEffect(() => {
@@ -551,14 +541,6 @@ const HistoryPageEditor = () => {
                 ],
             });
 
-            setBannerContent({
-                quote_en: findContent("banner_quote")?.content_en || "",
-                quote_hi: findContent("banner_quote")?.content_hi || "",
-                quote_mr: findContent("banner_quote")?.content_mr || "",
-                image_id: findContent("banner_image")?.image_id,
-                existingImageUrl: getImage("banner_image"),
-            });
-
             setHomeHistoryContent({
                 title_en: findHomeContent("history_title")?.content_en || "",
                 title_hi: findHomeContent("history_title")?.content_hi || "",
@@ -628,150 +610,141 @@ const HistoryPageEditor = () => {
             switch (sectionName) {
                 case "hero":
                     await Promise.all([
-                        client.post("/admin/page-content", {
-                            page_key: "history",
-                            section_key: "hero_title",
+                        client.put("/admin/page-content/history/hero_title", {
                             content_en: heroContent.title_en,
                             content_hi: heroContent.title_hi,
                             content_mr: heroContent.title_mr,
                         }),
-                        client.post("/admin/page-content", {
-                            page_key: "history",
-                            section_key: "hero_subtitle",
-                            content_en: heroContent.subtitle_en,
-                            content_hi: heroContent.subtitle_hi,
-                            content_mr: heroContent.subtitle_mr,
-                        }),
+                        client.put(
+                            "/admin/page-content/history/hero_subtitle",
+                            {
+                                content_en: heroContent.subtitle_en,
+                                content_hi: heroContent.subtitle_hi,
+                                content_mr: heroContent.subtitle_mr,
+                            },
+                        ),
                         heroContent.image_id
-                            ? client.post("/admin/page-content", {
-                                  page_key: "history",
-                                  section_key: "hero_image",
-                                  image_id: heroContent.image_id,
-                              })
+                            ? client.put(
+                                  "/admin/page-content/history/hero_image",
+                                  {
+                                      image_id: heroContent.image_id,
+                                  },
+                              )
                             : Promise.resolve(),
                     ]);
                     break;
                 case "origin":
                     await Promise.all([
-                        client.post("/admin/page-content", {
-                            page_key: "history",
-                            section_key: "origin_title",
+                        client.put("/admin/page-content/history/origin_title", {
                             content_en: originContent.title_en,
                             content_hi: originContent.title_hi,
                             content_mr: originContent.title_mr,
                         }),
-                        client.post("/admin/page-content", {
-                            page_key: "history",
-                            section_key: "origin_paragraph1",
-                            content_en: originContent.paragraph1_en,
-                            content_hi: originContent.paragraph1_hi,
-                            content_mr: originContent.paragraph1_mr,
-                        }),
-                        client.post("/admin/page-content", {
-                            page_key: "history",
-                            section_key: "origin_paragraph2",
-                            content_en: originContent.paragraph2_en,
-                            content_hi: originContent.paragraph2_hi,
-                            content_mr: originContent.paragraph2_mr,
-                        }),
+                        client.put(
+                            "/admin/page-content/history/origin_paragraph1",
+                            {
+                                content_en: originContent.paragraph1_en,
+                                content_hi: originContent.paragraph1_hi,
+                                content_mr: originContent.paragraph1_mr,
+                            },
+                        ),
+                        client.put(
+                            "/admin/page-content/history/origin_paragraph2",
+                            {
+                                content_en: originContent.paragraph2_en,
+                                content_hi: originContent.paragraph2_hi,
+                                content_mr: originContent.paragraph2_mr,
+                            },
+                        ),
                         originContent.image_id
-                            ? client.post("/admin/page-content", {
-                                  page_key: "history",
-                                  section_key: "origin_image",
-                                  image_id: originContent.image_id,
-                              })
+                            ? client.put(
+                                  "/admin/page-content/history/origin_image",
+                                  {
+                                      image_id: originContent.image_id,
+                                  },
+                              )
                             : Promise.resolve(),
                     ]);
                     break;
                 case "timeline":
-                    await client.post("/admin/page-content", {
-                        page_key: "history",
-                        section_key: "timeline_title",
-                        content_en: timelineContent.title_en,
-                        content_hi: timelineContent.title_hi,
-                        content_mr: timelineContent.title_mr,
-                    });
+                    await client.put(
+                        "/admin/page-content/history/timeline_title",
+                        {
+                            content_en: timelineContent.title_en,
+                            content_hi: timelineContent.title_hi,
+                            content_mr: timelineContent.title_mr,
+                        },
+                    );
                     await Promise.all(
                         timelineContent.items.map((item) =>
                             Promise.all([
-                                client.post("/admin/page-content", {
-                                    page_key: "history",
-                                    section_key: `${item.key}_era`,
-                                    content_en: item.era_en,
-                                    content_hi: item.era_hi,
-                                    content_mr: item.era_mr,
-                                }),
-                                client.post("/admin/page-content", {
-                                    page_key: "history",
-                                    section_key: `${item.key}_title`,
-                                    content_en: item.title_en,
-                                    content_hi: item.title_hi,
-                                    content_mr: item.title_mr,
-                                }),
-                                client.post("/admin/page-content", {
-                                    page_key: "history",
-                                    section_key: `${item.key}_description`,
-                                    content_en: item.description_en,
-                                    content_hi: item.description_hi,
-                                    content_mr: item.description_mr,
-                                }),
+                                client.put(
+                                    `/admin/page-content/history/${item.key}_era`,
+                                    {
+                                        content_en: item.era_en,
+                                        content_hi: item.era_hi,
+                                        content_mr: item.era_mr,
+                                    },
+                                ),
+                                client.put(
+                                    `/admin/page-content/history/${item.key}_title`,
+                                    {
+                                        content_en: item.title_en,
+                                        content_hi: item.title_hi,
+                                        content_mr: item.title_mr,
+                                    },
+                                ),
+                                client.put(
+                                    `/admin/page-content/history/${item.key}_description`,
+                                    {
+                                        content_en: item.description_en,
+                                        content_hi: item.description_hi,
+                                        content_mr: item.description_mr,
+                                    },
+                                ),
                             ]),
                         ),
                     );
                     break;
                 case "traditions":
-                    await client.post("/admin/page-content", {
-                        page_key: "history",
-                        section_key: "traditions_title",
-                        content_en: traditionsContent.title_en,
-                        content_hi: traditionsContent.title_hi,
-                        content_mr: traditionsContent.title_mr,
-                    });
-                    await client.post("/admin/page-content", {
-                        page_key: "history",
-                        section_key: "traditions_subtitle",
-                        content_en: traditionsContent.subtitle_en,
-                        content_hi: traditionsContent.subtitle_hi,
-                        content_mr: traditionsContent.subtitle_mr,
-                    });
+                    await client.put(
+                        "/admin/page-content/history/traditions_title",
+                        {
+                            content_en: traditionsContent.title_en,
+                            content_hi: traditionsContent.title_hi,
+                            content_mr: traditionsContent.title_mr,
+                        },
+                    );
+                    await client.put(
+                        "/admin/page-content/history/traditions_subtitle",
+                        {
+                            content_en: traditionsContent.subtitle_en,
+                            content_hi: traditionsContent.subtitle_hi,
+                            content_mr: traditionsContent.subtitle_mr,
+                        },
+                    );
                     await Promise.all(
                         traditionsContent.items.map((item) =>
                             Promise.all([
-                                client.post("/admin/page-content", {
-                                    page_key: "history",
-                                    section_key: `${item.key}_title`,
-                                    content_en: item.title_en,
-                                    content_hi: item.title_hi,
-                                    content_mr: item.title_mr,
-                                }),
-                                client.post("/admin/page-content", {
-                                    page_key: "history",
-                                    section_key: `${item.key}_description`,
-                                    content_en: item.description_en,
-                                    content_hi: item.description_hi,
-                                    content_mr: item.description_mr,
-                                }),
+                                client.put(
+                                    `/admin/page-content/history/${item.key}_title`,
+                                    {
+                                        content_en: item.title_en,
+                                        content_hi: item.title_hi,
+                                        content_mr: item.title_mr,
+                                    },
+                                ),
+                                client.put(
+                                    `/admin/page-content/history/${item.key}_description`,
+                                    {
+                                        content_en: item.description_en,
+                                        content_hi: item.description_hi,
+                                        content_mr: item.description_mr,
+                                    },
+                                ),
                             ]),
                         ),
                     );
-                    break;
-                case "banner":
-                    await Promise.all([
-                        client.post("/admin/page-content", {
-                            page_key: "history",
-                            section_key: "banner_quote",
-                            content_en: bannerContent.quote_en,
-                            content_hi: bannerContent.quote_hi,
-                            content_mr: bannerContent.quote_mr,
-                        }),
-                        bannerContent.image_id
-                            ? client.post("/admin/page-content", {
-                                  page_key: "history",
-                                  section_key: "banner_image",
-                                  image_id: bannerContent.image_id,
-                              })
-                            : Promise.resolve(),
-                    ]);
                     break;
                 case "home-history":
                     await Promise.all([
@@ -808,103 +781,139 @@ const HistoryPageEditor = () => {
                                 content: homeHistoryContent.description_mr,
                             },
                         ),
-                        client.put("/admin/page-content/home/history_card1_title", {
-                            language: "en",
-                            content: homeHistoryContent.card1_title_en,
-                        }),
-                        client.put("/admin/page-content/home/history_card1_title", {
-                            language: "hi",
-                            content: homeHistoryContent.card1_title_hi,
-                        }),
-                        client.put("/admin/page-content/home/history_card1_title", {
-                            language: "mr",
-                            content: homeHistoryContent.card1_title_mr,
-                        }),
+                        client.put(
+                            "/admin/page-content/home/history_card1_title",
+                            {
+                                language: "en",
+                                content: homeHistoryContent.card1_title_en,
+                            },
+                        ),
+                        client.put(
+                            "/admin/page-content/home/history_card1_title",
+                            {
+                                language: "hi",
+                                content: homeHistoryContent.card1_title_hi,
+                            },
+                        ),
+                        client.put(
+                            "/admin/page-content/home/history_card1_title",
+                            {
+                                language: "mr",
+                                content: homeHistoryContent.card1_title_mr,
+                            },
+                        ),
                         client.put(
                             "/admin/page-content/home/history_card1_description",
                             {
                                 language: "en",
-                                content: homeHistoryContent.card1_description_en,
+                                content:
+                                    homeHistoryContent.card1_description_en,
                             },
                         ),
                         client.put(
                             "/admin/page-content/home/history_card1_description",
                             {
                                 language: "hi",
-                                content: homeHistoryContent.card1_description_hi,
+                                content:
+                                    homeHistoryContent.card1_description_hi,
                             },
                         ),
                         client.put(
                             "/admin/page-content/home/history_card1_description",
                             {
                                 language: "mr",
-                                content: homeHistoryContent.card1_description_mr,
+                                content:
+                                    homeHistoryContent.card1_description_mr,
                             },
                         ),
-                        client.put("/admin/page-content/home/history_card2_title", {
-                            language: "en",
-                            content: homeHistoryContent.card2_title_en,
-                        }),
-                        client.put("/admin/page-content/home/history_card2_title", {
-                            language: "hi",
-                            content: homeHistoryContent.card2_title_hi,
-                        }),
-                        client.put("/admin/page-content/home/history_card2_title", {
-                            language: "mr",
-                            content: homeHistoryContent.card2_title_mr,
-                        }),
+                        client.put(
+                            "/admin/page-content/home/history_card2_title",
+                            {
+                                language: "en",
+                                content: homeHistoryContent.card2_title_en,
+                            },
+                        ),
+                        client.put(
+                            "/admin/page-content/home/history_card2_title",
+                            {
+                                language: "hi",
+                                content: homeHistoryContent.card2_title_hi,
+                            },
+                        ),
+                        client.put(
+                            "/admin/page-content/home/history_card2_title",
+                            {
+                                language: "mr",
+                                content: homeHistoryContent.card2_title_mr,
+                            },
+                        ),
                         client.put(
                             "/admin/page-content/home/history_card2_description",
                             {
                                 language: "en",
-                                content: homeHistoryContent.card2_description_en,
+                                content:
+                                    homeHistoryContent.card2_description_en,
                             },
                         ),
                         client.put(
                             "/admin/page-content/home/history_card2_description",
                             {
                                 language: "hi",
-                                content: homeHistoryContent.card2_description_hi,
+                                content:
+                                    homeHistoryContent.card2_description_hi,
                             },
                         ),
                         client.put(
                             "/admin/page-content/home/history_card2_description",
                             {
                                 language: "mr",
-                                content: homeHistoryContent.card2_description_mr,
+                                content:
+                                    homeHistoryContent.card2_description_mr,
                             },
                         ),
-                        client.put("/admin/page-content/home/history_card3_title", {
-                            language: "en",
-                            content: homeHistoryContent.card3_title_en,
-                        }),
-                        client.put("/admin/page-content/home/history_card3_title", {
-                            language: "hi",
-                            content: homeHistoryContent.card3_title_hi,
-                        }),
-                        client.put("/admin/page-content/home/history_card3_title", {
-                            language: "mr",
-                            content: homeHistoryContent.card3_title_mr,
-                        }),
+                        client.put(
+                            "/admin/page-content/home/history_card3_title",
+                            {
+                                language: "en",
+                                content: homeHistoryContent.card3_title_en,
+                            },
+                        ),
+                        client.put(
+                            "/admin/page-content/home/history_card3_title",
+                            {
+                                language: "hi",
+                                content: homeHistoryContent.card3_title_hi,
+                            },
+                        ),
+                        client.put(
+                            "/admin/page-content/home/history_card3_title",
+                            {
+                                language: "mr",
+                                content: homeHistoryContent.card3_title_mr,
+                            },
+                        ),
                         client.put(
                             "/admin/page-content/home/history_card3_description",
                             {
                                 language: "en",
-                                content: homeHistoryContent.card3_description_en,
+                                content:
+                                    homeHistoryContent.card3_description_en,
                             },
                         ),
                         client.put(
                             "/admin/page-content/home/history_card3_description",
                             {
                                 language: "hi",
-                                content: homeHistoryContent.card3_description_hi,
+                                content:
+                                    homeHistoryContent.card3_description_hi,
                             },
                         ),
                         client.put(
                             "/admin/page-content/home/history_card3_description",
                             {
                                 language: "mr",
-                                content: homeHistoryContent.card3_description_mr,
+                                content:
+                                    homeHistoryContent.card3_description_mr,
                             },
                         ),
                     ]);
@@ -1005,11 +1014,6 @@ const HistoryPageEditor = () => {
             id: "traditions" as const,
             title: "Sacred Traditions",
             description: "4 tradition items",
-        },
-        {
-            id: "banner" as const,
-            title: "Banner Section",
-            description: "Title, background image",
         },
         {
             id: "home-history" as const,
@@ -1350,52 +1354,6 @@ const HistoryPageEditor = () => {
                     </CardContent>
                 </Card>
             )}
-
-            {/* Banner Section */}
-            {activeSection === "banner" && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Banner Section</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div>
-                            <h3 className="font-semibold mb-4">Banner Image</h3>
-                            <ImageUpload
-                                onUpload={(mediaId) =>
-                                    setBannerContent({
-                                        ...bannerContent,
-                                        image_id: mediaId,
-                                    })
-                                }
-                                existingImageUrl={
-                                    bannerContent.existingImageUrl
-                                }
-                                section="banner"
-                            />
-                        </div>
-                        {renderLanguageTabs(
-                            "Quote",
-                            bannerContent.quote_en,
-                            bannerContent.quote_hi,
-                            bannerContent.quote_mr,
-                            (lang, value) =>
-                                setBannerContent({
-                                    ...bannerContent,
-                                    [`quote_${lang}`]: value,
-                                }),
-                            true,
-                        )}
-                        <Button
-                            onClick={() => saveSection("banner")}
-                            disabled={saving}
-                            className="w-full"
-                        >
-                            {saving ? "Saving..." : "Save Banner Section"}
-                        </Button>
-                    </CardContent>
-                </Card>
-            )}
-
             {activeSection === "home-history" && (
                 <Card>
                     <CardHeader>
@@ -1427,7 +1385,10 @@ const HistoryPageEditor = () => {
                         )}
 
                         {["1", "2", "3"].map((cardNo) => (
-                            <div key={cardNo} className="border rounded-lg p-4 bg-muted/30">
+                            <div
+                                key={cardNo}
+                                className="border rounded-lg p-4 bg-muted/30"
+                            >
                                 <h3 className="font-semibold mb-4">
                                     Card {cardNo}
                                 </h3>
@@ -1445,7 +1406,8 @@ const HistoryPageEditor = () => {
                                     (lang, value) =>
                                         setHomeHistoryContent({
                                             ...homeHistoryContent,
-                                            [`card${cardNo}_title_${lang}`]: value,
+                                            [`card${cardNo}_title_${lang}`]:
+                                                value,
                                         }),
                                 )}
                                 {renderLanguageTabs(
@@ -1462,7 +1424,8 @@ const HistoryPageEditor = () => {
                                     (lang, value) =>
                                         setHomeHistoryContent({
                                             ...homeHistoryContent,
-                                            [`card${cardNo}_description_${lang}`]: value,
+                                            [`card${cardNo}_description_${lang}`]:
+                                                value,
                                         }),
                                     true,
                                 )}

@@ -1,748 +1,1370 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { RichTextEditor } from '@/components/admin/RichTextEditor';
-import { toast } from 'sonner';
-import client from '@/api/client';
-import { ImageUpload } from '@/components/admin/ImageUpload';
-import { useLoader } from '@/contexts/LoaderContext';
-import { Trash2, Plus } from 'lucide-react';
-import { constructImageUrl } from '@/api/imageUrl';
-import { useImagesLoaded } from '@/hooks/useImagesLoaded';
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
+import client from "@/api/client";
+import { ImageUpload } from "@/components/admin/ImageUpload";
+import { useLoader } from "@/contexts/LoaderContext";
+import { Pencil, Trash2, Plus } from "lucide-react";
+import { constructImageUrl } from "@/api/imageUrl";
 
 interface HeroContent {
-  title_en: string;
-  title_hi: string;
-  title_mr: string;
-  subtitle_en: string;
-  subtitle_hi: string;
-  subtitle_mr: string;
-  image_id?: number;
-  existingImageUrl?: string;
+    title_en: string;
+    title_mr: string;
+    subtitle_en: string;
+    subtitle_mr: string;
+    image_id?: number;
+    existingImageUrl?: string;
 }
 
-interface TempleEvent {
-  key: string;
-  name_en: string;
-  name_hi: string;
-  name_mr: string;
-  date: string;
-  description_en: string;
-  description_hi: string;
-  description_mr: string;
-  tag_en: string;
-  tag_hi: string;
-  tag_mr: string;
-  image_id?: number;
-  existingImageUrl?: string;
+interface EventGalleryImageForm {
+    clientKey: string;
+    image_id?: number;
+    existingImageUrl?: string;
+}
+
+interface TempleEventForm {
+    id?: number;
+    clientKey: string;
+    title_en: string;
+    title_mr: string;
+    date_label_en: string;
+    date_label_mr: string;
+    event_date: string;
+    summary_en: string;
+    summary_mr: string;
+    description_en: string;
+    description_mr: string;
+    details_en: string;
+    details_mr: string;
+    location_en: string;
+    location_mr: string;
+    time_en: string;
+    time_mr: string;
+    category: "Festival" | "Yatra" | "Pooja";
+    image_id?: number;
+    existingImageUrl?: string;
+    galleryImages: EventGalleryImageForm[];
 }
 
 interface EventsContent {
-  title_en: string;
-  title_hi: string;
-  title_mr: string;
-  events: TempleEvent[];
+    title_en: string;
+    title_mr: string;
+    events: TempleEventForm[];
 }
 
 interface GalleryImage {
-  key: string;
-  image_id?: number;
-  existingImageUrl?: string;
+    key: string;
+    image_id?: number;
+    existingImageUrl?: string;
 }
 
 interface GalleryContent {
-  title_en: string;
-  title_hi: string;
-  title_mr: string;
-  subtitle_en: string;
-  subtitle_hi: string;
-  subtitle_mr: string;
-  images: GalleryImage[];
+    title_en: string;
+    title_mr: string;
+    subtitle_en: string;
+    subtitle_mr: string;
+    images: GalleryImage[];
 }
 
-interface BannerContent {
-  quote_en: string;
-  quote_hi: string;
-  quote_mr: string;
-  image_id?: number;
-  existingImageUrl?: string;
-}
+const getOrderedNumericKeys = (
+    rawValue: string | undefined,
+    prefix: "gallery",
+    data: any[],
+) => {
+    if (rawValue) {
+        try {
+            const parsed = JSON.parse(rawValue);
+            if (Array.isArray(parsed)) {
+                return parsed.filter(
+                    (value): value is string => typeof value === "string",
+                );
+            }
+        } catch {
+            // Fall back to legacy detection.
+        }
+    }
+
+    const numbers = new Set<number>();
+    data.forEach((item) => {
+        const match = item.section_key.match(new RegExp(`^${prefix}_(\\d+)_`));
+        if (match) {
+            numbers.add(parseInt(match[1], 10));
+        }
+    });
+
+    return Array.from(numbers)
+        .sort((a, b) => b - a)
+        .map((num) => `${prefix}_${num}`);
+};
+
+const emptyEvent = (index: number): TempleEventForm => ({
+    clientKey: `new-event-${Date.now()}-${index}`,
+    title_en: "",
+    title_mr: "",
+    date_label_en: "",
+    date_label_mr: "",
+    event_date: "",
+    summary_en: "",
+    summary_mr: "",
+    description_en: "",
+    description_mr: "",
+    details_en: "",
+    details_mr: "",
+    location_en: "",
+    location_mr: "",
+    time_en: "",
+    time_mr: "",
+    category: "Festival",
+    image_id: undefined,
+    existingImageUrl: undefined,
+    galleryImages: [],
+});
+
+const convertTo24Hour = (time12: string): string => {
+    if (!time12) return "";
+    const [time, period] = time12.split(" ");
+    if (!time || !period) return "";
+
+    let [hours, minutes] = time.split(":").map(Number);
+
+    if (period === "PM" && hours !== 12) hours += 12;
+    if (period === "AM" && hours === 12) hours = 0;
+
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+};
+
+const convertTo12Hour = (time24: string): string => {
+    if (!time24) return "";
+    const [hoursStr, minutesStr] = time24.split(":");
+    const hoursNum = parseInt(hoursStr, 10);
+    const minutes = parseInt(minutesStr, 10);
+    const period = hoursNum >= 12 ? "PM" : "AM";
+    const displayHours = hoursNum % 12 || 12;
+
+    return `${String(displayHours).padStart(2, "0")}:${String(minutes).padStart(2, "0")} ${period}`;
+};
 
 const EventsGalleryPageEditor = () => {
-  const { setLoading: setGlobalLoading } = useLoader();
-  const [activeSection, setActiveSection] = useState<'hero' | 'events' | 'gallery' | 'banner'>('hero');
+    const { setLoading: setGlobalLoading } = useLoader();
+    const [activeSection, setActiveSection] = useState<
+        "hero" | "events" | "gallery"
+    >("hero");
 
-  const [heroContent, setHeroContent] = useState<HeroContent>({
-    title_en: '', title_hi: '', title_mr: '',
-    subtitle_en: '', subtitle_hi: '', subtitle_mr: '',
-  });
+    const [heroContent, setHeroContent] = useState<HeroContent>({
+        title_en: "",
+        title_mr: "",
+        subtitle_en: "",
+        subtitle_mr: "",
+    });
 
-  const [eventsContent, setEventsContent] = useState<EventsContent>({
-    title_en: '', title_hi: '', title_mr: '',
-    events: [],
-  });
+    const [eventsContent, setEventsContent] = useState<EventsContent>({
+        title_en: "",
+        title_mr: "",
+        events: [],
+    });
 
-  const [galleryContent, setGalleryContent] = useState<GalleryContent>({
-    title_en: '', title_hi: '', title_mr: '',
-    subtitle_en: '', subtitle_hi: '', subtitle_mr: '',
-    images: [],
-  });
+    const [galleryContent, setGalleryContent] = useState<GalleryContent>({
+        title_en: "",
+        title_mr: "",
+        subtitle_en: "",
+        subtitle_mr: "",
+        images: [],
+    });
 
-  const [bannerContent, setBannerContent] = useState<BannerContent>({
-    quote_en: '',
-    quote_hi: '',
-    quote_mr: '',
-  });
+    const [persistedEventIds, setPersistedEventIds] = useState<number[]>([]);
+    const [persistedGalleryKeys, setPersistedGalleryKeys] = useState<string[]>(
+        [],
+    );
+    const [loading, setLoading] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+    const [editingEvent, setEditingEvent] = useState<TempleEventForm | null>(
+        null,
+    );
 
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
+    const sections = [
+        {
+            key: "hero",
+            label: "Hero Section",
+            description: "Title, subtitle, background image",
+        },
+        {
+            key: "events",
+            label: "Temple Events",
+            description: "Manage event cards, full details, and galleries",
+        },
+        {
+            key: "gallery",
+            label: "Gallery Images",
+            description: "Gallery title, subtitle & dynamic images",
+        },
+    ] as const;
 
-  const imageUrls = [
-    heroContent.existingImageUrl,
-    bannerContent.existingImageUrl,
-    ...eventsContent.events.map(e => e.existingImageUrl),
-    ...galleryContent.images.map(img => img.existingImageUrl)
-  ].filter(Boolean);
-  const imagesLoaded = useImagesLoaded(imageUrls);
+    useEffect(() => {
+        fetchContent();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-  useEffect(() => {
-    if (!loading && imagesLoaded) {
-      setGlobalLoading(false);
-    }
-  }, [loading, imagesLoaded, setGlobalLoading]);
+    const fetchContent = async () => {
+        setLoading(true);
+        setGlobalLoading(true);
+        try {
+            const [pageResponse, eventsResponse] = await Promise.all([
+                client.get("/public/page-content/events_gallery"),
+                client.get("/admin/events"),
+            ]);
+            const data = pageResponse.data;
+            const eventData = eventsResponse.data;
 
-  const sections = [
-    { key: 'hero', label: 'Hero Section', description: 'Title, subtitle, background image' },
-    { key: 'events', label: 'Temple Events', description: 'Events title and dynamic event cards' },
-    { key: 'gallery', label: 'Gallery Images', description: 'Gallery title, subtitle & dynamic images' },
-    { key: 'banner', label: 'Banner Section', description: 'Banner quote and background image' },
-  ] as const;
+            const findContent = (key: string) =>
+                data.find((item: any) => item.section_key === key);
+            const getImage = (key: string) => {
+                const item = findContent(key);
+                if (item?.image?.file_url) {
+                    return constructImageUrl(item.image.file_url);
+                }
+                return undefined;
+            };
 
-  useEffect(() => {
-    fetchContent();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+            setHeroContent({
+                title_en: findContent("hero_title")?.content_en || "",
+                title_mr: findContent("hero_title")?.content_mr || "",
+                subtitle_en: findContent("hero_subtitle")?.content_en || "",
+                subtitle_mr: findContent("hero_subtitle")?.content_mr || "",
+                image_id: findContent("hero_image")?.image_id,
+                existingImageUrl: getImage("hero_image"),
+            });
 
-  const fetchContent = async () => {
-    setLoading(true);
-    setGlobalLoading(true);
-    try {
-      const response = await client.get('/public/page-content/events_gallery');
-      const data = response.data;
+            setEventsContent({
+                title_en: findContent("events_title")?.content_en || "",
+                title_mr: findContent("events_title")?.content_mr || "",
+                events: eventData.map((event: any, index: number) => ({
+                    id: event.id,
+                    clientKey: `event-${event.id}`,
+                    title_en: event.title_en || "",
+                    title_mr: event.title_mr || "",
+                    date_label_en: event.date_label_en || "",
+                    date_label_mr: event.date_label_mr || "",
+                    event_date: event.event_date || "",
+                    summary_en: event.summary_en || "",
+                    summary_mr: event.summary_mr || "",
+                    description_en: event.description_en || "",
+                    description_mr: event.description_mr || "",
+                    details_en: event.details_en || "",
+                    details_mr: event.details_mr || "",
+                    location_en: event.location_en || "",
+                    location_mr: event.location_mr || "",
+                    time_en: event.time_en || "",
+                    time_mr: event.time_mr || "",
+                    category: event.category || "Festival",
+                    image_id: event.image_id,
+                    existingImageUrl: event.cover_image?.file_url
+                        ? constructImageUrl(event.cover_image.file_url)
+                        : event.coverImage?.file_url
+                          ? constructImageUrl(event.coverImage.file_url)
+                          : undefined,
+                    galleryImages: (event.gallery_images ||
+                        event.galleryImages ||
+                        []
+                    ).map((image: any, imageIndex: number) => ({
+                        clientKey: `event-${event.id}-gallery-${image.id || imageIndex}`,
+                        image_id: image.media_id,
+                        existingImageUrl: image.media?.file_url
+                            ? constructImageUrl(image.media.file_url)
+                            : image.media?.url
+                              ? constructImageUrl(image.media.url)
+                              : undefined,
+                    })),
+                })),
+            });
+            setPersistedEventIds(eventData.map((event: any) => event.id));
 
-      const findContent = (key: string) => data.find((item: any) => item.section_key === key);
-      const getImage = (key: string) => {
-        const item = findContent(key);
-        if (item?.image?.file_url) {
-          return constructImageUrl(item.image.file_url);
+            const orderedGalleryKeys = getOrderedNumericKeys(
+                findContent("gallery_keys")?.content_en,
+                "gallery",
+                data,
+            );
+            setGalleryContent({
+                title_en: findContent("gallery_title")?.content_en || "",
+                title_mr: findContent("gallery_title")?.content_mr || "",
+                subtitle_en: findContent("gallery_subtitle")?.content_en || "",
+                subtitle_mr: findContent("gallery_subtitle")?.content_mr || "",
+                images: orderedGalleryKeys.map((galleryKey) => {
+                    const imageItem = findContent(`${galleryKey}_image`);
+                    return {
+                        key: galleryKey,
+                        image_id: imageItem?.image_id,
+                        existingImageUrl: imageItem?.image?.file_url
+                            ? constructImageUrl(imageItem.image.file_url)
+                            : undefined,
+                    };
+                }),
+            });
+            setPersistedGalleryKeys(orderedGalleryKeys);
+        } catch (error) {
+            toast.error("Failed to load content");
+        } finally {
+            setLoading(false);
+            setGlobalLoading(false);
         }
-        return undefined;
-      };
-
-      // Hero content
-      setHeroContent({
-        title_en: findContent('hero_title')?.content_en || '',
-        title_hi: findContent('hero_title')?.content_hi || '',
-        title_mr: findContent('hero_title')?.content_mr || '',
-        subtitle_en: findContent('hero_subtitle')?.content_en || '',
-        subtitle_hi: findContent('hero_subtitle')?.content_hi || '',
-        subtitle_mr: findContent('hero_subtitle')?.content_mr || '',
-        image_id: findContent('hero_image')?.image_id,
-        existingImageUrl: getImage('hero_image'),
-      });
-
-      // Events content - dynamically detect all events
-      const eventNumbers = new Set<number>();
-      data.forEach((item: any) => {
-        const match = item.section_key.match(/^event_(\d+)_/);
-        if (match) {
-          eventNumbers.add(parseInt(match[1], 10));
-        }
-      });
-
-      const sortedEventNumbers = Array.from(eventNumbers).sort((a, b) => a - b);
-      const eventsFromAPI = sortedEventNumbers.map((num) => {
-        const imageItem = findContent(`event_${num}_image`);
-        let imageUrl: string | undefined;
-        if (imageItem?.image?.file_url) {
-          imageUrl = constructImageUrl(imageItem.image.file_url);
-        }
-
-        return {
-          key: `event_${num}`,
-          name_en: findContent(`event_${num}_name`)?.content_en || '',
-          name_hi: findContent(`event_${num}_name`)?.content_hi || '',
-          name_mr: findContent(`event_${num}_name`)?.content_mr || '',
-          date: findContent(`event_${num}_date`)?.content_en || '',
-          description_en: findContent(`event_${num}_description`)?.content_en || '',
-          description_hi: findContent(`event_${num}_description`)?.content_hi || '',
-          description_mr: findContent(`event_${num}_description`)?.content_mr || '',
-          tag_en: findContent(`event_${num}_tag`)?.content_en || '',
-          tag_hi: findContent(`event_${num}_tag`)?.content_hi || '',
-          tag_mr: findContent(`event_${num}_tag`)?.content_mr || '',
-          image_id: imageItem?.image_id,
-          existingImageUrl: imageUrl,
-        };
-      });
-
-      const eventsTitleData = findContent('events_title');
-      setEventsContent({
-        title_en: eventsTitleData?.content_en || '',
-        title_hi: eventsTitleData?.content_hi || '',
-        title_mr: eventsTitleData?.content_mr || '',
-        events: eventsFromAPI,
-      });
-
-      // Gallery content - dynamically detect all gallery images
-      const galleryImageNumbers = new Set<number>();
-      data.forEach((item: any) => {
-        const match = item.section_key.match(/^gallery_(\d+)_/);
-        if (match) {
-          galleryImageNumbers.add(parseInt(match[1], 10));
-        }
-      });
-
-      const sortedGalleryNumbers = Array.from(galleryImageNumbers).sort((a, b) => a - b);
-      const galleryImagesFromAPI = sortedGalleryNumbers.map((num) => {
-        const imageItem = findContent(`gallery_${num}_image`);
-        let imageUrl: string | undefined;
-        if (imageItem?.image?.file_url) {
-          imageUrl = constructImageUrl(imageItem.image.file_url);
-        }
-        return {
-          key: `gallery_${num}`,
-          image_id: imageItem?.image_id,
-          existingImageUrl: imageUrl,
-        };
-      });
-
-      const galleryTitleData = findContent('gallery_title');
-      const gallerySubtitleData = findContent('gallery_subtitle');
-      setGalleryContent({
-        title_en: galleryTitleData?.content_en || '',
-        title_hi: galleryTitleData?.content_hi || '',
-        title_mr: galleryTitleData?.content_mr || '',
-        subtitle_en: gallerySubtitleData?.content_en || '',
-        subtitle_hi: gallerySubtitleData?.content_hi || '',
-        subtitle_mr: gallerySubtitleData?.content_mr || '',
-        images: galleryImagesFromAPI,
-      });
-
-      // Banner content
-      const bannerQuoteData = findContent('banner_quote');
-      const bannerImageData = findContent('banner_image');
-      let bannerImageUrl: string | undefined;
-      if (bannerImageData?.image?.file_url) {
-        bannerImageUrl = constructImageUrl(bannerImageData.image.file_url);
-      }
-
-      setBannerContent({
-        quote_en: bannerQuoteData?.content_en || '',
-        quote_hi: bannerQuoteData?.content_hi || '',
-        quote_mr: bannerQuoteData?.content_mr || '',
-        image_id: bannerImageData?.image_id,
-        existingImageUrl: bannerImageUrl,
-      });
-    } catch (error) {
-      toast.error('Failed to load content');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const saveHeroSection = async () => {
-    setSaving(true);
-    try {
-      await Promise.all([
-        client.post('/admin/page-content', {
-          page_key: 'events_gallery',
-          section_key: 'hero_title',
-          content_en: heroContent.title_en,
-          content_hi: heroContent.title_hi,
-          content_mr: heroContent.title_mr,
-        }),
-        client.post('/admin/page-content', {
-          page_key: 'events_gallery',
-          section_key: 'hero_subtitle',
-          content_en: heroContent.subtitle_en,
-          content_hi: heroContent.subtitle_hi,
-          content_mr: heroContent.subtitle_mr,
-        }),
-        heroContent.image_id
-          ? client.post('/admin/page-content', {
-              page_key: 'events_gallery',
-              section_key: 'hero_image',
-              image_id: heroContent.image_id,
-            })
-          : Promise.resolve(),
-      ]);
-      toast.success('Hero section saved successfully');
-    } catch (error) {
-      toast.error('Failed to save content');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const addEvent = () => {
-    const newEventNum = (eventsContent.events.length || 0) + 1;
-    const newEvent: TempleEvent = {
-      key: `event_${newEventNum}`,
-      name_en: '', name_hi: '', name_mr: '',
-      date: '',
-      description_en: '', description_hi: '', description_mr: '',
-      tag_en: '', tag_hi: '', tag_mr: '',
-      image_id: undefined,
-      existingImageUrl: undefined,
     };
-    setEventsContent({ ...eventsContent, events: [...eventsContent.events, newEvent] });
-  };
 
-  const removeEvent = (index: number) => {
-    setEventsContent({ ...eventsContent, events: eventsContent.events.filter((_, i) => i !== index) });
-  };
-
-  const addGalleryImage = () => {
-    const newImageNum = (galleryContent.images.length || 0) + 1;
-    const newImage: GalleryImage = {
-      key: `gallery_${newImageNum}`,
-      image_id: undefined,
-      existingImageUrl: undefined,
+    const saveHeroSection = async () => {
+        setSaving(true);
+        try {
+            await Promise.all([
+                client.put("/admin/page-content/events_gallery/hero_title", {
+                    content_en: heroContent.title_en,
+                    content_hi: heroContent.title_en,
+                    content_mr: heroContent.title_mr,
+                }),
+                client.put("/admin/page-content/events_gallery/hero_subtitle", {
+                    content_en: heroContent.subtitle_en,
+                    content_hi: heroContent.subtitle_en,
+                    content_mr: heroContent.subtitle_mr,
+                }),
+                heroContent.image_id
+                    ? client.put(
+                          "/admin/page-content/events_gallery/hero_image",
+                          {
+                              image_id: heroContent.image_id,
+                          },
+                      )
+                    : Promise.resolve(),
+            ]);
+            toast.success("Hero section saved successfully");
+        } catch (error) {
+            toast.error("Failed to save hero section");
+        } finally {
+            setSaving(false);
+        }
     };
-    setGalleryContent({ ...galleryContent, images: [...galleryContent.images, newImage] });
-  };
 
-  const removeGalleryImage = (index: number) => {
-    setGalleryContent({ ...galleryContent, images: galleryContent.images.filter((_, i) => i !== index) });
-  };
+    const addEvent = () => {
+        setEditingEvent(emptyEvent(eventsContent.events.length + 1));
+        setIsEventModalOpen(true);
+    };
 
-  const saveEventsSection = async () => {
-    setSaving(true);
-    try {
-      const updates: any[] = [
-        eventsContent.title_en && { endpoint: 'events_title', data: { language: 'en', content: eventsContent.title_en } },
-        eventsContent.title_hi && { endpoint: 'events_title', data: { language: 'hi', content: eventsContent.title_hi } },
-        eventsContent.title_mr && { endpoint: 'events_title', data: { language: 'mr', content: eventsContent.title_mr } },
-      ];
+    const removeEvent = (clientKey: string) => {
+        setEventsContent((prev) => ({
+            ...prev,
+            events: prev.events.filter((event) => event.clientKey !== clientKey),
+        }));
+    };
 
-      for (let i = 0; i < eventsContent.events.length; i++) {
-        const event = eventsContent.events[i];
-        const eventNum = i + 1;
-        if (event.name_en) updates.push({ endpoint: `event_${eventNum}_name`, data: { language: 'en', content: event.name_en } });
-        if (event.name_hi) updates.push({ endpoint: `event_${eventNum}_name`, data: { language: 'hi', content: event.name_hi } });
-        if (event.name_mr) updates.push({ endpoint: `event_${eventNum}_name`, data: { language: 'mr', content: event.name_mr } });
-        if (event.date) updates.push({ endpoint: `event_${eventNum}_date`, data: { language: 'en', content: event.date } });
-        if (event.description_en) updates.push({ endpoint: `event_${eventNum}_description`, data: { language: 'en', content: event.description_en } });
-        if (event.description_hi) updates.push({ endpoint: `event_${eventNum}_description`, data: { language: 'hi', content: event.description_hi } });
-        if (event.description_mr) updates.push({ endpoint: `event_${eventNum}_description`, data: { language: 'mr', content: event.description_mr } });
-        if (event.tag_en) updates.push({ endpoint: `event_${eventNum}_tag`, data: { language: 'en', content: event.tag_en } });
-        if (event.tag_hi) updates.push({ endpoint: `event_${eventNum}_tag`, data: { language: 'hi', content: event.tag_hi } });
-        if (event.tag_mr) updates.push({ endpoint: `event_${eventNum}_tag`, data: { language: 'mr', content: event.tag_mr } });
-        if (event.image_id) updates.push({ endpoint: `event_${eventNum}_image`, data: { image_id: event.image_id } });
-      }
+    const openEditEventModal = (event: TempleEventForm) => {
+        setEditingEvent({
+            ...event,
+            galleryImages: event.galleryImages.map((image) => ({ ...image })),
+        });
+        setIsEventModalOpen(true);
+    };
 
-      await Promise.all(updates.filter(Boolean).map((update) => client.put(`/admin/page-content/events_gallery/${update.endpoint}`, update.data)));
-      toast.success('Temple Events section saved successfully');
-    } catch (error) {
-      toast.error('Failed to save Temple Events section');
-    } finally {
-      setSaving(false);
-    }
-  };
+    const closeEventModal = () => {
+        setEditingEvent(null);
+        setIsEventModalOpen(false);
+    };
 
-  const saveGallerySection = async () => {
-    setSaving(true);
-    try {
-      const updates: Array<{ endpoint: string; data: Record<string, string | number> }> = [];
-      if (galleryContent.title_en) updates.push({ endpoint: 'gallery_title', data: { language: 'en', content: galleryContent.title_en } });
-      if (galleryContent.title_hi) updates.push({ endpoint: 'gallery_title', data: { language: 'hi', content: galleryContent.title_hi } });
-      if (galleryContent.title_mr) updates.push({ endpoint: 'gallery_title', data: { language: 'mr', content: galleryContent.title_mr } });
-      if (galleryContent.subtitle_en) updates.push({ endpoint: 'gallery_subtitle', data: { language: 'en', content: galleryContent.subtitle_en } });
-      if (galleryContent.subtitle_hi) updates.push({ endpoint: 'gallery_subtitle', data: { language: 'hi', content: galleryContent.subtitle_hi } });
-      if (galleryContent.subtitle_mr) updates.push({ endpoint: 'gallery_subtitle', data: { language: 'mr', content: galleryContent.subtitle_mr } });
+    const saveEventModal = async () => {
+        if (!editingEvent) {
+            return;
+        }
 
-      // Save gallery images - extract number from key (e.g., gallery_1 -> 1)
-      for (let i = 0; i < galleryContent.images.length; i++) {
-        const image = galleryContent.images[i];
-        const imageNumMatch = image.key.match(/gallery_(\d+)/);
-        const imageNum = imageNumMatch ? imageNumMatch[1] : i + 1;
-        if (image.image_id) updates.push({ endpoint: `gallery_${imageNum}_image`, data: { image_id: image.image_id } });
-      }
+        const eventToSave: TempleEventForm = {
+            ...editingEvent,
+            galleryImages: editingEvent.galleryImages.map((image) => ({
+                ...image,
+            })),
+        };
 
-      await Promise.all(updates.map((update) => client.put(`/admin/page-content/events_gallery/${update.endpoint}`, update.data)));
-      toast.success('Gallery section saved successfully');
-    } catch (error) {
-      toast.error('Failed to save Gallery section');
-    } finally {
-      setSaving(false);
-    }
-  };
+        if (!eventToSave.title_en.trim() && !eventToSave.title_mr.trim()) {
+            toast.error("Add an event title before saving");
+            return;
+        }
 
-  const saveBannerSection = async () => {
-    setSaving(true);
-    try {
-      await Promise.all([
-        client.post('/admin/page-content', {
-          page_key: 'events_gallery',
-          section_key: 'banner_quote',
-          content_en: bannerContent.quote_en,
-          content_hi: bannerContent.quote_hi,
-          content_mr: bannerContent.quote_mr,
-        }),
-        bannerContent.image_id
-          ? client.post('/admin/page-content', {
-              page_key: 'events_gallery',
-              section_key: 'banner_image',
-              image_id: bannerContent.image_id,
-            })
-          : Promise.resolve(),
-      ]);
-      toast.success('Banner section saved successfully');
-    } catch (error) {
-      toast.error('Failed to save Banner section');
-    } finally {
-      setSaving(false);
-    }
-  };
+        setSaving(true);
+        try {
+            const payload = {
+                title_en: eventToSave.title_en,
+                title_hi: eventToSave.title_en,
+                title_mr: eventToSave.title_mr,
+                date_label_en: eventToSave.date_label_en,
+                date_label_hi: eventToSave.date_label_en,
+                date_label_mr: eventToSave.date_label_mr,
+                event_date: eventToSave.event_date || null,
+                summary_en: eventToSave.summary_en,
+                summary_hi: eventToSave.summary_en,
+                summary_mr: eventToSave.summary_mr,
+                description_en: eventToSave.description_en,
+                description_hi: eventToSave.description_en,
+                description_mr: eventToSave.description_mr,
+                details_en: eventToSave.details_en,
+                details_hi: eventToSave.details_en,
+                details_mr: eventToSave.details_mr,
+                location_en: eventToSave.location_en,
+                location_hi: eventToSave.location_en,
+                location_mr: eventToSave.location_mr,
+                time_en: eventToSave.time_en,
+                time_hi: eventToSave.time_en,
+                time_mr: eventToSave.time_mr,
+                category: eventToSave.category,
+                image_id: eventToSave.image_id,
+                gallery_image_ids: eventToSave.galleryImages
+                    .map((image) => image.image_id)
+                    .filter(Boolean),
+                is_active: true,
+                sort_order: eventToSave.id
+                    ? eventsContent.events.findIndex(
+                          (event) => event.id === eventToSave.id,
+                      )
+                    : eventsContent.events.length,
+            };
 
-  const renderLanguageTabs = (
-    label: string,
-    en: string,
-    hi: string,
-    mr: string,
-    onChange: (lang: string, value: string) => void,
-    isTextarea = false,
-  ) => (
-    <div className="space-y-4">
-      <h3 className="font-semibold text-foreground">{label}</h3>
-      <Tabs defaultValue="en" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="en">English</TabsTrigger>
-          <TabsTrigger value="mr">मराठी</TabsTrigger>
-        </TabsList>
+            if (eventToSave.id) {
+                await client.put(`/admin/events/${eventToSave.id}`, payload);
+            } else {
+                await client.post("/admin/events", payload);
+            }
 
-        <TabsContent value="en" className="space-y-2 mt-4">
-          {isTextarea ? (
-            <RichTextEditor
-              value={en}
-              onChange={(value) => onChange('en', value)}
-              placeholder={`Enter ${label} in English`}
-            />
-          ) : (
-            <Input
-              value={en}
-              onChange={(e) => onChange('en', e.target.value)}
-              placeholder={`Enter ${label} in English`}
-              disabled={loading}
-            />
-          )}
-        </TabsContent>
+            toast.success(
+                eventToSave.id
+                    ? "Event updated successfully"
+                    : "Event added successfully",
+            );
+            closeEventModal();
+            await fetchContent();
+        } catch (error) {
+            const apiMessage = (error as any)?.response?.data?.message;
+            const apiErrors = (error as any)?.response?.data?.errors;
+            const validationMessage = apiErrors
+                ? Object.values(apiErrors).flat().join(", ")
+                : "";
+            const message =
+                apiMessage || validationMessage || "Failed to save event";
+            toast.error(message || "Failed to save event");
+        } finally {
+            setSaving(false);
+        }
+    };
 
-        <TabsContent value="hi" className="space-y-2 mt-4">
-          {isTextarea ? (
-            <RichTextEditor
-              value={hi}
-              onChange={(value) => onChange('hi', value)}
-              placeholder={`हिंदी में ${label} दर्ज करें`}
-            />
-          ) : (
-            <Input
-              value={hi}
-              onChange={(e) => onChange('hi', e.target.value)}
-              placeholder={`हिंदी में ${label} दर्ज करें`}
-              disabled={loading}
-            />
-          )}
-        </TabsContent>
+    const updateEditingEvent = (
+        updater: (event: TempleEventForm) => TempleEventForm,
+    ) => {
+        setEditingEvent((prev) => (prev ? updater(prev) : prev));
+    };
 
-        <TabsContent value="mr" className="space-y-2 mt-4">
-          {isTextarea ? (
-            <RichTextEditor
-              value={mr}
-              onChange={(value) => onChange('mr', value)}
-              placeholder={`मराठीत ${label} प्रविष्ट करा`}
-            />
-          ) : (
-            <Input
-              value={mr}
-              onChange={(e) => onChange('mr', e.target.value)}
-              placeholder={`मराठीत ${label} प्रविष्ट करा`}
-              disabled={loading}
-            />
-          )}
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
+    const updateEvent = (
+        clientKey: string,
+        updater: (event: TempleEventForm) => TempleEventForm,
+    ) => {
+        setEventsContent((prev) => ({
+            ...prev,
+            events: prev.events.map((event) =>
+                event.clientKey === clientKey ? updater(event) : event,
+            ),
+        }));
+    };
 
-  return (
-    <div className="max-w-6xl space-y-6">
-      <div>
-        <h1 className="font-heading text-3xl font-bold text-foreground">Events & Gallery Page Editor</h1>
-        <p className="text-muted-foreground mt-1">Manage all Events & Gallery page sections in multiple languages</p>
-      </div>
+    const addEventGalleryImage = (clientKey: string) => {
+        updateEvent(clientKey, (event) => ({
+            ...event,
+            galleryImages: [
+                ...event.galleryImages,
+                {
+                    clientKey: `${clientKey}-gallery-${Date.now()}`,
+                    image_id: undefined,
+                    existingImageUrl: undefined,
+                },
+            ],
+        }));
+    };
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {sections.map((section) => (
-          <Card key={section.key} className={`cursor-pointer transition-all ${activeSection === section.key ? 'ring-2 ring-primary' : ''}`} onClick={() => setActiveSection(section.key)}>
-            <CardContent className="pt-6">
-              <p className="font-semibold text-sm text-foreground">{section.label}</p>
-              <p className="text-xs text-muted-foreground mt-1">{section.description}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+    const removeEventGalleryImage = (
+        clientKey: string,
+        imageClientKey: string,
+    ) => {
+        updateEvent(clientKey, (event) => ({
+            ...event,
+            galleryImages: event.galleryImages.filter(
+                (image) => image.clientKey !== imageClientKey,
+            ),
+        }));
+    };
 
-      {/* Hero Section */}
-      {activeSection === 'hero' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Hero Section</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
+    const saveEventsSection = async () => {
+        setSaving(true);
+        try {
+            await client.put("/admin/page-content/events_gallery/events_title", {
+                content_en: eventsContent.title_en,
+                content_hi: eventsContent.title_en,
+                content_mr: eventsContent.title_mr,
+            });
+
+            const removedIds = persistedEventIds.filter(
+                (id) => !eventsContent.events.some((event) => event.id === id),
+            );
+            await Promise.all(
+                removedIds.map((id) => client.delete(`/admin/events/${id}`)),
+            );
+
+            const savedEvents = await Promise.all(
+                eventsContent.events.map((event, index) => {
+                    const payload = {
+                        title_en: event.title_en,
+                        title_hi: event.title_en,
+                        title_mr: event.title_mr,
+                        date_label_en: event.date_label_en,
+                        date_label_hi: event.date_label_en,
+                        date_label_mr: event.date_label_mr,
+                        event_date: event.event_date || null,
+                        summary_en: event.summary_en,
+                        summary_hi: event.summary_en,
+                        summary_mr: event.summary_mr,
+                        description_en: event.description_en,
+                        description_hi: event.description_en,
+                        description_mr: event.description_mr,
+                        details_en: event.details_en,
+                        details_hi: event.details_en,
+                        details_mr: event.details_mr,
+                        location_en: event.location_en,
+                        location_hi: event.location_en,
+                        location_mr: event.location_mr,
+                        time_en: event.time_en,
+                        time_hi: event.time_en,
+                        time_mr: event.time_mr,
+                        category: event.category,
+                        image_id: event.image_id,
+                        gallery_image_ids: event.galleryImages
+                            .map((image) => image.image_id)
+                            .filter(Boolean),
+                        is_active: true,
+                        sort_order: index,
+                    };
+
+                    if (event.id) {
+                        return client.put(`/admin/events/${event.id}`, payload);
+                    }
+
+                    return client.post("/admin/events", payload);
+                }),
+            );
+
+            await client.post(
+                "/admin/events/reorder",
+                savedEvents.map((response, index) => ({
+                    id: response.data.id,
+                    sort_order: index,
+                })),
+            );
+
+            setPersistedEventIds(
+                savedEvents.map((response) => response.data.id as number),
+            );
+            toast.success("Events section saved successfully");
+            await fetchContent();
+        } catch (error) {
+            toast.error("Failed to save events section");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const addGalleryImage = () => {
+        const nextIndex =
+            galleryContent.images.length > 0
+                ? Math.max(
+                      ...galleryContent.images.map((image) => {
+                          const match = image.key.match(/^gallery_(\d+)$/);
+                          return match ? parseInt(match[1], 10) : 0;
+                      }),
+                  ) + 1
+                : 1;
+        setGalleryContent((prev) => ({
+            ...prev,
+            images: [
+                { key: `gallery_${nextIndex}`, image_id: undefined },
+                ...prev.images,
+            ],
+        }));
+    };
+
+    const removeGalleryImage = (key: string) => {
+        setGalleryContent((prev) => ({
+            ...prev,
+            images: prev.images.filter((image) => image.key !== key),
+        }));
+    };
+
+    const saveGallerySection = async () => {
+        setSaving(true);
+        try {
+            const updates: Array<{
+                endpoint: string;
+                data: Record<string, string | number>;
+            }> = [
+                {
+                    endpoint: "gallery_keys",
+                    data: {
+                        content_en: JSON.stringify(
+                            galleryContent.images.map((image) => image.key),
+                        ),
+                    },
+                },
+                {
+                    endpoint: "gallery_title",
+                    data: {
+                        content_en: galleryContent.title_en,
+                        content_hi: galleryContent.title_en,
+                        content_mr: galleryContent.title_mr,
+                    },
+                },
+                {
+                    endpoint: "gallery_subtitle",
+                    data: {
+                        content_en: galleryContent.subtitle_en,
+                        content_hi: galleryContent.subtitle_en,
+                        content_mr: galleryContent.subtitle_mr,
+                    },
+                },
+            ];
+
+            galleryContent.images.forEach((image) => {
+                if (image.image_id) {
+                    updates.push({
+                        endpoint: `${image.key}_image`,
+                        data: { image_id: image.image_id },
+                    });
+                }
+            });
+
+            const removedGalleryKeys = persistedGalleryKeys.filter(
+                (key) => !galleryContent.images.some((image) => image.key === key),
+            );
+
+            await Promise.all([
+                ...removedGalleryKeys.map((galleryKey) =>
+                    client.delete(
+                        `/admin/page-content/events_gallery/${galleryKey}_image`,
+                    ),
+                ),
+                ...updates.map((update) =>
+                    client.put(
+                        `/admin/page-content/events_gallery/${update.endpoint}`,
+                        update.data,
+                    ),
+                ),
+            ]);
+
+            setPersistedGalleryKeys(
+                galleryContent.images.map((image) => image.key),
+            );
+            toast.success("Gallery section saved successfully");
+        } catch (error) {
+            toast.error("Failed to save gallery section");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const renderLanguageTabs = (
+        label: string,
+        en: string,
+        mr: string,
+        onChange: (lang: "en" | "mr", value: string) => void,
+        isRichText = false,
+    ) => (
+        <div className="space-y-4">
+            <h3 className="font-semibold text-foreground">{label}</h3>
+            <Tabs defaultValue="en" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="en">English</TabsTrigger>
+                    <TabsTrigger value="mr">मराठी</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="en" className="mt-4">
+                    {isRichText ? (
+                        <RichTextEditor
+                            value={en}
+                            onChange={(value) => onChange("en", value)}
+                            placeholder={`Enter ${label} in English`}
+                        />
+                    ) : (
+                        <Input
+                            value={en}
+                            onChange={(e) => onChange("en", e.target.value)}
+                            placeholder={`Enter ${label} in English`}
+                            disabled={loading}
+                        />
+                    )}
+                </TabsContent>
+
+                <TabsContent value="mr" className="mt-4">
+                    {isRichText ? (
+                        <RichTextEditor
+                            value={mr}
+                            onChange={(value) => onChange("mr", value)}
+                            placeholder={`मराठीत ${label} प्रविष्ट करा`}
+                        />
+                    ) : (
+                        <Input
+                            value={mr}
+                            onChange={(e) => onChange("mr", e.target.value)}
+                            placeholder={`मराठीत ${label} प्रविष्ट करा`}
+                            disabled={loading}
+                        />
+                    )}
+                </TabsContent>
+            </Tabs>
+        </div>
+    );
+
+    return (
+        <div className="max-w-6xl space-y-6">
             <div>
-              <h3 className="font-semibold mb-4">Hero Image</h3>
-              <ImageUpload
-                onUpload={(mediaId) => setHeroContent({ ...heroContent, image_id: mediaId })}
-                existingImageUrl={heroContent.existingImageUrl}
-                section="events-gallery-hero"
-              />
-            </div>
-            {renderLanguageTabs(
-              'Title',
-              heroContent.title_en,
-              heroContent.title_hi,
-              heroContent.title_mr,
-              (lang, value) => setHeroContent({ ...heroContent, [`title_${lang}`]: value }),
-            )}
-            {renderLanguageTabs(
-              'Subtitle',
-              heroContent.subtitle_en,
-              heroContent.subtitle_hi,
-              heroContent.subtitle_mr,
-              (lang, value) => setHeroContent({ ...heroContent, [`subtitle_${lang}`]: value }),
-              true,
-            )}
-            <Button onClick={saveHeroSection} disabled={saving} className="w-full">
-              {saving ? 'Saving...' : 'Save Hero Section'}
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Temple Events Section */}
-      {activeSection === 'events' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Temple Events Section</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {renderLanguageTabs(
-              'Section Title',
-              eventsContent.title_en,
-              eventsContent.title_hi,
-              eventsContent.title_mr,
-              (lang, value) => setEventsContent({ ...eventsContent, [`title_${lang}`]: value }),
-            )}
-
-            <div className="space-y-6 mt-8">
-              <div className="flex justify-between items-center">
-                <h3 className="font-semibold text-lg text-foreground">Events</h3>
-                <Button onClick={addEvent} variant="outline" size="sm" className="gap-2">
-                  <Plus size={16} /> Add Event
-                </Button>
-              </div>
-
-              {eventsContent.events.map((event, index) => (
-                <div key={event.key} className="border rounded-lg p-6 bg-muted/30 space-y-4">
-                  <div className="flex justify-between items-start">
-                    <h4 className="font-semibold text-foreground">Event {index + 1}</h4>
-                    <Button onClick={() => removeEvent(index)} variant="destructive" size="sm">
-                      <Trash2 size={16} />
-                    </Button>
-                  </div>
-
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-foreground">Event Image</h3>
-                    <ImageUpload
-                      onUpload={(mediaId: number) => {
-                        const newEvents = eventsContent.events.map((e, i) => i === index ? { ...e, image_id: mediaId } : e);
-                        setEventsContent({ ...eventsContent, events: newEvents });
-                      }}
-                      existingImageUrl={event.existingImageUrl}
-                      section={`event-${index + 1}`}
-                    />
-                  </div>
-
-                  {renderLanguageTabs(
-                    `Event ${index + 1} Name`,
-                    event.name_en,
-                    event.name_hi,
-                    event.name_mr,
-                    (lang, val) => {
-                      const newEvents = eventsContent.events.map((e, i) => i === index ? { ...e, [`name_${lang}`]: val } : e);
-                      setEventsContent({ ...eventsContent, events: newEvents });
-                    },
-                  )}
-
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-foreground">Date</h3>
-                    <Input
-                      type="date"
-                      value={event.date}
-                      onChange={(e) => {
-                        const newEvents = eventsContent.events.map((ev, i) => i === index ? { ...ev, date: e.target.value } : ev);
-                        setEventsContent({ ...eventsContent, events: newEvents });
-                      }}
-                      disabled={loading}
-                    />
-                  </div>
-
-                  {renderLanguageTabs(
-                    `Event ${index + 1} Description`,
-                    event.description_en,
-                    event.description_hi,
-                    event.description_mr,
-                    (lang, val) => {
-                      const newEvents = eventsContent.events.map((e, i) => i === index ? { ...e, [`description_${lang}`]: val } : e);
-                      setEventsContent({ ...eventsContent, events: newEvents });
-                    },
-                    true,
-                  )}
-
-                  {renderLanguageTabs(
-                    `Event ${index + 1} Tag`,
-                    event.tag_en,
-                    event.tag_hi,
-                    event.tag_mr,
-                    (lang, val) => {
-                      const newEvents = eventsContent.events.map((e, i) => i === index ? { ...e, [`tag_${lang}`]: val } : e);
-                      setEventsContent({ ...eventsContent, events: newEvents });
-                    },
-                  )}
-                </div>
-              ))}
-
-              {eventsContent.events.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  No events added yet. Click "Add Event" to create one.
-                </div>
-              )}
+                <h1 className="font-heading text-3xl font-bold text-foreground">
+                    Events & Gallery Page Editor
+                </h1>
+                <p className="mt-1 text-muted-foreground">
+                    Manage the Events page hero, detailed events, and gallery
+                    images
+                </p>
             </div>
 
-            <Button onClick={saveEventsSection} disabled={saving} className="w-full mt-6">
-              {saving ? 'Saving...' : 'Save Temple Events Section'}
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Gallery Section */}
-      {activeSection === 'gallery' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Gallery Images Section</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {renderLanguageTabs(
-              'Gallery Title',
-              galleryContent.title_en,
-              galleryContent.title_hi,
-              galleryContent.title_mr,
-              (lang, value) => setGalleryContent({ ...galleryContent, [`title_${lang}`]: value }),
-            )}
-
-            {renderLanguageTabs(
-              'Gallery Subtitle',
-              galleryContent.subtitle_en,
-              galleryContent.subtitle_hi,
-              galleryContent.subtitle_mr,
-              (lang, value) => setGalleryContent({ ...galleryContent, [`subtitle_${lang}`]: value }),
-              true,
-            )}
-
-            <div className="space-y-6 mt-8">
-              <div className="flex justify-between items-center">
-                <h3 className="font-semibold text-lg text-foreground">Gallery Images</h3>
-                <Button onClick={addGalleryImage} variant="outline" size="sm" className="gap-2">
-                  <Plus size={16} /> Add Image
-                </Button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {galleryContent.images.map((image, index) => (
-                  <div key={image.key} className="border rounded-lg p-4 bg-muted/30 space-y-3">
-                    <div className="flex justify-between items-center">
-                      <h4 className="font-semibold text-foreground">Image {index + 1}</h4>
-                      <Button onClick={() => removeGalleryImage(index)} variant="destructive" size="sm">
-                        <Trash2 size={16} />
-                      </Button>
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="font-semibold text-sm text-foreground">Upload Image</h3>
-                      <ImageUpload
-                        onUpload={(mediaId: number) => {
-                          const newImages = galleryContent.images.map((img, i) =>
-                            i === index ? { ...img, image_id: mediaId } : img
-                          );
-                          setGalleryContent({ ...galleryContent, images: newImages });
-                        }}
-                        existingImageUrl={image.existingImageUrl}
-                        section={`gallery-${index + 1}`}
-                      />
-                    </div>
-                  </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                {sections.map((section) => (
+                    <Card
+                        key={section.key}
+                        className={`cursor-pointer transition-all ${activeSection === section.key ? "ring-2 ring-primary" : ""}`}
+                        onClick={() => setActiveSection(section.key)}
+                    >
+                        <CardContent className="pt-6">
+                            <p className="text-sm font-semibold text-foreground">
+                                {section.label}
+                            </p>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                                {section.description}
+                            </p>
+                        </CardContent>
+                    </Card>
                 ))}
-              </div>
-              {galleryContent.images.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  No gallery images added yet. Click "Add Image" to create one.
-                </div>
-              )}
             </div>
 
-            <Button onClick={saveGallerySection} disabled={saving} className="w-full mt-6">
-              {saving ? 'Saving...' : 'Save Gallery Section'}
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+            {activeSection === "hero" && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Hero Section</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div>
+                            <h3 className="mb-4 font-semibold">Hero Image</h3>
+                            <ImageUpload
+                                onUpload={(mediaId) =>
+                                    setHeroContent((prev) => ({
+                                        ...prev,
+                                        image_id: mediaId,
+                                    }))
+                                }
+                                existingImageUrl={heroContent.existingImageUrl}
+                                section="events-gallery-hero"
+                            />
+                        </div>
 
-      {/* Banner Section */}
-      {activeSection === 'banner' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Banner Section</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <h3 className="font-semibold mb-4">Banner Image</h3>
-              <ImageUpload
-                onUpload={(mediaId) => setBannerContent({ ...bannerContent, image_id: mediaId })}
-                existingImageUrl={bannerContent.existingImageUrl}
-                section="events-gallery-banner"
-              />
-            </div>
+                        {renderLanguageTabs(
+                            "Title",
+                            heroContent.title_en,
+                            heroContent.title_mr,
+                            (lang, value) =>
+                                setHeroContent((prev) => ({
+                                    ...prev,
+                                    [`title_${lang}`]: value,
+                                })),
+                        )}
 
-            {renderLanguageTabs(
-              'Banner Quote',
-              bannerContent.quote_en,
-              bannerContent.quote_hi,
-              bannerContent.quote_mr,
-              (lang, value) => setBannerContent({ ...bannerContent, [`quote_${lang}`]: value }),
-              true,
+                        {renderLanguageTabs(
+                            "Subtitle",
+                            heroContent.subtitle_en,
+                            heroContent.subtitle_mr,
+                            (lang, value) =>
+                                setHeroContent((prev) => ({
+                                    ...prev,
+                                    [`subtitle_${lang}`]: value,
+                                })),
+                            true,
+                        )}
+
+                        <Button
+                            onClick={saveHeroSection}
+                            disabled={saving}
+                            className="w-full"
+                        >
+                            {saving ? "Saving..." : "Save Hero Section"}
+                        </Button>
+                    </CardContent>
+                </Card>
             )}
 
-            <Button onClick={saveBannerSection} disabled={saving} className="w-full">
-              {saving ? 'Saving...' : 'Save Banner Section'}
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  );
+            {activeSection === "events" && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Temple Events Section</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        {renderLanguageTabs(
+                            "Section Title",
+                            eventsContent.title_en,
+                            eventsContent.title_mr,
+                            (lang, value) =>
+                                setEventsContent((prev) => ({
+                                    ...prev,
+                                    [`title_${lang}`]: value,
+                                })),
+                        )}
+
+                        <div className="mt-8 flex items-center justify-between">
+                            <h3 className="text-lg font-semibold text-foreground">
+                                Events
+                            </h3>
+                            <Button
+                                onClick={addEvent}
+                                variant="outline"
+                                size="sm"
+                                className="gap-2"
+                            >
+                                <Plus size={16} /> Add Event
+                            </Button>
+                        </div>
+
+                        <div className="space-y-4">
+                            {[...eventsContent.events]
+                                .reverse()
+                                .map((event, reversedIndex) => {
+                                    const index =
+                                        eventsContent.events.length -
+                                        1 -
+                                        reversedIndex;
+
+                                    return (
+                                        <div
+                                            key={event.clientKey}
+                                            className="rounded-lg border bg-muted/30 p-5"
+                                        >
+                                            <div className="flex items-start justify-between gap-4">
+                                                <div className="min-w-0">
+                                                    <h4 className="font-semibold text-foreground">
+                                                        {event.title_en ||
+                                                            event.title_mr ||
+                                                            `Event ${index + 1}`}
+                                                    </h4>
+                                                    <div className="mt-1 space-y-1 text-sm text-muted-foreground">
+                                                        <p>
+                                                            Category:{" "}
+                                                            {event.category}
+                                                        </p>
+                                                        {event.event_date && (
+                                                            <p>
+                                                                Date:{" "}
+                                                                {
+                                                                    event.event_date
+                                                                }
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Button
+                                                        onClick={() =>
+                                                            openEditEventModal(
+                                                                event,
+                                                            )
+                                                        }
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="gap-2"
+                                                    >
+                                                        <Pencil size={16} />
+                                                        Edit
+                                                    </Button>
+                                                    <Button
+                                                        onClick={() =>
+                                                            removeEvent(
+                                                                event.clientKey,
+                                                            )
+                                                        }
+                                                        variant="destructive"
+                                                        size="sm"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                        </div>
+
+                        <Button
+                            onClick={saveEventsSection}
+                            disabled={saving}
+                            className="w-full"
+                        >
+                            {saving ? "Saving..." : "Save Events Section"}
+                        </Button>
+                    </CardContent>
+                </Card>
+            )}
+
+            <Dialog
+                open={isEventModalOpen}
+                onOpenChange={(open) => {
+                    setIsEventModalOpen(open);
+                    if (!open) {
+                        setEditingEvent(null);
+                    }
+                }}
+            >
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {editingEvent?.id ? "Edit Event" : "Add Event"}
+                        </DialogTitle>
+                        <DialogDescription>
+                            Update the event card and detail page content here.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {editingEvent && (
+                        <div className="space-y-6">
+                            <div className="space-y-2">
+                                <h3 className="font-semibold text-foreground">
+                                    Cover Image
+                                </h3>
+                                <ImageUpload
+                                    onUpload={(mediaId: number) =>
+                                        updateEditingEvent((currentEvent) => ({
+                                            ...currentEvent,
+                                            image_id: mediaId,
+                                        }))
+                                    }
+                                    existingImageUrl={
+                                        editingEvent.existingImageUrl
+                                    }
+                                    section="event-1"
+                                />
+                            </div>
+
+                            {renderLanguageTabs(
+                                "Event Title",
+                                editingEvent.title_en,
+                                editingEvent.title_mr,
+                                (lang, value) =>
+                                    updateEditingEvent((currentEvent) => ({
+                                        ...currentEvent,
+                                        [`title_${lang}`]: value,
+                                    })),
+                            )}
+
+                            <div className="grid gap-4 md:grid-cols-2">
+                                <div className="space-y-2">
+                                    <h3 className="font-semibold text-foreground">
+                                        Category
+                                    </h3>
+                                    <select
+                                        value={editingEvent.category}
+                                        onChange={(e) =>
+                                            updateEditingEvent(
+                                                (currentEvent) => ({
+                                                    ...currentEvent,
+                                                    category: e.target
+                                                        .value as TempleEventForm["category"],
+                                                }),
+                                            )
+                                        }
+                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                    >
+                                        <option value="Festival">
+                                            Festival
+                                        </option>
+                                        <option value="Yatra">Yatra</option>
+                                        <option value="Pooja">Pooja</option>
+                                    </select>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <h3 className="font-semibold text-foreground">
+                                        Event Date
+                                    </h3>
+                                    <Input
+                                        type="date"
+                                        value={editingEvent.event_date}
+                                        onChange={(e) =>
+                                            updateEditingEvent(
+                                                (currentEvent) => ({
+                                                    ...currentEvent,
+                                                    event_date:
+                                                        e.target.value,
+                                                }),
+                                            )
+                                        }
+                                    />
+                                </div>
+
+                            </div>
+
+                            {renderLanguageTabs(
+                                "Date Label",
+                                editingEvent.date_label_en,
+                                editingEvent.date_label_mr,
+                                (lang, value) =>
+                                    updateEditingEvent((currentEvent) => ({
+                                        ...currentEvent,
+                                        [`date_label_${lang}`]: value,
+                                    })),
+                            )}
+
+                            <div className="space-y-4">
+                                <h3 className="font-semibold text-foreground">
+                                    Time
+                                </h3>
+                                <Tabs defaultValue="en" className="w-full">
+                                    <TabsList className="grid w-full grid-cols-2">
+                                        <TabsTrigger value="en">
+                                            English
+                                        </TabsTrigger>
+                                        <TabsTrigger value="mr">
+                                            मराठी
+                                        </TabsTrigger>
+                                    </TabsList>
+
+                                    <TabsContent value="en" className="mt-4">
+                                        <Input
+                                            type="time"
+                                            value={convertTo24Hour(
+                                                editingEvent.time_en,
+                                            )}
+                                            onChange={(e) =>
+                                                updateEditingEvent(
+                                                    (currentEvent) => ({
+                                                        ...currentEvent,
+                                                        time_en:
+                                                            convertTo12Hour(
+                                                                e.target.value,
+                                                            ),
+                                                    }),
+                                                )
+                                            }
+                                            disabled={loading}
+                                        />
+                                        <p className="mt-1 text-xs text-muted-foreground">
+                                            Saved in 12-hour format like the
+                                            pooja timings.
+                                        </p>
+                                    </TabsContent>
+
+                                    <TabsContent value="mr" className="mt-4">
+                                        <Input
+                                            type="time"
+                                            value={convertTo24Hour(
+                                                editingEvent.time_mr,
+                                            )}
+                                            onChange={(e) =>
+                                                updateEditingEvent(
+                                                    (currentEvent) => ({
+                                                        ...currentEvent,
+                                                        time_mr:
+                                                            convertTo12Hour(
+                                                                e.target.value,
+                                                            ),
+                                                    }),
+                                                )
+                                            }
+                                            disabled={loading}
+                                        />
+                                        <p className="mt-1 text-xs text-muted-foreground">
+                                            Saved in 12-hour format like the
+                                            pooja timings.
+                                        </p>
+                                    </TabsContent>
+                                </Tabs>
+                            </div>
+
+                            {renderLanguageTabs(
+                                "Location",
+                                editingEvent.location_en,
+                                editingEvent.location_mr,
+                                (lang, value) =>
+                                    updateEditingEvent((currentEvent) => ({
+                                        ...currentEvent,
+                                        [`location_${lang}`]: value,
+                                    })),
+                            )}
+
+                            {renderLanguageTabs(
+                                "Card Summary",
+                                editingEvent.summary_en,
+                                editingEvent.summary_mr,
+                                (lang, value) =>
+                                    updateEditingEvent((currentEvent) => ({
+                                        ...currentEvent,
+                                        [`summary_${lang}`]: value,
+                                    })),
+                                true,
+                            )}
+
+                            {renderLanguageTabs(
+                                "Short Description",
+                                editingEvent.description_en,
+                                editingEvent.description_mr,
+                                (lang, value) =>
+                                    updateEditingEvent((currentEvent) => ({
+                                        ...currentEvent,
+                                        [`description_${lang}`]: value,
+                                    })),
+                                true,
+                            )}
+
+                            {renderLanguageTabs(
+                                "Full Details",
+                                editingEvent.details_en,
+                                editingEvent.details_mr,
+                                (lang, value) =>
+                                    updateEditingEvent((currentEvent) => ({
+                                        ...currentEvent,
+                                        [`details_${lang}`]: value,
+                                    })),
+                                true,
+                            )}
+
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="font-semibold text-foreground">
+                                        Event Detail Gallery Images
+                                    </h3>
+                                    <Button
+                                        onClick={() =>
+                                            setEditingEvent((currentEvent) =>
+                                                currentEvent
+                                                    ? {
+                                                          ...currentEvent,
+                                                          galleryImages: [
+                                                              {
+                                                                  clientKey: `modal-gallery-${Date.now()}`,
+                                                                  image_id:
+                                                                      undefined,
+                                                                  existingImageUrl:
+                                                                      undefined,
+                                                              },
+                                                              ...currentEvent.galleryImages,
+                                                          ],
+                                                      }
+                                                    : currentEvent,
+                                            )
+                                        }
+                                        variant="outline"
+                                        size="sm"
+                                        className="gap-2"
+                                    >
+                                        <Plus size={16} /> Add Image
+                                    </Button>
+                                </div>
+
+                                {editingEvent.galleryImages.length === 0 && (
+                                    <p className="text-sm text-muted-foreground">
+                                        Add one or more extra images for the
+                                        event details page.
+                                    </p>
+                                )}
+
+                                {editingEvent.galleryImages.map(
+                                    (galleryImage, galleryIndex) => (
+                                        <div
+                                            key={galleryImage.clientKey}
+                                            className="space-y-3 rounded-lg border bg-background p-4"
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-sm font-medium text-foreground">
+                                                    Detail Image{" "}
+                                                    {galleryIndex + 1}
+                                                </p>
+                                                <Button
+                                                    onClick={() =>
+                                                        setEditingEvent(
+                                                            (
+                                                                currentEvent,
+                                                            ) =>
+                                                                currentEvent
+                                                                    ? {
+                                                                          ...currentEvent,
+                                                                          galleryImages:
+                                                                              currentEvent.galleryImages.filter(
+                                                                                  (
+                                                                                      image,
+                                                                                  ) =>
+                                                                                      image.clientKey !==
+                                                                                      galleryImage.clientKey,
+                                                                              ),
+                                                                      }
+                                                                    : currentEvent,
+                                                        )
+                                                    }
+                                                    variant="destructive"
+                                                    size="sm"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </Button>
+                                            </div>
+                                            <ImageUpload
+                                                onUpload={(mediaId: number) =>
+                                                    setEditingEvent(
+                                                        (currentEvent) =>
+                                                            currentEvent
+                                                                ? {
+                                                                      ...currentEvent,
+                                                                      galleryImages:
+                                                                          currentEvent.galleryImages.map(
+                                                                              (
+                                                                                  image,
+                                                                              ) =>
+                                                                                  image.clientKey ===
+                                                                                  galleryImage.clientKey
+                                                                                      ? {
+                                                                                            ...image,
+                                                                                            image_id:
+                                                                                                mediaId,
+                                                                                        }
+                                                                                      : image,
+                                                                          ),
+                                                                  }
+                                                                : currentEvent,
+                                                    )
+                                                }
+                                                existingImageUrl={
+                                                    galleryImage.existingImageUrl
+                                                }
+                                                section="event-1"
+                                            />
+                                        </div>
+                                    ),
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    <DialogFooter>
+                        <Button variant="outline" onClick={closeEventModal}>
+                            Cancel
+                        </Button>
+                        <Button onClick={saveEventModal}>Save Event</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {activeSection === "gallery" && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Gallery Images Section</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        {renderLanguageTabs(
+                            "Section Title",
+                            galleryContent.title_en,
+                            galleryContent.title_mr,
+                            (lang, value) =>
+                                setGalleryContent((prev) => ({
+                                    ...prev,
+                                    [`title_${lang}`]: value,
+                                })),
+                        )}
+
+                        {renderLanguageTabs(
+                            "Section Subtitle",
+                            galleryContent.subtitle_en,
+                            galleryContent.subtitle_mr,
+                            (lang, value) =>
+                                setGalleryContent((prev) => ({
+                                    ...prev,
+                                    [`subtitle_${lang}`]: value,
+                                })),
+                            true,
+                        )}
+
+                        <div className="mt-8 flex items-center justify-between">
+                            <h3 className="text-lg font-semibold text-foreground">
+                                Gallery Images
+                            </h3>
+                            <Button
+                                onClick={addGalleryImage}
+                                variant="outline"
+                                size="sm"
+                                className="gap-2"
+                            >
+                                <Plus size={16} /> Add Image
+                            </Button>
+                        </div>
+
+                        {galleryContent.images.map((image, index) => (
+                            <div
+                                key={image.key}
+                                className="space-y-4 rounded-lg border bg-muted/30 p-6"
+                            >
+                                <div className="flex items-start justify-between">
+                                    <h4 className="font-semibold text-foreground">
+                                        Gallery Image {index + 1}
+                                    </h4>
+                                    <Button
+                                        onClick={() =>
+                                            removeGalleryImage(image.key)
+                                        }
+                                        variant="destructive"
+                                        size="sm"
+                                    >
+                                        <Trash2 size={16} />
+                                    </Button>
+                                </div>
+
+                                <ImageUpload
+                                    onUpload={(mediaId: number) =>
+                                        setGalleryContent((prev) => ({
+                                            ...prev,
+                                            images: prev.images.map((item) =>
+                                                item.key === image.key
+                                                    ? {
+                                                          ...item,
+                                                          image_id: mediaId,
+                                                      }
+                                                    : item,
+                                            ),
+                                        }))
+                                    }
+                                    existingImageUrl={image.existingImageUrl}
+                                    section={`gallery-${index + 1}`}
+                                />
+                            </div>
+                        ))}
+
+                        <Button
+                            onClick={saveGallerySection}
+                            disabled={saving}
+                            className="w-full"
+                        >
+                            {saving ? "Saving..." : "Save Gallery Section"}
+                        </Button>
+                    </CardContent>
+                </Card>
+            )}
+        </div>
+    );
 };
 
 export default EventsGalleryPageEditor;

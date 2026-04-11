@@ -60,6 +60,9 @@ class PageContentController extends Controller
         $validated = $request->validate([
             'language' => 'nullable|in:en,hi,mr',
             'content' => 'nullable|string',
+            'content_en' => 'nullable|string',
+            'content_hi' => 'nullable|string',
+            'content_mr' => 'nullable|string',
             'image_id' => 'nullable|exists:media,id',
         ]);
 
@@ -78,6 +81,12 @@ class PageContentController extends Controller
             $updateData[$languageColumn] = $validated['content'];
         }
 
+        foreach (['content_en', 'content_hi', 'content_mr'] as $column) {
+            if (array_key_exists($column, $validated)) {
+                $updateData[$column] = $validated[$column];
+            }
+        }
+
         // Update image if provided
         if (isset($validated['image_id'])) {
             $updateData['image_id'] = $validated['image_id'];
@@ -88,5 +97,14 @@ class PageContentController extends Controller
         }
 
         return response()->json($pageContent->load('image'));
+    }
+
+    public function destroy($pageKey, $sectionKey)
+    {
+        PageContent::where('page_key', $pageKey)
+            ->where('section_key', $sectionKey)
+            ->delete();
+
+        return response()->json(['message' => 'Page content deleted']);
     }
 }

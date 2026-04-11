@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\Event;
 use App\Models\Media;
 use App\Models\PageContent;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class EventsGalleryPageSeeder extends Seeder
@@ -286,6 +286,24 @@ class EventsGalleryPageSeeder extends Seeder
             ]
         );
 
+        PageContent::updateOrCreate(
+            ['page_key' => 'events_gallery', 'section_key' => 'gallery_title'],
+            [
+                'content_en' => 'Temple Moments',
+                'content_hi' => 'मंदिर के पल',
+                'content_mr' => 'मंदिराचे क्षण',
+            ]
+        );
+
+        PageContent::updateOrCreate(
+            ['page_key' => 'events_gallery', 'section_key' => 'gallery_subtitle'],
+            [
+                'content_en' => 'Sacred moments and beautiful memories from our temple',
+                'content_hi' => 'हमारे मंदिर की पवित्र क्षण और सुंदर यादें',
+                'content_mr' => 'आमच्या मंदिरातील पवित्र क्षण आणि सुंदर आठवणी',
+            ]
+        );
+
         // Create PageContent entries for gallery images
         PageContent::updateOrCreate(
             ['page_key' => 'events_gallery', 'section_key' => 'gallery_1_image'],
@@ -317,33 +335,121 @@ class EventsGalleryPageSeeder extends Seeder
             ['image_id' => $gallery6Media->id]
         );
 
-        // ========== BANNER SECTION ==========
-        // Create media record for banner image
-        $bannerImageMedia = Media::updateOrCreate(
-            ['filename' => 'events_gallery-banner.jpg'],
+        $seededEvents = [
             [
-                'original_name' => 'events_gallery-banner.jpg',
-                'file_path' => 'uploads/events_gallery-banner.jpg',
-                'file_url' => '/storage/uploads/events_gallery-banner.jpg',
-                'file_size' => 242 * 1024, // 242KB
-                'mime_type' => 'image/jpeg',
-                'width' => 1920,
-                'height' => 1080,
-            ]
-        );
-
-        PageContent::updateOrCreate(
-            ['page_key' => 'events_gallery', 'section_key' => 'banner_quote'],
+                'title_en' => 'Navratri Celebrations',
+                'title_hi' => 'नवरात्रि समारोह',
+                'title_mr' => 'नवरात्री उत्सव',
+                'date_label_en' => '1 Oct - 9 Oct',
+                'date_label_hi' => '1 अक्तूबर - 9 अक्तूबर',
+                'date_label_mr' => '1 ऑक्टोबर - 9 ऑक्टोबर',
+                'event_date' => '2025-10-01',
+                'summary_en' => 'Nine sacred days of devotion, garlands, bhajans, and evening aarti in honor of Maa Durga.',
+                'summary_hi' => 'माँ दुर्गा के सम्मान में नौ पवित्र दिनों की भक्ति, भजन और संध्या आरती।',
+                'summary_mr' => 'माँ दुर्गेच्या सन्मानार्थ नऊ पवित्र दिवसांची भक्ती, भजने आणि सायंआरती.',
+                'description_en' => 'Nine days of devotion and celebration honoring Maa Durga with special prayers, bhajans, and divine offerings.',
+                'description_hi' => 'माँ दुर्गा का सम्मान करते हुए नौ दिनों की भक्ति और समारोह विशेष प्रार्थनाओं, भजनों और दिव्य प्रसाद के साथ।',
+                'description_mr' => 'माँ दुर्गेचा सन्मान करून नऊ दिवसांची भक्ती आणि उत्सव विशेष प्रार्थना, भजने आणि दिव्य प्रसाद सह।',
+                'details_en' => '<p>Navratri at the temple brings together daily puja, devotional singing, floral decoration, and community darshan. Each evening concludes with a special aarti and prasad distribution.</p>',
+                'details_hi' => '<p>मंदिर में नवरात्रि के दौरान दैनिक पूजा, भजन, पुष्प सजावट और सामुदायिक दर्शन आयोजित होते हैं। प्रत्येक संध्या विशेष आरती और प्रसाद वितरण के साथ पूर्ण होती है।</p>',
+                'details_mr' => '<p>मंदिरातील नवरात्रीमध्ये दररोज पूजा, भजने, फुलांची सजावट आणि सामुदायिक दर्शन आयोजित केले जाते. प्रत्येक संध्याकाळ विशेष आरती आणि प्रसाद वितरणाने पूर्ण होते.</p>',
+                'location_en' => 'Main Temple Courtyard, Aarya Durga Temple',
+                'location_hi' => 'मुख्य मंदिर प्रांगण, आर्य दुर्गा मंदिर',
+                'location_mr' => 'मुख्य मंदिर प्रांगण, आर्या दुर्गा मंदिर',
+                'time_en' => '6:30 PM onwards',
+                'time_hi' => 'शाम 6:30 बजे से',
+                'time_mr' => 'सायं 6:30 पासून',
+                'category' => 'Festival',
+                'image_id' => $navratriImageMedia->id,
+                'gallery_image_ids' => [
+                    $navratriImageMedia->id,
+                    $navratriImageMedia->id,
+                    $navratriImageMedia->id,
+                ],
+                'sort_order' => 1,
+            ],
             [
-                'content_en' => 'Blessed are those who seek the divine light within. May Maa Durga\'s grace illuminate your path and bring peace to your soul.',
-                'content_hi' => 'धन्य हैं वे जो अपने भीतर दिव्य प्रकाश की तलाश करते हैं। माँ दुर्गा की कृपा आपके मार्ग को प्रकाशित करे और आपकी आत्मा को शांति दे।',
-                'content_mr' => 'आशीर्वादित आहेत ते जे आपल्या अंतर्गत दिव्य प्रकाश शोधतात. माँ दुर्गेचा अनुग्रह आपल्या मार्गाला प्रकाश करो आणि आपल्या आत्म्याला शांती द्या.',
-            ]
-        );
+                'title_en' => 'Spiritual Yatra & Temple Journey',
+                'title_hi' => 'आध्यात्मिक यात्रा और मंदिर यात्रा',
+                'title_mr' => 'आध्यात्मिक यात्रा आणि मंदिर यात्रा',
+                'date_label_en' => '15 Nov',
+                'date_label_hi' => '15 नवंबर',
+                'date_label_mr' => '15 नोव्हेंबर',
+                'event_date' => '2025-11-15',
+                'summary_en' => 'A devotional yatra to nearby sacred sites with collective chanting, satsang, and guided temple visits.',
+                'summary_hi' => 'सामूहिक जप, सत्संग और पवित्र स्थलों के दर्शन के साथ एक भक्तिमय यात्रा।',
+                'summary_mr' => 'सामूहिक जप, सत्संग आणि पवित्र स्थळांच्या दर्शनासह एक भक्तिमय यात्रा.',
+                'description_en' => 'Join our pilgrimage journey to sacred sites with group prayers, spiritual discourse, and devotional activities throughout the day.',
+                'description_hi' => 'पवित्र स्थलों के लिए हमारी तीर्थ यात्रा में शामिल हों जिसमें समूह प्रार्थना, आध्यात्मिक व्याख्यान और दिन भर की भक्ति गतिविधियाँ हैं।',
+                'description_mr' => 'पवित्र स्थलांकडील आमच्या तीर्थ यात्रेत सामिल व्हा ज्यात समूह प्रार्थना, आध्यात्मिक व्याख्यान आणि दिनभर भक्ती क्रियाकलाप आहेत।',
+                'details_en' => '<p>This yatra is designed for devotees who wish to deepen their spiritual practice through travel, prayer, and reflection. The day includes temple visits, mantra chanting, and shared meals.</p>',
+                'details_hi' => '<p>यह यात्रा उन भक्तों के लिए है जो प्रार्थना, यात्रा और मनन के माध्यम से अपनी साधना को गहरा करना चाहते हैं। इसमें मंदिर दर्शन, मंत्र जप और सामूहिक भोजन शामिल है।</p>',
+                'details_mr' => '<p>ही यात्रा प्रार्थना, प्रवास आणि चिंतन यांद्वारे साधना अधिक गहिरी करू इच्छिणाऱ्या भक्तांसाठी आहे. यात मंदिरदर्शन, मंत्रजप आणि सामूहिक भोजन समाविष्ट आहे.</p>',
+                'location_en' => 'Temple Departure Gate, Ratnagiri',
+                'location_hi' => 'मंदिर प्रस्थान द्वार, रत्नागिरी',
+                'location_mr' => 'मंदिर प्रस्थान द्वार, रत्नागिरी',
+                'time_en' => '5:30 AM departure',
+                'time_hi' => 'सुबह 5:30 बजे प्रस्थान',
+                'time_mr' => 'सकाळी 5:30 वाजता प्रस्थान',
+                'category' => 'Yatra',
+                'image_id' => $yatraImageMedia->id,
+                'gallery_image_ids' => [
+                    $yatraImageMedia->id,
+                    $yatraImageMedia->id,
+                    $yatraImageMedia->id,
+                ],
+                'sort_order' => 2,
+            ],
+            [
+                'title_en' => 'Special Durga Pooja Ritual',
+                'title_hi' => 'विशेष दुर्गा पूजा अनुष्ठान',
+                'title_mr' => 'विशेष दुर्गा पूजा अनुष्ठान',
+                'date_label_en' => '15 Oct',
+                'date_label_hi' => '15 अक्तूबर',
+                'date_label_mr' => '15 ऑक्टोबर',
+                'event_date' => '2025-10-15',
+                'summary_en' => 'A focused pooja ceremony with vedic chanting, sacred offerings, and blessings for families and devotees.',
+                'summary_hi' => 'वैदिक मंत्रोच्चार, पवित्र अर्पण और परिवारों के लिए आशीर्वाद सहित विशेष पूजा।',
+                'summary_mr' => 'वैदिक मंत्रोच्चार, पवित्र अर्पण आणि कुटुंबांसाठी आशीर्वादांसह विशेष पूजा.',
+                'description_en' => 'Elaborate Durga Pooja ceremony with vedic rituals, sacred chanting, flower offerings, and divine blessings. Limited devotees welcome.',
+                'description_hi' => 'वैदिक अनुष्ठान, पवित्र मंत्रोच्चार, फूलों की अर्पणा और दिव्य आशीर्वाद के साथ विस्तृत दुर्गा पूजा समारोह। सीमित भक्तों का स्वागत है।',
+                'description_mr' => 'वेदिक अनुष्ठान, पवित्र मंत्रोच्चार, फूलांची अर्पणा आणि दिव्य आशीर्वाद सह विस्तृत दुर्गा पूजा समारोह। मर्यादित भक्तांचे स्वागत आहे।',
+                'details_en' => '<p>The special pooja includes sankalp, kumkum archana, flower offerings, and blessings from the temple priests. Devotees may register families for sankalp participation.</p>',
+                'details_hi' => '<p>इस विशेष पूजा में संकल्प, कुमकुम अर्चना, पुष्प अर्पण और पुजारियों का आशीर्वाद शामिल है। भक्त परिवार संकल्प हेतु पंजीकरण कर सकते हैं।</p>',
+                'details_mr' => '<p>या विशेष पूजेमध्ये संकल्प, कुंकूम अर्चना, पुष्पअर्पण आणि पुजाऱ्यांचे आशीर्वाद समाविष्ट आहेत. भक्त कुटुंबे संकल्पासाठी नोंदणी करू शकतात.</p>',
+                'location_en' => 'Garbha Gruha Hall, Aarya Durga Temple',
+                'location_hi' => 'गर्भगृह सभागार, आर्य दुर्गा मंदिर',
+                'location_mr' => 'गर्भगृह सभागृह, आर्या दुर्गा मंदिर',
+                'time_en' => '10:00 AM to 12:30 PM',
+                'time_hi' => 'सुबह 10:00 से दोपहर 12:30 तक',
+                'time_mr' => 'सकाळी 10:00 ते दुपारी 12:30',
+                'category' => 'Pooja',
+                'image_id' => $poojaImageMedia->id,
+                'gallery_image_ids' => [
+                    $poojaImageMedia->id,
+                    $poojaImageMedia->id,
+                    $poojaImageMedia->id,
+                ],
+                'sort_order' => 3,
+            ],
+        ];
 
-        PageContent::updateOrCreate(
-            ['page_key' => 'events_gallery', 'section_key' => 'banner_image'],
-            ['image_id' => $bannerImageMedia->id]
-        );
+        foreach ($seededEvents as $seededEvent) {
+            $galleryImageIds = $seededEvent['gallery_image_ids'];
+            unset($seededEvent['gallery_image_ids']);
+
+            $event = Event::updateOrCreate(
+                ['title_en' => $seededEvent['title_en']],
+                $seededEvent
+            );
+
+            $event->galleryImages()->delete();
+            foreach ($galleryImageIds as $index => $mediaId) {
+                $event->galleryImages()->create([
+                    'media_id' => $mediaId,
+                    'sort_order' => $index,
+                ]);
+            }
+        }
     }
 }

@@ -14,6 +14,7 @@ import About from "./pages/About";
 import History from "./pages/History";
 import PoojaDonation from "./pages/PoojaDonation";
 import EventsGallery from "./pages/EventsGallery";
+import EventDetails from "./pages/EventDetails";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
@@ -62,6 +63,7 @@ const App = () => (
                 <Route path="/history" element={<History />} />
                 <Route path="/pooja-donation" element={<PoojaDonation />} />
                 <Route path="/events-gallery" element={<EventsGallery />} />
+                <Route path="/events-gallery/:slug" element={<EventDetails />} />
                 <Route path="/contact" element={<Contact />} />
 
                 {/* Auth Routes */}

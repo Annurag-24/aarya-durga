@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { MessageSquare } from "lucide-react";
+import { Car, MessageSquare, Navigation, Plane, TrainFront } from "lucide-react";
 import { toast } from "sonner";
 import Navbar from "@/components/temple/Navbar";
 import Footer from "@/components/temple/Footer";
-import VisitSection from "@/components/temple/VisitSection";
 import { useLanguage } from "@/i18n/LanguageContext";
 import client from "@/api/client";
 import {
@@ -14,6 +13,7 @@ import {
     getContentByLanguage,
     getImageUrl,
 } from "@/api/helpers";
+import { RichTextContent } from "@/components/global/RichTextContent";
 import { useLoader } from "@/contexts/LoaderContext";
 import { HomePageProvider } from "@/contexts/HomePageContext";
 import { useImagesLoaded } from "@/hooks/useImagesLoaded";
@@ -25,12 +25,65 @@ interface ContactSubject {
     label_mr: string;
 }
 
+interface HowToReachItem {
+    mode: string;
+    title: string;
+    description: string;
+}
+
+const parseStoredModes = (
+    rawValue: string | undefined,
+    data: Array<{ section_key: string }>,
+) => {
+    if (rawValue) {
+        try {
+            const parsed = JSON.parse(rawValue);
+            if (Array.isArray(parsed)) {
+                return parsed.filter(
+                    (value): value is string => typeof value === "string",
+                );
+            }
+        } catch {
+            // Fall back to legacy detection.
+        }
+    }
+
+    const modes = new Set<string>();
+    data.forEach((item) => {
+        const match = item.section_key.match(/^how_to_reach_(\w+)_/);
+        if (match) {
+            modes.add(match[1]);
+        }
+    });
+
+    return Array.from(modes).sort();
+};
+
+const getTravelIcon = (mode: string) => {
+    const normalizedMode = mode.toLowerCase();
+
+    if (normalizedMode.includes("road") || normalizedMode.includes("car")) {
+        return Car;
+    }
+
+    if (normalizedMode.includes("train") || normalizedMode.includes("rail")) {
+        return TrainFront;
+    }
+
+    if (normalizedMode.includes("air") || normalizedMode.includes("flight")) {
+        return Plane;
+    }
+
+    return Navigation;
+};
+
 const Contact = () => {
     const { t, language } = useLanguage();
     const { setLoading: setGlobalLoading } = useLoader();
     const [heroTitle, setHeroTitle] = useState("");
     const [heroSubtitle, setHeroSubtitle] = useState("");
     const [heroImageUrl, setHeroImageUrl] = useState("");
+    const [howToReachItems, setHowToReachItems] = useState<HowToReachItem[]>([]);
     const [subjects, setSubjects] = useState<ContactSubject[]>([]);
     const [loading, setLoading] = useState(true);
     const imagesLoaded = useImagesLoaded([heroImageUrl]);
@@ -73,6 +126,34 @@ const Contact = () => {
             setHeroTitle(getContentByLanguage(heroTitleItem, lang));
             setHeroSubtitle(getContentByLanguage(heroSubtitleItem, lang));
             setHeroImageUrl(getImageUrl(heroImageItem));
+
+            const orderedModes = parseStoredModes(
+                findContentItem(pageData, "how_to_reach_modes")?.content_en,
+                pageData,
+            );
+            setHowToReachItems(
+                orderedModes
+                    .map((mode) => ({
+                        mode,
+                        title:
+                            getContentByLanguage(
+                                findContentItem(
+                                    pageData,
+                                    `how_to_reach_${mode}_title`,
+                                ),
+                                lang,
+                            ) || "",
+                        description:
+                            getContentByLanguage(
+                                findContentItem(
+                                    pageData,
+                                    `how_to_reach_${mode}_description`,
+                                ),
+                                lang,
+                            ) || "",
+                    }))
+                    .filter((item) => item.title || item.description),
+            );
 
             // Fetch contact subjects from public API
             try {
@@ -166,13 +247,12 @@ const Contact = () => {
                         >
                             {heroTitle || t.contactPage.heroTitle}
                         </motion.h1>
-                        <p className="text-primary-foreground/80 text-lg max-w-2xl mx-auto">
-                            {heroSubtitle || t.contactPage.heroSubtitle}
-                        </p>
+                        <RichTextContent
+                            content={heroSubtitle || t.contactPage.heroSubtitle}
+                            className="mx-auto max-w-2xl text-lg text-primary-foreground/80 prose-p:text-primary-foreground/80 prose-strong:text-primary-foreground prose-em:text-primary-foreground/90"
+                        />
                     </div>
                 </section>
-
-                <VisitSection />
 
                 <section className="py-20 bg-accent mandala-bg">
                     <div className="container mx-auto px-4">
@@ -308,6 +388,50 @@ const Contact = () => {
                         </motion.div>
                     </div>
                 </section>
+
+                {howToReachItems.length > 0 && (
+                    <section className="py-16 bg-card">
+                        <div className="container mx-auto px-4">
+                            <div className="text-center mb-10">
+                                <div className="gold-line mx-auto mb-4" />
+                                <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground">
+                                    How to Reach Us
+                                </h2>
+                            </div>
+
+                            <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-2 xl:grid-cols-3">
+                                {howToReachItems.map((item, index) => {
+                                    const Icon = getTravelIcon(item.mode);
+
+                                    return (
+                                        <motion.div
+                                            key={`${item.mode}-${index}`}
+                                            initial={{ opacity: 0, y: 24 }}
+                                            whileInView={{ opacity: 1, y: 0 }}
+                                            viewport={{ once: true }}
+                                            transition={{
+                                                duration: 0.45,
+                                                delay: index * 0.08,
+                                            }}
+                                            className="rounded-2xl border border-border/80 bg-accent px-6 py-7 text-center shadow-md"
+                                        >
+                                            <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl bg-primary/10 text-primary">
+                                                <Icon size={34} />
+                                            </div>
+                                            <h3 className="font-heading text-xl font-bold text-foreground">
+                                                {item.title}
+                                            </h3>
+                                            <RichTextContent
+                                                content={item.description}
+                                                className="mx-auto mt-4 max-w-sm text-base leading-relaxed text-muted-foreground prose-p:text-muted-foreground prose-strong:text-foreground prose-em:text-muted-foreground"
+                                            />
+                                        </motion.div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </section>
+                )}
 
                 <Footer />
             </div>

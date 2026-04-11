@@ -63,9 +63,6 @@ interface VisitContent {
 }
 
 interface FooterContent {
-  title_en: string;
-  title_hi: string;
-  title_mr: string;
   social_label_en: string;
   social_label_hi: string;
   social_label_mr: string;
@@ -155,9 +152,6 @@ const HomePageEditor = () => {
     existingImageUrl: undefined,
   });
   const [footerContent, setFooterContent] = useState<FooterContent>({
-    title_en: '',
-    title_hi: '',
-    title_mr: '',
     social_label_en: '',
     social_label_hi: '',
     social_label_mr: '',
@@ -180,7 +174,7 @@ const HomePageEditor = () => {
   const sections = [
     { label: 'Hero Section', key: 'hero', description: 'Homepage hero title, subtitle, and background' },
     { label: 'Visit Section', key: 'visit', description: 'Visit information and heading' },
-    { label: 'Footer Section', key: 'footer', description: 'Footer title, social links, and copyright' },
+    { label: 'Footer Section', key: 'footer', description: 'Social links and copyright' },
   ];
 
   // Hide global loader once local loading is done AND images are loaded
@@ -279,16 +273,12 @@ const HomePageEditor = () => {
           existingImageUrl,
         });
       } else if (sectionKey === 'footer') {
-        const titleData = response.data.find((item: any) => item.section_key === 'footer_title');
         const socialLabelData = response.data.find((item: any) => item.section_key === 'footer_social_label');
         const facebookData = response.data.find((item: any) => item.section_key === 'footer_facebook_link');
         const youtubeData = response.data.find((item: any) => item.section_key === 'footer_youtube_link');
         const copyrightData = response.data.find((item: any) => item.section_key === 'footer_copyright');
 
         setFooterContent({
-          title_en: titleData?.content_en || '',
-          title_hi: titleData?.content_hi || '',
-          title_mr: titleData?.content_mr || '',
           social_label_en: socialLabelData?.content_en || '',
           social_label_hi: socialLabelData?.content_hi || '',
           social_label_mr: socialLabelData?.content_mr || '',
@@ -350,9 +340,6 @@ const HomePageEditor = () => {
         existingImageUrl: undefined,
       });
       setFooterContent({
-        title_en: '',
-        title_hi: '',
-        title_mr: '',
         social_label_en: '',
         social_label_hi: '',
         social_label_mr: '',
@@ -639,22 +626,6 @@ const HomePageEditor = () => {
   const saveFooter = async () => {
     setSaving(true);
     try {
-      // Save title
-      await Promise.all([
-        footerContent.title_en && client.put(`/admin/page-content/home/footer_title`, {
-          language: 'en',
-          content: footerContent.title_en,
-        }),
-        footerContent.title_hi && client.put(`/admin/page-content/home/footer_title`, {
-          language: 'hi',
-          content: footerContent.title_hi,
-        }),
-        footerContent.title_mr && client.put(`/admin/page-content/home/footer_title`, {
-          language: 'mr',
-          content: footerContent.title_mr,
-        }),
-      ].filter(Boolean));
-
       // Save social label
       await Promise.all([
         footerContent.social_label_en && client.put(`/admin/page-content/home/footer_social_label`, {
@@ -1206,50 +1177,6 @@ const HomePageEditor = () => {
             <CardTitle>Footer Section</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Footer Title */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-foreground">Footer Title</h3>
-              <Tabs defaultValue="en" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="en">English</TabsTrigger>
-                  <TabsTrigger value="mr">मराठी</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="en" className="space-y-2 mt-4">
-                  <Input
-                    value={footerContent.title_en}
-                    onChange={(e) =>
-                      setFooterContent({ ...footerContent, title_en: e.target.value })
-                    }
-                    placeholder="Follow Devotion"
-                    disabled={loading}
-                  />
-                </TabsContent>
-
-                <TabsContent value="hi" className="space-y-2 mt-4">
-                  <Input
-                    value={footerContent.title_hi}
-                    onChange={(e) =>
-                      setFooterContent({ ...footerContent, title_hi: e.target.value })
-                    }
-                    placeholder="भक्ति का अनुसरण करें"
-                    disabled={loading}
-                  />
-                </TabsContent>
-
-                <TabsContent value="mr" className="space-y-2 mt-4">
-                  <Input
-                    value={footerContent.title_mr}
-                    onChange={(e) =>
-                      setFooterContent({ ...footerContent, title_mr: e.target.value })
-                    }
-                    placeholder="भक्तीचे अनुसरण करा"
-                    disabled={loading}
-                  />
-                </TabsContent>
-              </Tabs>
-            </div>
-
             {/* Social Section Label */}
             <div className="space-y-4">
               <h3 className="font-semibold text-foreground">Social Section Label</h3>

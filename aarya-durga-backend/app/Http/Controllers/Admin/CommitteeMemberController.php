@@ -10,7 +10,11 @@ class CommitteeMemberController extends Controller
 {
     public function index()
     {
-        return response()->json(CommitteeMember::orderBy('sort_order')->get());
+        return response()->json(
+            CommitteeMember::with('photo')
+                ->orderBy('sort_order')
+                ->get()
+        );
     }
 
     public function store(Request $request)
@@ -20,6 +24,10 @@ class CommitteeMemberController extends Controller
             'role_en' => 'required|string',
             'role_hi' => 'required|string',
             'role_mr' => 'required|string',
+            'address_en' => 'nullable|string',
+            'address_hi' => 'nullable|string',
+            'address_mr' => 'nullable|string',
+            'phone' => 'nullable|string|max:50',
             'bio_en' => 'nullable|string',
             'bio_hi' => 'nullable|string',
             'bio_mr' => 'nullable|string',
@@ -28,12 +36,12 @@ class CommitteeMemberController extends Controller
         ]);
 
         $committeeMember = CommitteeMember::create($validated);
-        return response()->json($committeeMember, 201);
+        return response()->json($committeeMember->load('photo'), 201);
     }
 
     public function show(CommitteeMember $committeeMember)
     {
-        return response()->json($committeeMember);
+        return response()->json($committeeMember->load('photo'));
     }
 
     public function update(Request $request, CommitteeMember $committeeMember)
@@ -43,6 +51,10 @@ class CommitteeMemberController extends Controller
             'role_en' => 'string',
             'role_hi' => 'string',
             'role_mr' => 'string',
+            'address_en' => 'nullable|string',
+            'address_hi' => 'nullable|string',
+            'address_mr' => 'nullable|string',
+            'phone' => 'nullable|string|max:50',
             'bio_en' => 'nullable|string',
             'bio_hi' => 'nullable|string',
             'bio_mr' => 'nullable|string',
@@ -51,7 +63,7 @@ class CommitteeMemberController extends Controller
         ]);
 
         $committeeMember->update($validated);
-        return response()->json($committeeMember);
+        return response()->json($committeeMember->load('photo'));
     }
 
     public function destroy(CommitteeMember $committeeMember)

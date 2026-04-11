@@ -1,51 +1,96 @@
-import client from './client';
+import client from "@/api/client";
+import { constructImageUrl } from "@/api/imageUrl";
 
-export interface Event {
-  id: number;
-  title_en: string;
-  title_hi: string;
-  title_mr: string;
-  date_label_en?: string;
-  date_label_hi?: string;
-  date_label_mr?: string;
-  event_date?: string;
-  description_en?: string;
-  description_hi?: string;
-  description_mr?: string;
-  category: 'Festival' | 'Yatra' | 'Pooja';
-  image_id?: number;
-  is_active: boolean;
-  sort_order: number;
+export interface ApiMedia {
+    id: number;
+    file_url?: string;
+    url?: string;
 }
 
-const events = {
-  getAll: async (): Promise<Event[]> => {
-    const response = await client.get('/admin/events');
-    return response.data;
-  },
+export interface ApiEventImage {
+    id: number;
+    media_id: number;
+    sort_order: number;
+    media?: ApiMedia;
+}
 
-  getOne: async (id: number): Promise<Event> => {
-    const response = await client.get(`/admin/events/${id}`);
-    return response.data;
-  },
+export interface ApiEvent {
+    id: number;
+    title_en: string;
+    title_hi?: string;
+    title_mr: string;
+    slug?: string;
+    date_label_en?: string;
+    date_label_hi?: string;
+    date_label_mr?: string;
+    event_date?: string;
+    description_en?: string;
+    description_hi?: string;
+    description_mr?: string;
+    summary_en?: string;
+    summary_hi?: string;
+    summary_mr?: string;
+    details_en?: string;
+    details_hi?: string;
+    details_mr?: string;
+    location_en?: string;
+    location_hi?: string;
+    location_mr?: string;
+    time_en?: string;
+    time_hi?: string;
+    time_mr?: string;
+    category: string;
+    image_id?: number;
+    cover_image?: ApiMedia;
+    coverImage?: ApiMedia;
+    gallery_images?: ApiEventImage[];
+    galleryImages?: ApiEventImage[];
+    is_active: boolean;
+    sort_order: number;
+}
 
-  create: async (data: Partial<Event>): Promise<Event> => {
-    const response = await client.post('/admin/events', data);
-    return response.data;
-  },
-
-  update: async (id: number, data: Partial<Event>): Promise<Event> => {
-    const response = await client.put(`/admin/events/${id}`, data);
-    return response.data;
-  },
-
-  remove: async (id: number): Promise<void> => {
-    await client.delete(`/admin/events/${id}`);
-  },
-
-  reorder: async (items: Array<{ id: number; sort_order: number }>): Promise<void> => {
-    await client.post('/admin/events/reorder', items);
-  },
+export const getLocalizedEventValue = (
+    event: ApiEvent,
+    baseKey:
+        | "title"
+        | "date_label"
+        | "description"
+        | "summary"
+        | "details"
+        | "location"
+        | "time",
+    language: "en" | "mr",
+) => {
+    const suffix = language === "mr" ? "mr" : "en";
+    return (
+        event[`${baseKey}_${suffix}` as keyof ApiEvent] ||
+        event[`${baseKey}_en` as keyof ApiEvent] ||
+        ""
+    ) as string;
 };
 
-export default events;
+export const getEventCoverImageUrl = (event: ApiEvent) => {
+    const media = event.coverImage || event.cover_image;
+    const imagePath = media?.file_url || media?.url;
+    return imagePath ? constructImageUrl(imagePath) : "";
+};
+
+export const getEventGalleryUrls = (event: ApiEvent) => {
+    const images = event.galleryImages || event.gallery_images || [];
+    return images
+        .map((image) => {
+            const path = image.media?.file_url || image.media?.url;
+            return path ? constructImageUrl(path) : "";
+        })
+        .filter(Boolean);
+};
+
+export const fetchPublicEvents = async () => {
+    const response = await client.get<ApiEvent[]>("/public/events");
+    return response.data;
+};
+
+export const fetchPublicEventBySlug = async (slug: string) => {
+    const response = await client.get<ApiEvent>(`/public/events/${slug}`);
+    return response.data;
+};

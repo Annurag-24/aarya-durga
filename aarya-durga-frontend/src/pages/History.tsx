@@ -12,7 +12,6 @@ import {
 import { useState, useEffect } from "react";
 import Navbar from "@/components/temple/Navbar";
 import Footer from "@/components/temple/Footer";
-import DevotionalQuote from "@/components/temple/DevotionalQuote";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useLoader } from "@/contexts/LoaderContext";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -62,10 +61,7 @@ const History = () => {
     const [konkan, setKonkan] = useState({ title: "", desc: "" });
     const [diwali, setDiwali] = useState({ title: "", desc: "" });
 
-    // Banner
-    const [bannerQuote, setBannerQuote] = useState("");
-    const [bannerImage, setBannerImage] = useState("");
-    const imagesLoaded = useImagesLoaded([heroImage, originImage, bannerImage]);
+    const imagesLoaded = useImagesLoaded([heroImage, originImage]);
 
     useEffect(() => {
         if (loading || !imagesLoaded) {
@@ -150,9 +146,6 @@ const History = () => {
                 desc: getContent("diwali_description"),
             });
 
-            // Banner
-            setBannerQuote(getContent("banner_quote"));
-            setBannerImage(getImg("banner_image"));
         } catch (error) {
             // Error fetching history content
         } finally {
@@ -408,42 +401,6 @@ const History = () => {
                     </div>
                 </section>
 
-                {/* Banner Quote Section */}
-                <section className="relative py-24 overflow-hidden">
-                    <div className="absolute inset-0">
-                        <img
-                            src={bannerImage}
-                            alt="Temple"
-                            className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-r from-primary/80 via-primary/60 to-primary/80" />
-                    </div>
-                    <div className="relative z-10 text-center px-4">
-                        <div className="lotus-divider mb-6">
-                            <span className="text-3xl">🪷</span>
-                        </div>
-                        {loading ? (
-                            <Skeleton className="h-20 w-3/4 mx-auto bg-primary-foreground/20" />
-                        ) : (
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                whileInView={{ opacity: 1 }}
-                                viewport={{ once: true }}
-                                className="max-w-3xl mx-auto font-heading text-2xl font-semibold italic leading-relaxed text-primary-foreground md:text-4xl"
-                            >
-                                <RichTextContent
-                                    content={bannerQuote}
-                                    className="prose-p:text-primary-foreground prose-strong:text-primary-foreground prose-em:text-primary-foreground"
-                                />
-                            </motion.div>
-                        )}
-                        <div className="lotus-divider mt-6">
-                            <span className="text-3xl">🪷</span>
-                        </div>
-                    </div>
-                </section>
-
-                <DevotionalQuote />
                 <Footer />
             </div>
         </HomePageProvider>

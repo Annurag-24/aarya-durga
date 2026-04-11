@@ -21,8 +21,42 @@ import {
     getContentByLanguage,
     getImageUrl,
 } from "@/api/helpers";
+import { RichTextContent } from "@/components/global/RichTextContent";
 import { HomePageProvider } from "@/contexts/HomePageContext";
 import { useImagesLoaded } from "@/hooks/useImagesLoaded";
+
+const parseStoredKeys = (
+    rawValue: string | undefined,
+    legacyPrefix: string,
+    data: Array<{ section_key: string }>,
+) => {
+    if (rawValue) {
+        try {
+            const parsed = JSON.parse(rawValue);
+            if (Array.isArray(parsed)) {
+                return parsed.filter(
+                    (value): value is string => typeof value === "string",
+                );
+            }
+        } catch {
+            // Fall back to legacy detection.
+        }
+    }
+
+    const legacyNumbers = new Set<number>();
+    data.forEach((item) => {
+        const match = item.section_key.match(
+            new RegExp(`^${legacyPrefix}_(\\d+)_`),
+        );
+        if (match) {
+            legacyNumbers.add(parseInt(match[1], 10));
+        }
+    });
+
+    return Array.from(legacyNumbers)
+        .sort((a, b) => a - b)
+        .map((number) => `${legacyPrefix}_${number}`);
+};
 
 const PoojaDonation = () => {
     const { t, language } = useLanguage();
@@ -52,9 +86,7 @@ const PoojaDonation = () => {
     const [donationsData, setDonationsData] = useState<
         Array<{ icon: any; title: string; desc: string; suggested: string }>
     >([]);
-    const [bannerQuote, setBannerQuote] = useState("");
-    const [bannerImage, setBannerImage] = useState("");
-    const imagesLoaded = useImagesLoaded([heroImage, bannerImage]);
+    const imagesLoaded = useImagesLoaded([heroImage]);
 
     useEffect(() => {
         if (loading || !imagesLoaded) {
@@ -91,22 +123,15 @@ const PoojaDonation = () => {
             setServicesTitle(getContent("services_title"));
             setServicesSubtitle(getContent("services_subtitle"));
 
-            // Fetch schedule - Dynamically detect all schedule items
-            const scheduleNumbers = new Set<number>();
-            pageData.forEach((item: { section_key: string }) => {
-                const match = item.section_key.match(/^schedule_(\d+)_/);
-                if (match) {
-                    scheduleNumbers.add(parseInt(match[1], 10));
-                }
-            });
-
-            const sortedScheduleNumbers = Array.from(scheduleNumbers).sort(
-                (a, b) => a - b,
+            const scheduleKeys = parseStoredKeys(
+                findContentItem(pageData, "schedule_keys")?.content_en,
+                "schedule",
+                pageData,
             );
-            const scheduleFromAPI = sortedScheduleNumbers
-                .map((num) => ({
-                    time: getContentEn(`schedule_${num}_time`),
-                    event: getContent(`schedule_${num}_description`),
+            const scheduleFromAPI = scheduleKeys
+                .map((scheduleKey) => ({
+                    time: getContentEn(`${scheduleKey}_time`),
+                    event: getContent(`${scheduleKey}_description`),
                 }))
                 .filter((s) => s.time && s.event);
 
@@ -194,10 +219,6 @@ const PoojaDonation = () => {
                 .filter((d) => d.title);
 
             setDonationsData(donationsFromAPI);
-
-            // Banner - Fetch quote and image
-            setBannerQuote(getContent("banner_quote"));
-            setBannerImage(getImg("banner_image"));
         } catch (error) {
             // Error fetching pooja & donation content
         } finally {
@@ -231,9 +252,10 @@ const PoojaDonation = () => {
                         >
                             {heroTitle}
                         </motion.h1>
-                        <p className="text-primary-foreground/80 text-lg max-w-2xl mx-auto">
-                            {heroSubtitle}
-                        </p>
+                        <RichTextContent
+                            content={heroSubtitle}
+                            className="mx-auto max-w-2xl text-lg text-primary-foreground/80 prose-p:text-primary-foreground/80 prose-strong:text-primary-foreground prose-em:text-primary-foreground/90"
+                        />
                     </div>
                 </section>
 
@@ -244,9 +266,10 @@ const PoojaDonation = () => {
                             <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground">
                                 {servicesTitle}
                             </h2>
-                            <p className="text-muted-foreground max-w-xl mx-auto mt-4">
-                                {servicesSubtitle}
-                            </p>
+                            <RichTextContent
+                                content={servicesSubtitle}
+                                className="mx-auto mt-4 max-w-xl text-muted-foreground prose-p:text-muted-foreground prose-strong:text-foreground prose-em:text-muted-foreground"
+                            />
                         </div>
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {poojas.map((pooja, i) => (
@@ -277,9 +300,10 @@ const PoojaDonation = () => {
                                             </p>
                                         </div>
                                     </div>
-                                    <p className="text-muted-foreground text-sm mb-4 flex-1">
-                                        {pooja.desc}
-                                    </p>
+                                    <RichTextContent
+                                        content={pooja.desc}
+                                        className="mb-4 flex-1 text-sm text-muted-foreground prose-p:text-muted-foreground prose-strong:text-foreground prose-em:text-muted-foreground"
+                                    />
                                     <div className="flex items-center justify-between">
                                         <span className="font-heading text-lg font-bold text-primary">
                                             {pooja.price}
@@ -331,9 +355,10 @@ const PoojaDonation = () => {
                                                 </span>
                                             </div>
                                             <div className="flex-1 text-left">
-                                                <p className="text-foreground font-medium text-base">
-                                                    {item.event}
-                                                </p>
+                                                <RichTextContent
+                                                    content={item.event}
+                                                    className="text-base font-medium text-foreground prose-p:text-foreground prose-strong:text-foreground prose-em:text-foreground"
+                                                />
                                             </div>
                                         </div>
                                     </motion.div>
@@ -376,9 +401,10 @@ const PoojaDonation = () => {
                                                 <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
                                                     {item.title}
                                                 </h3>
-                                                <p className="text-muted-foreground text-sm mb-4">
-                                                    {item.desc}
-                                                </p>
+                                                <RichTextContent
+                                                    content={item.desc}
+                                                    className="mb-4 text-sm text-muted-foreground prose-p:text-muted-foreground prose-strong:text-foreground prose-em:text-muted-foreground"
+                                                />
                                                 <div className="flex items-center justify-between">
                                                     <span className="text-sm text-secondary font-medium">
                                                         {t.poojaPage.suggested}:{" "}
@@ -403,35 +429,6 @@ const PoojaDonation = () => {
                                         </div>
                                     </motion.div>
                                 ))}
-                            </div>
-                        </div>
-                    </section>
-                )}
-
-                {bannerImage && (
-                    <section className="relative py-24 overflow-hidden">
-                        <div className="absolute inset-0">
-                            <img
-                                src={bannerImage}
-                                alt="Goddess Durga"
-                                className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-r from-primary/80 via-primary/60 to-primary/80" />
-                        </div>
-                        <div className="relative z-10 text-center px-4">
-                            <div className="lotus-divider mb-6">
-                                <span className="text-3xl">🪷</span>
-                            </div>
-                            <motion.p
-                                initial={{ opacity: 0 }}
-                                whileInView={{ opacity: 1 }}
-                                viewport={{ once: true }}
-                                className="font-heading text-2xl md:text-4xl font-semibold text-primary-foreground max-w-3xl mx-auto italic leading-relaxed"
-                            >
-                                "{bannerQuote}"
-                            </motion.p>
-                            <div className="lotus-divider mt-6">
-                                <span className="text-3xl">🪷</span>
                             </div>
                         </div>
                     </section>

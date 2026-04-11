@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, X } from "lucide-react";
+import { CalendarDays, Clock3, MapPin, X } from "lucide-react";
 import Navbar from "@/components/temple/Navbar";
 import Footer from "@/components/temple/Footer";
 import { useLanguage } from "@/i18n/LanguageContext";
@@ -13,14 +13,24 @@ import {
     getContentByLanguage,
     getImageUrl,
 } from "@/api/helpers";
+import { RichTextContent } from "@/components/global/RichTextContent";
 import { HomePageProvider } from "@/contexts/HomePageContext";
 import { useImagesLoaded } from "@/hooks/useImagesLoaded";
+import {
+    ApiEvent,
+    fetchPublicEvents,
+    getEventCoverImageUrl,
+    getLocalizedEventValue,
+} from "@/api/events";
 
 const EventsGallery = () => {
     const [selected, setSelected] = useState<number | null>(null);
     const [searchParams] = useSearchParams();
     const [activeTab, setActiveTab] = useState<"events" | "gallery">(
         (searchParams.get("tab") as "events" | "gallery") || "events",
+    );
+    const [eventFilter, setEventFilter] = useState<"upcoming" | "past">(
+        "upcoming",
     );
     const { t, language } = useLanguage();
     const { setLoading: setGlobalLoading } = useLoader();
@@ -29,34 +39,46 @@ const EventsGallery = () => {
     const [heroSubtitle, setHeroSubtitle] = useState("");
     const [heroImage, setHeroImage] = useState("");
     const [eventsTitle, setEventsTitle] = useState("");
-    const [events, setEvents] = useState<
-        Array<{
-            title: string;
-            date: string;
-            desc: string;
-            category: string;
-            image: string;
-        }>
-    >([]);
+    const [galleryTitle, setGalleryTitle] = useState("");
+    const [gallerySubtitle, setGallerySubtitle] = useState("");
+    const [events, setEvents] = useState<ApiEvent[]>([]);
     const [galleryImages, setGalleryImages] = useState<
         Array<{ src: string; alt: string }>
     >([]);
-    const [bannerQuote, setBannerQuote] = useState("");
-    const [bannerImage, setBannerImage] = useState("");
 
     const visibleImageUrls = useMemo(() => {
-        const urls = [heroImage, bannerImage];
+        const urls = [heroImage];
 
         if (activeTab === "events") {
-            urls.push(...events.map((event) => event.image));
+            urls.push(...events.map((event) => getEventCoverImageUrl(event)));
         } else {
             urls.push(...galleryImages.map((img) => img.src));
         }
 
         return urls.filter(Boolean);
-    }, [heroImage, bannerImage, activeTab, events, galleryImages]);
+    }, [heroImage, activeTab, events, galleryImages]);
 
     const imagesLoaded = useImagesLoaded([loading, ...visibleImageUrls]);
+
+    const filteredEvents = useMemo(() => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        return events.filter((event) => {
+            if (!event.event_date) {
+                return eventFilter === "upcoming";
+            }
+
+            const eventDate = new Date(event.event_date);
+            eventDate.setHours(0, 0, 0, 0);
+
+            if (eventFilter === "upcoming") {
+                return eventDate >= today;
+            }
+
+            return eventDate < today;
+        });
+    }, [events, eventFilter]);
 
     useEffect(() => {
         if (loading || !imagesLoaded) {
@@ -68,109 +90,56 @@ const EventsGallery = () => {
     }, [loading, imagesLoaded, setGlobalLoading]);
 
     useEffect(() => {
-        fetchHeroContent();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [language]);
+        const fetchContent = async () => {
+            setLoading(true);
+            try {
+                const [pageData, publicEvents] = await Promise.all([
+                    fetchPageContent("events_gallery"),
+                    fetchPublicEvents(),
+                ]);
+                const lang = language as "en" | "mr";
 
-    const fetchHeroContent = async () => {
-        setLoading(true);
-        try {
-            const pageData = await fetchPageContent("events_gallery");
-            const lang = language as "en" | "hi" | "mr";
+                const getContent = (key: string) =>
+                    getContentByLanguage(findContentItem(pageData, key), lang);
+                const getImg = (key: string) =>
+                    getImageUrl(findContentItem(pageData, key));
 
-            const getContent = (key: string) =>
-                getContentByLanguage(findContentItem(pageData, key), lang);
-            const getImg = (key: string) =>
-                getImageUrl(findContentItem(pageData, key));
+                setHeroTitle(getContent("hero_title"));
+                setHeroSubtitle(getContent("hero_subtitle"));
+                setHeroImage(getImg("hero_image"));
+                setEventsTitle(getContent("events_title"));
+                setGalleryTitle(getContent("gallery_title"));
+                setGallerySubtitle(getContent("gallery_subtitle"));
+                setEvents(publicEvents);
 
-            // Hero content
-            setHeroTitle(getContent("hero_title"));
-            setHeroSubtitle(getContent("hero_subtitle"));
-            setHeroImage(getImg("hero_image"));
+                const galleryImageNumbers = new Set<number>();
+                pageData.forEach((item: { section_key: string }) => {
+                    const match = item.section_key.match(/^gallery_(\d+)_/);
+                    if (match) {
+                        galleryImageNumbers.add(parseInt(match[1], 10));
+                    }
+                });
 
-            // Events content - dynamically detect all events
-            const eventNumbers = new Set<number>();
-            pageData.forEach((item: { section_key: string }) => {
-                const match = item.section_key.match(/^event_(\d+)_/);
-                if (match) {
-                    eventNumbers.add(parseInt(match[1], 10));
-                }
-            });
-
-            const sortedEventNumbers = Array.from(eventNumbers).sort(
-                (a, b) => a - b,
-            );
-            const eventsFromAPI = sortedEventNumbers
-                .map((num) => {
-                    const name = getContent(`event_${num}_name`);
-                    const dateRaw = getContentByLanguage(
-                        findContentItem(pageData, `event_${num}_date`),
-                        "en",
-                    );
-                    const desc = getContent(`event_${num}_description`);
-                    const tag = getContent(`event_${num}_tag`);
-
-                    const eventImage = getImageUrl(
-                        findContentItem(pageData, `event_${num}_image`),
-                    );
-
-                    return {
-                        title: name,
-                        date: dateRaw
-                            ? new Date(dateRaw).toLocaleDateString(
-                                  language === "en"
-                                      ? "en-US"
-                                      : "mr-IN",
-                                  {
-                                      year: "numeric",
-                                      month: "long",
-                                      day: "numeric",
-                                  },
-                              )
-                            : "",
-                        desc,
-                        category: tag,
-                        image: eventImage,
-                    };
-                })
-                .filter((e) => e.title);
-
-            setEvents(eventsFromAPI);
-            setEventsTitle(getContent("events_title"));
-
-            // Gallery images - dynamically detect all gallery images
-            const galleryImageNumbers = new Set<number>();
-            pageData.forEach((item: { section_key: string }) => {
-                const match = item.section_key.match(/^gallery_(\d+)_/);
-                if (match) {
-                    galleryImageNumbers.add(parseInt(match[1], 10));
-                }
-            });
-
-            const sortedGalleryNumbers = Array.from(galleryImageNumbers).sort(
-                (a, b) => a - b,
-            );
-            const galleryFromAPI = sortedGalleryNumbers.map((num) => {
-                const galleryImage = getImageUrl(
-                    findContentItem(pageData, `gallery_${num}_image`),
+                const sortedGalleryNumbers = Array.from(galleryImageNumbers).sort(
+                    (a, b) => a - b,
                 );
-                return {
-                    src: galleryImage,
-                    alt: `Gallery Image ${num}`,
-                };
-            });
+                setGalleryImages(
+                    sortedGalleryNumbers.map((num) => ({
+                        src: getImageUrl(
+                            findContentItem(pageData, `gallery_${num}_image`),
+                        ),
+                        alt: `Gallery Image ${num}`,
+                    })),
+                );
+            } catch (error) {
+                console.error("Error fetching events gallery content:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-            setGalleryImages(galleryFromAPI);
-
-            // Banner content
-            setBannerQuote(getContent("banner_quote"));
-            setBannerImage(getImg("banner_image"));
-        } catch (error) {
-            // Error fetching events & gallery content
-        } finally {
-            setLoading(false);
-        }
-    };
+        fetchContent();
+    }, [language, setGlobalLoading]);
 
     return (
         <HomePageProvider>
@@ -196,9 +165,10 @@ const EventsGallery = () => {
                         >
                             {heroTitle}
                         </motion.h1>
-                        <p className="text-primary-foreground/80 text-lg max-w-2xl mx-auto">
-                            {heroSubtitle}
-                        </p>
+                        <RichTextContent
+                            content={heroSubtitle}
+                            className="mx-auto max-w-2xl text-lg text-primary-foreground/80 prose-p:text-primary-foreground/80 prose-strong:text-primary-foreground prose-em:text-primary-foreground/90"
+                        />
                     </div>
                 </section>
 
@@ -228,56 +198,195 @@ const EventsGallery = () => {
                 {activeTab === "events" && (
                     <section className="py-20 bg-accent mandala-bg">
                         <div className="container mx-auto px-4">
-                            <div className="text-center mb-12">
-                                <div className="gold-line mx-auto mb-4" />
-                                <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground">
-                                    {eventsTitle ||
-                                        t.eventsGalleryPage.upcomingTitle}
-                                </h2>
-                            </div>
-                            {events.length > 0 ? (
-                                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                    {events.map((event, i) => (
-                                        <motion.div
-                                            key={`${event.title}-${i}`}
-                                            initial={{ opacity: 0, y: 30 }}
-                                            whileInView={{ opacity: 1, y: 0 }}
-                                            viewport={{ once: true }}
-                                            transition={{
-                                                duration: 0.5,
-                                                delay: i * 0.1,
-                                            }}
-                                            className="bg-card rounded-lg overflow-hidden shadow-md border border-border hover:shadow-lg transition-shadow group"
+                            <div className="relative mb-12">
+                                <div className="text-center">
+                                    <div className="gold-line mx-auto mb-4" />
+                                    <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground">
+                                        {eventsTitle ||
+                                            t.eventsGalleryPage.upcomingTitle}
+                                    </h2>
+                                </div>
+
+                                <div className="mt-6 flex justify-center md:absolute md:right-0 md:top-0 md:mt-0">
+                                    <div className="inline-flex rounded-full border border-border bg-card p-1 shadow-sm">
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setEventFilter("upcoming")
+                                            }
+                                            className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                                                eventFilter === "upcoming"
+                                                    ? "bg-primary text-primary-foreground"
+                                                    : "text-muted-foreground hover:text-foreground"
+                                            }`}
                                         >
-                                            <div className="overflow-hidden h-52 relative">
-                                                <img
-                                                    src={event.image}
-                                                    alt={event.title}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                                />
-                                                <span className="absolute top-3 right-3 bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
-                                                    {event.category}
-                                                </span>
-                                            </div>
-                                            <div className="p-6">
-                                                <h3 className="font-heading text-xl font-semibold text-foreground mb-1">
-                                                    {event.title}
-                                                </h3>
-                                                <p className="flex items-center gap-1 text-sm text-secondary mb-3">
-                                                    <CalendarDays size={14} />{" "}
-                                                    {event.date}
-                                                </p>
-                                                <p className="text-muted-foreground text-sm">
-                                                    {event.desc}
-                                                </p>
-                                            </div>
-                                        </motion.div>
-                                    ))}
+                                            {language === "mr"
+                                                ? "आगामी"
+                                                : "Upcoming"}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setEventFilter("past")
+                                            }
+                                            className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                                                eventFilter === "past"
+                                                    ? "bg-primary text-primary-foreground"
+                                                    : "text-muted-foreground hover:text-foreground"
+                                            }`}
+                                        >
+                                            {language === "mr" ? "मागील" : "Past"}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            {filteredEvents.length > 0 ? (
+                                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                    {filteredEvents.map((event, i) => {
+                                        const title = getLocalizedEventValue(
+                                            event,
+                                            "title",
+                                            language as "en" | "mr",
+                                        );
+                                        const summary =
+                                            getLocalizedEventValue(
+                                                event,
+                                                "summary",
+                                                language as "en" | "mr",
+                                            ) ||
+                                            getLocalizedEventValue(
+                                                event,
+                                                "description",
+                                                language as "en" | "mr",
+                                            );
+                                        const location =
+                                            getLocalizedEventValue(
+                                                event,
+                                                "location",
+                                                language as "en" | "mr",
+                                            );
+                                        const time = getLocalizedEventValue(
+                                            event,
+                                            "time",
+                                            language as "en" | "mr",
+                                        );
+                                        const dateLabel =
+                                            getLocalizedEventValue(
+                                                event,
+                                                "date_label",
+                                                language as "en" | "mr",
+                                            ) ||
+                                            (event.event_date
+                                                ? new Date(
+                                                      event.event_date,
+                                                  ).toLocaleDateString(
+                                                      language === "mr"
+                                                          ? "mr-IN"
+                                                          : "en-US",
+                                                      {
+                                                          year: "numeric",
+                                                          month: "long",
+                                                          day: "numeric",
+                                                      },
+                                                  )
+                                                : "");
+
+                                        return (
+                                            <motion.div
+                                                key={event.id}
+                                                initial={{ opacity: 0, y: 30 }}
+                                                whileInView={{ opacity: 1, y: 0 }}
+                                                viewport={{ once: true }}
+                                                transition={{
+                                                    duration: 0.5,
+                                                    delay: i * 0.08,
+                                                }}
+                                                className="bg-card rounded-lg overflow-hidden shadow-md border border-border hover:shadow-lg transition-shadow group"
+                                            >
+                                                <div className="overflow-hidden h-52 relative">
+                                                    <img
+                                                        src={getEventCoverImageUrl(
+                                                            event,
+                                                        )}
+                                                        alt={title}
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                    />
+                                                    <span className="absolute top-3 right-3 bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
+                                                        {event.category}
+                                                    </span>
+                                                </div>
+
+                                                <div className="p-6 flex flex-col">
+                                                    <h3 className="font-heading text-xl font-semibold text-foreground mb-1">
+                                                        {title}
+                                                    </h3>
+
+                                                    {dateLabel && (
+                                                        <p className="flex items-center gap-1 text-sm text-secondary mb-3">
+                                                            <CalendarDays
+                                                                size={14}
+                                                            />
+                                                            {dateLabel}
+                                                        </p>
+                                                    )}
+
+                                                    <RichTextContent
+                                                        content={summary}
+                                                        className="text-sm text-muted-foreground prose-p:text-muted-foreground prose-strong:text-foreground prose-em:text-muted-foreground"
+                                                    />
+
+                                                    {(time || location) && (
+                                                        <div className="mt-4 space-y-2 text-sm text-muted-foreground">
+                                                            {time && (
+                                                                <p className="flex items-center gap-2">
+                                                                    <Clock3
+                                                                        size={
+                                                                            15
+                                                                        }
+                                                                    />
+                                                                    {time}
+                                                                </p>
+                                                            )}
+                                                            {location && (
+                                                                <p className="flex items-center gap-2">
+                                                                    <MapPin
+                                                                        size={
+                                                                            15
+                                                                        }
+                                                                    />
+                                                                    {location}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    )}
+
+                                                    <div className="mt-5">
+                                                        <Link
+                                                            to={`/events-gallery/${event.slug}`}
+                                                        >
+                                                            <Button
+                                                                variant="temple"
+                                                                size="sm"
+                                                            >
+                                                                View Details
+                                                            </Button>
+                                                        </Link>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        );
+                                    })}
                                 </div>
                             ) : (
                                 <div className="text-center py-12">
                                     <p className="text-muted-foreground">
-                                        No upcoming events at the moment
+                                        {eventFilter === "upcoming"
+                                            ? language === "mr"
+                                                ? "सध्या कोणतेही आगामी कार्यक्रम नाहीत"
+                                                : "No upcoming events at the moment"
+                                            : language === "mr"
+                                              ? "सध्या कोणतेही मागील कार्यक्रम नाहीत"
+                                              : "No past events at the moment"}
                                     </p>
                                 </div>
                             )}
@@ -286,95 +395,78 @@ const EventsGallery = () => {
                 )}
 
                 {activeTab === "gallery" && (
-                    <section className="py-20 bg-accent mandala-bg">
+                    <section className="py-20 bg-card">
                         <div className="container mx-auto px-4">
                             <div className="text-center mb-12">
                                 <div className="gold-line mx-auto mb-4" />
-                                <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground">
-                                    {t.eventsGalleryPage.templeMoments}
+                                <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-4">
+                                    {galleryTitle ||
+                                        t.eventsGalleryPage.templeMoments}
                                 </h2>
-                                <p className="text-muted-foreground max-w-xl mx-auto mt-4">
-                                    {t.eventsGalleryPage.momentsSubtitle}
-                                </p>
+                                <RichTextContent
+                                    content={
+                                        gallerySubtitle ||
+                                        t.eventsGalleryPage.momentsSubtitle
+                                    }
+                                    className="mx-auto max-w-2xl text-muted-foreground"
+                                />
                             </div>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                {galleryImages.map((img, i) => (
-                                    <motion.div
-                                        key={i}
-                                        initial={{ opacity: 0, scale: 0.9 }}
-                                        whileInView={{ opacity: 1, scale: 1 }}
+                            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                                {galleryImages.map((image, index) => (
+                                    <motion.button
+                                        key={`${image.src}-${index}`}
+                                        initial={{ opacity: 0, y: 30 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
                                         viewport={{ once: true }}
                                         transition={{
-                                            duration: 0.4,
-                                            delay: i * 0.06,
+                                            duration: 0.45,
+                                            delay: index * 0.06,
                                         }}
-                                        className="overflow-hidden rounded-lg cursor-pointer group"
-                                        onClick={() => setSelected(i)}
+                                        onClick={() => setSelected(index)}
+                                        className="group overflow-hidden rounded-[1.75rem] border border-border bg-accent text-left shadow-sm"
                                     >
-                                        <img
-                                            src={img.src}
-                                            alt={img.alt}
-                                            className="w-full h-48 md:h-64 object-cover group-hover:scale-110 transition-transform duration-500"
-                                        />
-                                    </motion.div>
+                                        <div className="h-80 overflow-hidden">
+                                            <img
+                                                src={image.src}
+                                                alt={image.alt}
+                                                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                            />
+                                        </div>
+                                    </motion.button>
                                 ))}
                             </div>
                         </div>
-                        <AnimatePresence>
-                            {selected !== null && galleryImages[selected] && (
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    className="fixed inset-0 z-50 bg-foreground/90 flex items-center justify-center p-4"
-                                    onClick={() => setSelected(null)}
-                                >
-                                    <button
-                                        className="absolute top-6 right-6 text-primary-foreground"
-                                        onClick={() => setSelected(null)}
-                                    >
-                                        <X size={32} />
-                                    </button>
-                                    <motion.img
-                                        initial={{ scale: 0.8 }}
-                                        animate={{ scale: 1 }}
-                                        exit={{ scale: 0.8 }}
-                                        src={galleryImages[selected].src}
-                                        alt={galleryImages[selected].alt}
-                                        className="max-w-full max-h-[85vh] rounded-lg object-contain"
-                                    />
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
                     </section>
                 )}
 
-                <section className="relative py-24 overflow-hidden">
-                    <div className="absolute inset-0">
-                        <img
-                            src={bannerImage}
-                            alt="Goddess Durga"
-                            className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-r from-primary/80 via-primary/60 to-primary/80" />
-                    </div>
-                    <div className="relative z-10 text-center px-4">
-                        <div className="lotus-divider mb-6">
-                            <span className="text-3xl">🪷</span>
-                        </div>
-                        <motion.p
+                <AnimatePresence>
+                    {selected !== null && galleryImages[selected] && (
+                        <motion.div
                             initial={{ opacity: 0 }}
-                            whileInView={{ opacity: 1 }}
-                            viewport={{ once: true }}
-                            className="font-heading text-2xl md:text-4xl font-semibold text-primary-foreground max-w-3xl mx-auto italic leading-relaxed"
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-4"
+                            onClick={() => setSelected(null)}
                         >
-                            "{bannerQuote || t.eventsGalleryPage.bannerQuote}"
-                        </motion.p>
-                        <div className="lotus-divider mt-6">
-                            <span className="text-3xl">🪷</span>
-                        </div>
-                    </div>
-                </section>
+                            <button
+                                type="button"
+                                className="absolute right-6 top-6 text-white"
+                                onClick={() => setSelected(null)}
+                            >
+                                <X size={32} />
+                            </button>
+                            <motion.img
+                                initial={{ scale: 0.95, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0.95, opacity: 0 }}
+                                src={galleryImages[selected].src}
+                                alt={galleryImages[selected].alt}
+                                className="max-h-[90vh] max-w-[90vw] rounded-2xl object-contain"
+                                onClick={(event) => event.stopPropagation()}
+                            />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 <Footer />
             </div>

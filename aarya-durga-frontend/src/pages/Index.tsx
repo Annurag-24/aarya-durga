@@ -6,7 +6,6 @@ import HistorySection from "@/components/temple/HistorySection";
 import EventsSection from "@/components/temple/EventsSection";
 import GallerySection from "@/components/temple/GallerySection";
 import VisitSection from "@/components/temple/VisitSection";
-import DevotionalQuote from "@/components/temple/DevotionalQuote";
 import Footer from "@/components/temple/Footer";
 import { HomePageProvider, useHomePageData } from "@/contexts/HomePageContext";
 import {
@@ -55,7 +54,6 @@ const IndexContent = () => {
             <EventsSection />
             <GallerySection />
             <VisitSection />
-            <DevotionalQuote />
             <Footer />
         </div>
     );

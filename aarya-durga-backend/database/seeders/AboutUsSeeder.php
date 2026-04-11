@@ -2,9 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Media;
 use App\Models\PageContent;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class AboutUsSeeder extends Seeder
@@ -144,40 +142,6 @@ class AboutUsSeeder extends Seeder
             ]
         );
 
-        // Banner Title (TRANSLATABLE)
-        PageContent::updateOrCreate(
-            ['page_key' => 'about', 'section_key' => 'banner_title'],
-            [
-                'content_en' => 'Deep spiritual connection with Maa Durga through daily prayers and rituals',
-                'content_hi' => 'माता दुर्गा का आशीर्वाद',
-                'content_mr' => 'माता दुर्गेचे आशीर्वाद',
-            ]
-        );
-
-        // Banner Image
-        $bannerMedia = Media::where('filename', 'about-banner.jpg')->first();
-        if (!$bannerMedia) {
-            $bannerMedia = Media::updateOrCreate(
-                ['filename' => 'about-banner.jpg'],
-                [
-                    'original_name' => 'about-banner.jpg',
-                    'file_path' => 'uploads/about-banner.jpg',
-                    'file_url' => '/storage/uploads/about-banner.jpg',
-                    'file_size' => 488 * 1024, // 488KB
-                    'mime_type' => 'image/jpeg',
-                    'width' => 1920,
-                    'height' => 1080,
-                ]
-            );
-        }
-
-        PageContent::updateOrCreate(
-            ['page_key' => 'about', 'section_key' => 'banner_image'],
-            [
-                'image_id' => $bannerMedia->id,
-            ]
-        );
-
         // Committee Title (TRANSLATABLE)
         PageContent::updateOrCreate(
             ['page_key' => 'about', 'section_key' => 'committee_title'],
@@ -198,61 +162,5 @@ class AboutUsSeeder extends Seeder
             ]
         );
 
-        // Committee Member 1 (President)
-        PageContent::updateOrCreate(
-            ['page_key' => 'about', 'section_key' => 'member1_title'],
-            [
-                'content_en' => 'President',
-                'content_hi' => 'अध्यक्ष',
-                'content_mr' => 'अध्यक्ष',
-            ]
-        );
-
-        PageContent::updateOrCreate(
-            ['page_key' => 'about', 'section_key' => 'member1_subtitle'],
-            [
-                'content_en' => 'Temple Trust Member',
-                'content_hi' => 'मंदिर ट्रस्ट सदस्य',
-                'content_mr' => 'मंदिर ट्रस्ट सदस्य',
-            ]
-        );
-
-        // Committee Member 2 (Secretary)
-        PageContent::updateOrCreate(
-            ['page_key' => 'about', 'section_key' => 'member2_title'],
-            [
-                'content_en' => 'Secretary',
-                'content_hi' => 'सचिव',
-                'content_mr' => 'सचिव',
-            ]
-        );
-
-        PageContent::updateOrCreate(
-            ['page_key' => 'about', 'section_key' => 'member2_subtitle'],
-            [
-                'content_en' => 'Temple Trust Member',
-                'content_hi' => 'मंदिर ट्रस्ट सदस्य',
-                'content_mr' => 'मंदिर ट्रस्ट सदस्य',
-            ]
-        );
-
-        // Committee Member 3 (Treasurer)
-        PageContent::updateOrCreate(
-            ['page_key' => 'about', 'section_key' => 'member3_title'],
-            [
-                'content_en' => 'Treasurer',
-                'content_hi' => 'कोषाध्यक्ष',
-                'content_mr' => 'कोषाध्यक्ष',
-            ]
-        );
-
-        PageContent::updateOrCreate(
-            ['page_key' => 'about', 'section_key' => 'member3_subtitle'],
-            [
-                'content_en' => 'Temple Trust Member',
-                'content_hi' => 'मंदिर ट्रस्ट सदस्य',
-                'content_mr' => 'मंदिर ट्रस्ट सदस्य',
-            ]
-        );
     }
 }

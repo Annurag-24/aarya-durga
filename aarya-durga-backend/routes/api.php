@@ -74,6 +74,7 @@ Route::middleware('admin.auth')->prefix('admin')->group(function () {
     // Page Content
     Route::get('/page-content', [\App\Http\Controllers\Admin\PageContentController::class, 'index']);
     Route::put('/page-content/{pageKey}/{sectionKey}', [\App\Http\Controllers\Admin\PageContentController::class, 'update']);
+    Route::delete('/page-content/{pageKey}/{sectionKey}', [\App\Http\Controllers\Admin\PageContentController::class, 'destroy']);
 
     // Quotes
     Route::apiResource('/quotes', \App\Http\Controllers\Admin\QuoteController::class);
@@ -99,7 +100,8 @@ Route::middleware('admin.auth')->prefix('admin')->group(function () {
 // ============================================
 Route::prefix('public')->group(function () {
     Route::get('/settings', [\App\Http\Controllers\Admin\SiteSettingsController::class, 'show']);
-    Route::get('/events', [\App\Http\Controllers\Admin\EventController::class, 'index']);
+    Route::get('/events', [\App\Http\Controllers\Admin\EventController::class, 'publicIndex']);
+    Route::get('/events/{slug}', [\App\Http\Controllers\Admin\EventController::class, 'publicShowBySlug']);
     Route::get('/gallery', [\App\Http\Controllers\Admin\GalleryController::class, 'index']);
     Route::get('/pooja-services', [\App\Http\Controllers\Admin\PoojaServiceController::class, 'index']);
     Route::get('/donation-categories', [\App\Http\Controllers\Admin\DonationCategoryController::class, 'index']);

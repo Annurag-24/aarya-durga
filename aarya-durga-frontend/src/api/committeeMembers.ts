@@ -6,10 +6,18 @@ export interface CommitteeMember {
   role_en: string;
   role_hi: string;
   role_mr: string;
+  address_en?: string;
+  address_hi?: string;
+  address_mr?: string;
+  phone?: string;
   bio_en?: string;
   bio_hi?: string;
   bio_mr?: string;
-  media_id?: number;
+  photo_id?: number;
+  photo?: {
+    file_url?: string;
+    url?: string;
+  };
   sort_order: number;
 }
 

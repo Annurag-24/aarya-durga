@@ -66,6 +66,34 @@ interface HowToReachItem {
     description_mr: string;
 }
 
+const parseStoredModes = (
+    rawValue: string | undefined,
+    data: Array<{ section_key: string }>,
+) => {
+    if (rawValue) {
+        try {
+            const parsed = JSON.parse(rawValue);
+            if (Array.isArray(parsed)) {
+                return parsed.filter(
+                    (value): value is string => typeof value === "string",
+                );
+            }
+        } catch {
+            // Fall back to legacy detection.
+        }
+    }
+
+    const modes = new Set<string>();
+    data.forEach((item) => {
+        const match = item.section_key.match(/^how_to_reach_(\w+)_/);
+        if (match) {
+            modes.add(match[1]);
+        }
+    });
+
+    return Array.from(modes).sort();
+};
+
 const ContactPageEditor = () => {
     const { setLoading: setGlobalLoading } = useLoader();
     const [activeSection, setActiveSection] = useState<
@@ -84,6 +112,7 @@ const ContactPageEditor = () => {
     const [howToReachItems, setHowToReachItems] = useState<HowToReachItem[]>(
         [],
     );
+    const [persistedModes, setPersistedModes] = useState<string[]>([]);
 
     // Contact Subjects state
     const { data: subjects = [], isLoading: subjectsLoading } =
@@ -166,17 +195,11 @@ const ContactPageEditor = () => {
                 existingImageUrl: getImage("hero_image"),
             });
 
-            // How to reach items - dynamically detect all travel modes
-            const modes = new Set<string>();
-            data.forEach((item: { section_key: string }) => {
-                const match = item.section_key.match(/^how_to_reach_(\w+)_/);
-                if (match) {
-                    modes.add(match[1]);
-                }
-            });
-
-            const sortedModes = Array.from(modes).sort();
-            const reachItems = sortedModes.map((mode) => ({
+            const orderedModes = parseStoredModes(
+                findContent("how_to_reach_modes")?.content_en,
+                data,
+            );
+            const reachItems = orderedModes.map((mode) => ({
                 mode,
                 title_en:
                     findContent(`how_to_reach_${mode}_title`)?.content_en || "",
@@ -196,6 +219,7 @@ const ContactPageEditor = () => {
             }));
 
             setHowToReachItems(reachItems);
+            setPersistedModes(orderedModes);
         } catch (error) {
             toast.error("Failed to load content");
         } finally {
@@ -240,23 +264,47 @@ const ContactPageEditor = () => {
     const saveHowToReachSection = async () => {
         setSaving(true);
         try {
-            const requests = howToReachItems.flatMap((item) => [
-                client.post("/admin/page-content", {
-                    page_key: "contact",
-                    section_key: `how_to_reach_${item.mode}_title`,
-                    content_en: item.title_en,
-                    content_hi: item.title_hi,
-                    content_mr: item.title_mr,
+            const sanitizedItems = howToReachItems.filter((item) =>
+                item.mode.trim(),
+            );
+            const currentModes = sanitizedItems.map((item) => item.mode.trim());
+            const removedModes = persistedModes.filter(
+                (mode) => !currentModes.includes(mode),
+            );
+            const requests = [
+                client.put("/admin/page-content/contact/how_to_reach_modes", {
+                    content_en: JSON.stringify(currentModes),
                 }),
-                client.post("/admin/page-content", {
-                    page_key: "contact",
-                    section_key: `how_to_reach_${item.mode}_description`,
-                    content_en: item.description_en,
-                    content_hi: item.description_hi,
-                    content_mr: item.description_mr,
-                }),
-            ]);
+                ...removedModes.flatMap((mode) => [
+                    client.delete(
+                        `/admin/page-content/contact/how_to_reach_${mode}_title`,
+                    ),
+                    client.delete(
+                        `/admin/page-content/contact/how_to_reach_${mode}_description`,
+                    ),
+                ]),
+                ...sanitizedItems.flatMap((item) => [
+                    client.put(
+                        `/admin/page-content/contact/how_to_reach_${item.mode.trim()}_title`,
+                        {
+                            content_en: item.title_en,
+                            content_hi: item.title_hi,
+                            content_mr: item.title_mr,
+                        },
+                    ),
+                    client.put(
+                        `/admin/page-content/contact/how_to_reach_${item.mode.trim()}_description`,
+                        {
+                            content_en: item.description_en,
+                            content_hi: item.description_hi,
+                            content_mr: item.description_mr,
+                        },
+                    ),
+                ]),
+            ];
             await Promise.all(requests);
+            setPersistedModes(currentModes);
+            setHowToReachItems(sanitizedItems);
             toast.success("How to reach section saved successfully");
         } catch (error) {
             toast.error("Failed to save content");
@@ -267,7 +315,6 @@ const ContactPageEditor = () => {
 
     const addHowToReachItem = () => {
         setHowToReachItems([
-            ...howToReachItems,
             {
                 mode: "",
                 title_en: "",
@@ -277,6 +324,7 @@ const ContactPageEditor = () => {
                 description_hi: "",
                 description_mr: "",
             },
+            ...howToReachItems,
         ]);
     };
 
@@ -301,24 +349,28 @@ const ContactPageEditor = () => {
     };
 
     const handleSave = async () => {
-        if (
-            !formData.label_en.trim() ||
-            !formData.label_hi.trim() ||
-            !formData.label_mr.trim()
-        ) {
-            toast.error("All fields are required");
+        if (!formData.label_en.trim() || !formData.label_mr.trim()) {
+            toast.error("English and Marathi fields are required");
             return;
         }
+
+        const payload = {
+            ...formData,
+            label_hi:
+                formData.label_hi.trim() ||
+                formData.label_mr.trim() ||
+                formData.label_en.trim(),
+        };
 
         try {
             if (editingId) {
                 await updateMutation.mutateAsync({
                     id: editingId,
-                    data: formData,
+                    data: payload,
                 });
                 toast.success("Subject updated successfully");
             } else {
-                await createMutation.mutateAsync(formData);
+                await createMutation.mutateAsync(payload);
                 toast.success("Subject added successfully");
             }
             setIsDialogOpen(false);
@@ -504,14 +556,29 @@ const ContactPageEditor = () => {
                         <CardTitle>How to Reach Section</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
+                        <div className="flex items-center justify-between">
+                            <h3 className="font-semibold text-lg text-foreground">
+                                Travel Modes
+                            </h3>
+                            <Button
+                                onClick={addHowToReachItem}
+                                disabled={loading}
+                                variant="outline"
+                                size="sm"
+                                className="gap-2"
+                            >
+                                <Plus size={16} /> Add Travel Mode
+                            </Button>
+                        </div>
+
                         {howToReachItems.map((item, index) => (
                             <div
                                 key={index}
-                                className="border border-border rounded-lg p-6 space-y-4"
+                                className="border rounded-lg p-6 bg-muted/30 space-y-4"
                             >
                                 <div className="flex items-center justify-between">
                                     <h3 className="font-semibold text-foreground">
-                                        Travel Mode {index + 1}
+                                        Travel Mode {howToReachItems.length - index}
                                     </h3>
                                     <Button
                                         variant="destructive"
@@ -574,27 +641,21 @@ const ContactPageEditor = () => {
                             </div>
                         ))}
 
+                        {howToReachItems.length === 0 && (
+                            <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                                No travel modes added yet.
+                            </div>
+                        )}
+
                         <Button
-                            onClick={addHowToReachItem}
-                            disabled={loading}
-                            variant="outline"
+                            onClick={saveHowToReachSection}
+                            disabled={saving}
                             className="w-full"
                         >
-                            <Plus size={16} className="mr-1" />
-                            Add Travel Mode
+                            {saving
+                                ? "Saving..."
+                                : "Save How to Reach Section"}
                         </Button>
-
-                        {howToReachItems.length > 0 && (
-                            <Button
-                                onClick={saveHowToReachSection}
-                                disabled={saving}
-                                className="w-full"
-                            >
-                                {saving
-                                    ? "Saving..."
-                                    : "Save How to Reach Section"}
-                            </Button>
-                        )}
                     </CardContent>
                 </Card>
             )}
@@ -713,22 +774,6 @@ const ContactPageEditor = () => {
                                     setFormData({
                                         ...formData,
                                         label_en: e.target.value,
-                                    })
-                                }
-                                className="mt-2"
-                            />
-                        </div>
-
-                        <div>
-                            <Label htmlFor="label_hi">हिंदी Label *</Label>
-                            <Input
-                                id="label_hi"
-                                placeholder="e.g., सामान्य प्रश्न"
-                                value={formData.label_hi}
-                                onChange={(e) =>
-                                    setFormData({
-                                        ...formData,
-                                        label_hi: e.target.value,
                                     })
                                 }
                                 className="mt-2"

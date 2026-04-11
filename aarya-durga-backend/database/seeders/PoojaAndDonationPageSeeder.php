@@ -572,21 +572,5 @@ class PoojaAndDonationPageSeeder extends Seeder
             ]
         );
 
-        // ========== BANNER SECTION ==========
-        PageContent::updateOrCreate(
-            ['page_key' => 'pooja_donation', 'section_key' => 'banner_quote'],
-            [
-                'content_en' => '"The grace of Maa Durga protects all those who seek her blessings with a pure heart and devoted soul."',
-                'content_hi' => '"माँ दुर्गा की कृपा उन सभी की रक्षा करती है जो शुद्ध हृदय और समर्पित आत्मा से उनका आशीर्वाद चाहते हैं।"',
-                'content_mr' => '"माँ दुर्गेचा अनुग्रह त्यांच्या सर्व भक्तांचे रक्षण करतो जे शुद्ध हृदय आणि समर्पित आत्मेने तिचा आशीर्वाद शोधतात।"',
-            ]
-        );
-
-        PageContent::updateOrCreate(
-            ['page_key' => 'pooja_donation', 'section_key' => 'banner_image'],
-            [
-                'image_id' => $bannerImageMedia->id,
-            ]
-        );
     }
 }
