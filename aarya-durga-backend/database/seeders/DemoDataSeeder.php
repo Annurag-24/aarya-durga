@@ -111,7 +111,7 @@ class DemoDataSeeder extends Seeder
             'quote_en' => 'May Goddess Durga bless us with courage and strength',
             'quote_hi' => 'माता दुर्गा हमें साहस और शक्ति प्रदान करें',
             'quote_mr' => 'देवी दुर्गे आम्हाला साहस आणि शक्ती प्रदान करावी',
-            'placement' => 'home_blessing',
+            'placement' => 'home_devotional',
             'is_active' => 1,
         ]);
 

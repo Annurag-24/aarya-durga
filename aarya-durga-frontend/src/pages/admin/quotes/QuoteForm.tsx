@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LanguageTabForm } from '@/components/admin/LanguageTabForm';
@@ -22,7 +23,7 @@ export const QuoteForm = () => {
     quote_en: '',
     quote_hi: '',
     quote_mr: '',
-    placement: 'home_blessing',
+    placement: 'home_motivation',
     is_active: true,
     sort_order: 0,
   });
@@ -59,11 +60,9 @@ export const QuoteForm = () => {
           <CardContent>
             <LanguageTabForm>
               {(lang) => (
-                <Textarea
+                <RichTextEditor
                   value={formData[`quote_${lang}` as keyof Quote] || ''}
-                  onChange={(e) => setFormData({ ...formData, [`quote_${lang}`]: e.target.value })}
-                  rows={3}
-                  required
+                  onChange={(value) => setFormData({ ...formData, [`quote_${lang}`]: value })}
                 />
               )}
             </LanguageTabForm>
@@ -82,7 +81,6 @@ export const QuoteForm = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="home_blessing">Home - Blessing</SelectItem>
                   <SelectItem value="home_motivation">Home - Motivation</SelectItem>
                   <SelectItem value="about_intro">About - Intro</SelectItem>
                   <SelectItem value="events_header">Events - Header</SelectItem>

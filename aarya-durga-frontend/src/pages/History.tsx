@@ -24,6 +24,7 @@ import {
 } from "@/api/helpers";
 import { HomePageProvider } from "@/contexts/HomePageContext";
 import { useImagesLoaded } from "@/hooks/useImagesLoaded";
+import { RichTextContent } from "@/components/global/RichTextContent";
 
 const History = () => {
     const { language } = useLanguage();
@@ -220,9 +221,10 @@ const History = () => {
                         >
                             {heroTitle}
                         </motion.h1>
-                        <p className="text-primary-foreground/80 text-lg max-w-2xl mx-auto">
-                            {heroSubtitle}
-                        </p>
+                        <RichTextContent
+                            content={heroSubtitle}
+                            className="mx-auto max-w-2xl text-lg text-primary-foreground/80 prose-p:text-primary-foreground/80 prose-strong:text-primary-foreground prose-em:text-primary-foreground/90"
+                        />
                     </div>
                 </section>
 
@@ -260,12 +262,14 @@ const History = () => {
                                         <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-6">
                                             {originTitle}
                                         </h2>
-                                        <p className="text-muted-foreground leading-relaxed mb-4">
-                                            {originP1}
-                                        </p>
-                                        <p className="text-muted-foreground leading-relaxed">
-                                            {originP2}
-                                        </p>
+                                        <RichTextContent
+                                            content={originP1}
+                                            className="mb-4 text-muted-foreground"
+                                        />
+                                        <RichTextContent
+                                            content={originP2}
+                                            className="text-muted-foreground"
+                                        />
                                     </>
                                 )}
                             </motion.div>
@@ -328,9 +332,10 @@ const History = () => {
                                                 <h3 className="font-heading text-xl font-bold text-foreground mt-1 mb-2">
                                                     {item.title}
                                                 </h3>
-                                                <p className="text-muted-foreground text-sm leading-relaxed">
-                                                    {item.desc}
-                                                </p>
+                                                <RichTextContent
+                                                    content={item.desc}
+                                                    className="text-sm text-muted-foreground"
+                                                />
                                             </>
                                         )}
                                     </div>
@@ -355,9 +360,10 @@ const History = () => {
                                     <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground">
                                         {traditionsTitle}
                                     </h2>
-                                    <p className="text-muted-foreground max-w-2xl mx-auto mt-4">
-                                        {traditionsSubtitle}
-                                    </p>
+                                    <RichTextContent
+                                        content={traditionsSubtitle}
+                                        className="mx-auto mt-4 max-w-2xl text-muted-foreground"
+                                    />
                                 </>
                             )}
                         </div>
@@ -390,9 +396,10 @@ const History = () => {
                                             <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
                                                 {item.title}
                                             </h3>
-                                            <p className="text-muted-foreground text-sm">
-                                                {item.desc}
-                                            </p>
+                                            <RichTextContent
+                                                content={item.desc}
+                                                className="text-sm text-muted-foreground"
+                                            />
                                         </div>
                                     )}
                                 </motion.div>
@@ -418,14 +425,17 @@ const History = () => {
                         {loading ? (
                             <Skeleton className="h-20 w-3/4 mx-auto bg-primary-foreground/20" />
                         ) : (
-                            <motion.p
+                            <motion.div
                                 initial={{ opacity: 0 }}
                                 whileInView={{ opacity: 1 }}
                                 viewport={{ once: true }}
-                                className="font-heading text-2xl md:text-4xl font-semibold text-primary-foreground max-w-3xl mx-auto italic leading-relaxed"
+                                className="max-w-3xl mx-auto font-heading text-2xl font-semibold italic leading-relaxed text-primary-foreground md:text-4xl"
                             >
-                                "{bannerQuote}"
-                            </motion.p>
+                                <RichTextContent
+                                    content={bannerQuote}
+                                    className="prose-p:text-primary-foreground prose-strong:text-primary-foreground prose-em:text-primary-foreground"
+                                />
+                            </motion.div>
                         )}
                         <div className="lotus-divider mt-6">
                             <span className="text-3xl">🪷</span>

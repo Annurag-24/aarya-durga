@@ -2,9 +2,8 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import { toast } from 'sonner';
 import client from '@/api/client';
 import { ImageUpload } from '@/components/admin/ImageUpload';
@@ -13,12 +12,18 @@ import { constructImageUrl } from '@/api/imageUrl';
 import { useImagesLoaded } from '@/hooks/useImagesLoaded';
 
 interface HeroContent {
+  main_title_en: string;
+  main_title_hi: string;
+  main_title_mr: string;
+  main_subtitle_en: string;
+  main_subtitle_hi: string;
+  main_subtitle_mr: string;
   title_en: string;
   title_hi: string;
   title_mr: string;
-  subtitle_en: string;
-  subtitle_hi: string;
-  subtitle_mr: string;
+  description_en: string;
+  description_hi: string;
+  description_mr: string;
   image_id?: string;
   existingImageUrl?: string;
 }
@@ -82,8 +87,10 @@ const AboutPageEditor = () => {
   const [activeSection, setActiveSection] = useState<'hero' | 'mission' | 'values' | 'banner' | 'committee'>('hero');
 
   const [heroContent, setHeroContent] = useState<HeroContent>({
+    main_title_en: '', main_title_hi: '', main_title_mr: '',
+    main_subtitle_en: '', main_subtitle_hi: '', main_subtitle_mr: '',
     title_en: '', title_hi: '', title_mr: '',
-    subtitle_en: '', subtitle_hi: '', subtitle_mr: '',
+    description_en: '', description_hi: '', description_mr: '',
   });
 
   const [missionContent, setMissionContent] = useState<MissionContent>({
@@ -127,7 +134,7 @@ const AboutPageEditor = () => {
   }, [loading, imagesLoaded, setGlobalLoading]);
 
   const sections = [
-    { key: 'hero', label: 'Hero Section', description: 'Title, subtitle, background image' },
+    { key: 'hero', label: 'Hero Section', description: 'Hero heading, subtitle, section content, and image' },
     { key: 'mission', label: 'Mission & Vision', description: 'Mission title and description' },
     { key: 'values', label: 'Core Values', description: '4 core value cards' },
     { key: 'banner', label: 'Banner Section', description: 'Title, background image' },
@@ -142,33 +149,43 @@ const AboutPageEditor = () => {
     setLoading(true);
     setGlobalLoading(true);
     try {
-      const response = await client.get(`/public/page-content/about`);
-      const data = response.data as Array<{ section_key: string; content_en?: string; content_hi?: string; content_mr?: string; image_id?: number; image?: { file_url: string } }>;
+      const [aboutResponse, homeResponse] = await Promise.all([
+        client.get(`/public/page-content/about`),
+        client.get(`/public/page-content/home`),
+      ]);
+      const aboutData = aboutResponse.data as Array<{ section_key: string; content_en?: string; content_hi?: string; content_mr?: string; image_id?: number; image?: { file_url: string } }>;
+      const homeData = homeResponse.data as Array<{ section_key: string; content_en?: string; content_hi?: string; content_mr?: string; image_id?: number; image?: { file_url: string } }>;
 
-      const contentKey = (lang: 'en' | 'hi' | 'mr') => `content_${lang}`;
-
-      // Hero
-      const heroTitleData = data.find((item) => item.section_key === 'hero_title');
-      const heroSubtitleData = data.find((item) => item.section_key === 'hero_subtitle');
-      const heroImageData = data.find((item) => item.section_key === 'hero_image');
+      // Hero section now manages home/about content
+      const heroMainTitleData = aboutData.find((item) => item.section_key === 'hero_main_title');
+      const heroMainSubtitleData = aboutData.find((item) => item.section_key === 'hero_main_subtitle');
+      const heroTitleData = homeData.find((item) => item.section_key === 'about_title');
+      const heroDescriptionData = homeData.find((item) => item.section_key === 'about_description');
+      const heroImageData = homeData.find((item) => item.section_key === 'about_image');
       let heroImageUrl: string | undefined;
       if (heroImageData?.image?.file_url) {
         heroImageUrl = constructImageUrl(heroImageData.image.file_url);
       }
       setHeroContent({
+        main_title_en: heroMainTitleData?.content_en || '',
+        main_title_hi: heroMainTitleData?.content_hi || '',
+        main_title_mr: heroMainTitleData?.content_mr || '',
+        main_subtitle_en: heroMainSubtitleData?.content_en || '',
+        main_subtitle_hi: heroMainSubtitleData?.content_hi || '',
+        main_subtitle_mr: heroMainSubtitleData?.content_mr || '',
         title_en: heroTitleData?.content_en || '',
         title_hi: heroTitleData?.content_hi || '',
         title_mr: heroTitleData?.content_mr || '',
-        subtitle_en: heroSubtitleData?.content_en || '',
-        subtitle_hi: heroSubtitleData?.content_hi || '',
-        subtitle_mr: heroSubtitleData?.content_mr || '',
+        description_en: heroDescriptionData?.content_en || '',
+        description_hi: heroDescriptionData?.content_hi || '',
+        description_mr: heroDescriptionData?.content_mr || '',
         image_id: heroImageData?.image_id ? String(heroImageData.image_id) : undefined,
         existingImageUrl: heroImageUrl,
       });
 
       // Mission
-      const missionTitleData = data.find((item) => item.section_key === 'mission_title');
-      const missionDescData = data.find((item) => item.section_key === 'mission_description');
+      const missionTitleData = aboutData.find((item) => item.section_key === 'mission_title');
+      const missionDescData = aboutData.find((item) => item.section_key === 'mission_description');
       setMissionContent({
         title_en: missionTitleData?.content_en || '',
         title_hi: missionTitleData?.content_hi || '',
@@ -179,10 +196,10 @@ const AboutPageEditor = () => {
       });
 
       // Core Values
-      const valuesTitleData = data.find((item) => item.section_key === 'values_title');
+      const valuesTitleData = aboutData.find((item) => item.section_key === 'values_title');
       const newValues = valuesContent.values.map((value) => {
-        const titleData = data.find((item) => item.section_key === `${value.key}_title`);
-        const descData = data.find((item) => item.section_key === `${value.key}_description`);
+        const titleData = aboutData.find((item) => item.section_key === `${value.key}_title`);
+        const descData = aboutData.find((item) => item.section_key === `${value.key}_description`);
         return {
           ...value,
           title_en: titleData?.content_en || '',
@@ -201,8 +218,8 @@ const AboutPageEditor = () => {
       });
 
       // Banner
-      const bannerTitleData = data.find((item) => item.section_key === 'banner_title');
-      const bannerImageData = data.find((item) => item.section_key === 'banner_image');
+      const bannerTitleData = aboutData.find((item) => item.section_key === 'banner_title');
+      const bannerImageData = aboutData.find((item) => item.section_key === 'banner_image');
       let bannerImageUrl: string | undefined;
       if (bannerImageData?.image?.file_url) {
         bannerImageUrl = constructImageUrl(bannerImageData.image.file_url);
@@ -216,11 +233,11 @@ const AboutPageEditor = () => {
       });
 
       // Committee
-      const committeeTitleData = data.find((item) => item.section_key === 'committee_title');
-      const committeeDescData = data.find((item) => item.section_key === 'committee_description');
+      const committeeTitleData = aboutData.find((item) => item.section_key === 'committee_title');
+      const committeeDescData = aboutData.find((item) => item.section_key === 'committee_description');
       const newCards = committeeContent.cards.map((card) => {
-        const titleData = data.find((item) => item.section_key === `${card.key}_title`);
-        const subtitleData = data.find((item) => item.section_key === `${card.key}_subtitle`);
+        const titleData = aboutData.find((item) => item.section_key === `${card.key}_title`);
+        const subtitleData = aboutData.find((item) => item.section_key === `${card.key}_subtitle`);
         return {
           ...card,
           title_en: titleData?.content_en || '',
@@ -259,19 +276,98 @@ const AboutPageEditor = () => {
     }
   };
 
+  const saveHeroSection = async () => {
+    setSaving(true);
+    try {
+      await Promise.all([
+        client.put(`/admin/page-content/about/hero_main_title`, {
+          language: 'en',
+          content: heroContent.main_title_en,
+        }),
+        client.put(`/admin/page-content/about/hero_main_title`, {
+          language: 'hi',
+          content: heroContent.main_title_hi,
+        }),
+        client.put(`/admin/page-content/about/hero_main_title`, {
+          language: 'mr',
+          content: heroContent.main_title_mr,
+        }),
+        client.put(`/admin/page-content/about/hero_main_subtitle`, {
+          language: 'en',
+          content: heroContent.main_subtitle_en,
+        }),
+        client.put(`/admin/page-content/about/hero_main_subtitle`, {
+          language: 'hi',
+          content: heroContent.main_subtitle_hi,
+        }),
+        client.put(`/admin/page-content/about/hero_main_subtitle`, {
+          language: 'mr',
+          content: heroContent.main_subtitle_mr,
+        }),
+      ]);
+
+      if (heroContent.title_en || heroContent.title_hi || heroContent.title_mr) {
+        await Promise.all([
+          heroContent.title_en && client.put(`/admin/page-content/home/about_title`, { language: 'en', content: heroContent.title_en }),
+          heroContent.title_hi && client.put(`/admin/page-content/home/about_title`, { language: 'hi', content: heroContent.title_hi }),
+          heroContent.title_mr && client.put(`/admin/page-content/home/about_title`, { language: 'mr', content: heroContent.title_mr }),
+        ].filter(Boolean));
+      }
+
+      await Promise.all([
+        client.put(`/admin/page-content/home/about_description`, {
+          language: 'en',
+          content: heroContent.description_en,
+          image_id: heroContent.image_id || null,
+        }),
+        client.put(`/admin/page-content/home/about_description`, {
+          language: 'hi',
+          content: heroContent.description_hi,
+          image_id: heroContent.image_id || null,
+        }),
+        client.put(`/admin/page-content/home/about_description`, {
+          language: 'mr',
+          content: heroContent.description_mr,
+          image_id: heroContent.image_id || null,
+        }),
+      ]);
+
+      toast.success('Hero section saved successfully');
+    } catch (error) {
+      toast.error('Failed to save hero section');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleRemoveHeroImage = async () => {
+    try {
+      await client.put(`/admin/page-content/home/about_description`, {
+        image_id: null,
+      });
+      setHeroContent({
+        ...heroContent,
+        image_id: undefined,
+        existingImageUrl: undefined,
+      });
+      toast.success('Image removed successfully');
+    } catch (error) {
+      toast.error('Failed to remove image');
+    }
+  };
+
   const renderLanguageTabs = (label: string, enValue: string, hiValue: string, mrValue: string, onChange: (lang: 'en' | 'hi' | 'mr', value: string) => void, isTextarea = false) => (
     <div className="space-y-4">
       <h3 className="font-semibold text-foreground">{label}</h3>
       <Tabs defaultValue="en" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="en">English</TabsTrigger>
-          <TabsTrigger value="hi">हिंदी</TabsTrigger>
           <TabsTrigger value="mr">मराठी</TabsTrigger>
         </TabsList>
 
         <TabsContent value="en" className="space-y-2 mt-4">
           {isTextarea ? (
-            <Textarea value={enValue} onChange={(e) => onChange('en', e.target.value)} placeholder={`Enter ${label} in English`} disabled={loading} rows={3} />
+            <RichTextEditor value={enValue} onChange={(value) => onChange('en', value)} placeholder={`Enter ${label} in English`} />
           ) : (
             <Input value={enValue} onChange={(e) => onChange('en', e.target.value)} placeholder={`Enter ${label} in English`} disabled={loading} />
           )}
@@ -279,7 +375,7 @@ const AboutPageEditor = () => {
 
         <TabsContent value="hi" className="space-y-2 mt-4">
           {isTextarea ? (
-            <Textarea value={hiValue} onChange={(e) => onChange('hi', e.target.value)} placeholder={`हिंदी में ${label} दर्ज करें`} disabled={loading} rows={3} />
+            <RichTextEditor value={hiValue} onChange={(value) => onChange('hi', value)} placeholder={`हिंदी में ${label} दर्ज करें`} />
           ) : (
             <Input value={hiValue} onChange={(e) => onChange('hi', e.target.value)} placeholder={`हिंदी में ${label} दर्ज करें`} disabled={loading} />
           )}
@@ -287,7 +383,7 @@ const AboutPageEditor = () => {
 
         <TabsContent value="mr" className="space-y-2 mt-4">
           {isTextarea ? (
-            <Textarea value={mrValue} onChange={(e) => onChange('mr', e.target.value)} placeholder={`मराठीत ${label} प्रविष्ट करा`} disabled={loading} rows={3} />
+            <RichTextEditor value={mrValue} onChange={(value) => onChange('mr', value)} placeholder={`मराठीत ${label} प्रविष्ट करा`} />
           ) : (
             <Input value={mrValue} onChange={(e) => onChange('mr', e.target.value)} placeholder={`मराठीत ${label} प्रविष्ट करा`} disabled={loading} />
           )}
@@ -321,23 +417,17 @@ const AboutPageEditor = () => {
             <CardTitle>Hero Section</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {renderLanguageTabs('Hero Title', heroContent.title_en, heroContent.title_hi, heroContent.title_mr, (lang, val) => setHeroContent({ ...heroContent, [`title_${lang}`]: val }))}
-            {renderLanguageTabs('Hero Subtitle', heroContent.subtitle_en, heroContent.subtitle_hi, heroContent.subtitle_mr, (lang, val) => setHeroContent({ ...heroContent, [`subtitle_${lang}`]: val }), true)}
+            {renderLanguageTabs('Main Title', heroContent.main_title_en, heroContent.main_title_hi, heroContent.main_title_mr, (lang, val) => setHeroContent({ ...heroContent, [`main_title_${lang}`]: val }))}
+            {renderLanguageTabs('Main Subtitle', heroContent.main_subtitle_en, heroContent.main_subtitle_hi, heroContent.main_subtitle_mr, (lang, val) => setHeroContent({ ...heroContent, [`main_subtitle_${lang}`]: val }), true)}
+            {renderLanguageTabs('Section Title', heroContent.title_en, heroContent.title_hi, heroContent.title_mr, (lang, val) => setHeroContent({ ...heroContent, [`title_${lang}`]: val }))}
+            {renderLanguageTabs('Section Description', heroContent.description_en, heroContent.description_hi, heroContent.description_mr, (lang, val) => setHeroContent({ ...heroContent, [`description_${lang}`]: val }), true)}
 
             <div className="space-y-4">
-              <h3 className="font-semibold text-foreground">Hero Background Image</h3>
-              <ImageUpload onUpload={(mediaId: number) => setHeroContent({ ...heroContent, image_id: String(mediaId) })} existingImageUrl={heroContent.existingImageUrl} section="about-hero" />
+              <h3 className="font-semibold text-foreground">Hero Image</h3>
+              <ImageUpload onUpload={(mediaId: number) => setHeroContent({ ...heroContent, image_id: String(mediaId) })} existingImageUrl={heroContent.existingImageUrl} onRemove={handleRemoveHeroImage} section="about-hero" />
             </div>
 
-            <Button onClick={() => saveSectionContent('Hero Section', [
-              heroContent.title_en && { endpoint: 'hero_title', data: { language: 'en', content: heroContent.title_en } },
-              heroContent.title_hi && { endpoint: 'hero_title', data: { language: 'hi', content: heroContent.title_hi } },
-              heroContent.title_mr && { endpoint: 'hero_title', data: { language: 'mr', content: heroContent.title_mr } },
-              heroContent.subtitle_en && { endpoint: 'hero_subtitle', data: { language: 'en', content: heroContent.subtitle_en } },
-              heroContent.subtitle_hi && { endpoint: 'hero_subtitle', data: { language: 'hi', content: heroContent.subtitle_hi } },
-              heroContent.subtitle_mr && { endpoint: 'hero_subtitle', data: { language: 'mr', content: heroContent.subtitle_mr } },
-              heroContent.image_id && { endpoint: 'hero_image', data: { image_id: heroContent.image_id } },
-            ].filter(Boolean) as any)} disabled={saving} className="w-full">
+            <Button onClick={saveHeroSection} disabled={saving} className="w-full">
               {saving ? 'Saving...' : 'Save Hero Section'}
             </Button>
           </CardContent>

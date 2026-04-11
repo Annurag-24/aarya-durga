@@ -22,8 +22,6 @@ const PageContentEditor = () => {
     { label: 'About - Title', key: 'about_title' },
     { label: 'About - Paragraph 1', key: 'about_p1' },
     { label: 'About - Paragraph 2', key: 'about_p2' },
-    { label: 'Blessing Banner - Title', key: 'blessing_title' },
-    { label: 'Blessing Banner - Content', key: 'blessing_content' },
     { label: 'Hero - Subtitle', key: 'hero_subtitle' },
     { label: 'Visit - Heading', key: 'visit_heading' },
   ];
@@ -98,23 +96,19 @@ const PageContentEditor = () => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="en" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="en">English</TabsTrigger>
-              <TabsTrigger value="hi">हिंदी</TabsTrigger>
               <TabsTrigger value="mr">मराठी</TabsTrigger>
             </TabsList>
 
-            {(['en', 'hi', 'mr'] as const).map((lang) => (
+            {(['en', 'mr'] as const).map((lang) => (
               <TabsContent key={lang} value={lang} className="space-y-4">
                 <div>
                   <Label htmlFor={`content_${lang}`}>Content</Label>
-                  <Textarea
-                    id={`content_${lang}`}
+                  <RichTextEditor
                     value={content[lang]}
-                    onChange={(e) => setContent({ ...content, [lang]: e.target.value })}
+                    onChange={(value) => setContent({ ...content, [lang]: value })}
                     placeholder="Enter content..."
-                    rows={6}
-                    disabled={loading}
                   />
                   <p className="text-xs text-muted-foreground mt-2">
                     {content[lang].length} characters
@@ -139,7 +133,6 @@ const PageContentEditor = () => {
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
           <p>✓ <strong>About Section</strong> - Edit temple description</p>
-          <p>✓ <strong>Blessing Banner</strong> - Edit blessing message</p>
           <p>✓ <strong>Hero Section</strong> - Edit hero subtitle</p>
           <p>✓ <strong>Visit Section</strong> - Edit visit information heading</p>
           <p className="text-xs mt-4 italic">More sections can be added based on your needs</p>

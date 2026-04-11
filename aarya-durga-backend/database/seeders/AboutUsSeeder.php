@@ -14,66 +14,23 @@ class AboutUsSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create media records for about us page images
-        $aboutHeroMedia = Media::updateOrCreate(
-            ['filename' => 'about-hero.jpg'],
-            [
-                'original_name' => 'about-hero.jpg',
-                'file_path' => 'uploads/about-hero.jpg',
-                'file_url' => '/storage/uploads/about-hero.jpg',
-                'file_size' => 477 * 1024, // 477KB
-                'mime_type' => 'image/jpeg',
-                'width' => 1920,
-                'height' => 1080,
-            ]
-        );
-
-        $aboutSectionMedia = Media::updateOrCreate(
-            ['filename' => 'about-section.jpg'],
-            [
-                'original_name' => 'about-section.jpg',
-                'file_path' => 'uploads/about-section.jpg',
-                'file_url' => '/storage/uploads/about-section.jpg',
-                'file_size' => 118 * 1024, // 118KB
-                'mime_type' => 'image/jpeg',
-                'width' => 800,
-                'height' => 800,
-            ]
-        );
-
-        // About Us Hero Title (TRANSLATABLE)
+        // Hero Main Title (TRANSLATABLE)
         PageContent::updateOrCreate(
-            ['page_key' => 'about', 'section_key' => 'hero_title'],
+            ['page_key' => 'about', 'section_key' => 'hero_main_title'],
             [
                 'content_en' => 'About Aarya Durga Temple',
                 'content_hi' => 'आर्य दुर्गा मंदिर के बारे में',
-                'content_mr' => 'आर्य दुर्गा मंदिरबद्दल',
+                'content_mr' => 'आर्या दुर्गा मंदिराबद्दल',
             ]
         );
 
-        // About Us Hero Subtitle (TRANSLATABLE)
+        // Hero Main Subtitle (TRANSLATABLE)
         PageContent::updateOrCreate(
-            ['page_key' => 'about', 'section_key' => 'hero_subtitle'],
+            ['page_key' => 'about', 'section_key' => 'hero_main_subtitle'],
             [
-                'content_en' => 'A sacred temple dedicated to Goddess Durga, celebrating centuries of devotion and spiritual wisdom',
-                'content_hi' => 'देवी दुर्गा को समर्पित एक पवित्र मंदिर, जो भक्ति और आध्यात्मिक ज्ञान की सदियों का जश्न मनाता है',
-                'content_mr' => 'देवी दुर्गा यांना समर्पित एक पवित्र मंदिर, जो भक्ती आणि आध्यात्मिक ज्ञानाच्या शतकांचा उत्सव करते',
-            ]
-        );
-
-        // About Us Hero Image
-        PageContent::updateOrCreate(
-            ['page_key' => 'about', 'section_key' => 'hero_image'],
-            [
-                'image_id' => $aboutHeroMedia->id,
-            ]
-        );
-
-        // About Section Image
-        PageContent::updateOrCreate(
-            ['page_key' => 'about', 'section_key' => 'about_image'],
-            [
-                'image_id' => $aboutSectionMedia->id,
+                'content_en' => 'Aarya Durga Temple stands as a beacon of spiritual enlightenment and cultural heritage. Built with devotion and maintained with reverence, this sacred space welcomes devotees from all walks of life.',
+                'content_hi' => 'आर्य दुर्गा मंदिर आध्यात्मिक ज्ञान और सांस्कृतिक विरासत का एक प्रकाशस्तंभ है। भक्ति से निर्मित और श्रद्धा से संजोया गया यह पवित्र स्थान सभी भक्तों का स्वागत करता है।',
+                'content_mr' => 'आर्या दुर्गा मंदिर आध्यात्मिक प्रकाश आणि सांस्कृतिक वारशाचे प्रतीक आहे. भक्तीभावाने उभारलेले आणि श्रद्धेने जपलेले हे पवित्र स्थान सर्व भक्तांचे स्वागत करते.',
             ]
         );
 

@@ -7,6 +7,7 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { useState, useEffect } from "react";
 import { findContentItem, getContentByLanguage } from "@/api/helpers";
 import { useHomePageData } from "@/contexts/HomePageContext";
+import { RichTextContent } from "@/components/global/RichTextContent";
 
 const HistorySection = () => {
   const { t, language } = useLanguage();
@@ -66,7 +67,10 @@ const HistorySection = () => {
         {contextLoading ? (
           <Skeleton className="h-6 w-96 mx-auto mb-12" />
         ) : (
-          <p className="text-muted-foreground max-w-2xl mx-auto mb-12">{description}</p>
+          <RichTextContent
+            content={description}
+            className="mx-auto mb-12 max-w-2xl text-muted-foreground text-left md:text-center"
+          />
         )}
         <div className="grid md:grid-cols-3 gap-8 mb-10">
           {cards.map((item, i) => {
@@ -77,7 +81,10 @@ const HistorySection = () => {
                   {IconComponent && <IconComponent className="text-primary" size={28} />}
                 </div>
                 <h3 className="font-heading text-xl font-semibold text-foreground mb-2">{item.title}</h3>
-                <p className="text-muted-foreground text-sm">{item.desc}</p>
+                <RichTextContent
+                  content={item.desc}
+                  className="text-sm text-muted-foreground"
+                />
               </motion.div>
             );
           })}

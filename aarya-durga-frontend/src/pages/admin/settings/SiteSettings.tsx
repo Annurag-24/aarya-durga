@@ -136,11 +136,10 @@ export const SiteSettings = () => {
                                 auth pages
                             </p>
                             <Tabs defaultValue="en" className="w-full">
-                                <TabsList className="grid w-full grid-cols-3">
+                                <TabsList className="grid w-full grid-cols-2">
                                     <TabsTrigger value="en">
                                         English
                                     </TabsTrigger>
-                                    <TabsTrigger value="hi">हिंदी</TabsTrigger>
                                     <TabsTrigger value="mr">मराठी</TabsTrigger>
                                 </TabsList>
                                 <TabsContent value="en" className="mt-4">

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { toast } from "sonner";
 import client from "@/api/client";
 import { ImageUpload } from "@/components/admin/ImageUpload";
@@ -84,10 +85,37 @@ interface BannerContent {
     existingImageUrl?: string;
 }
 
+interface HomeHistoryContent {
+    title_en: string;
+    title_hi: string;
+    title_mr: string;
+    description_en: string;
+    description_hi: string;
+    description_mr: string;
+    card1_title_en: string;
+    card1_title_hi: string;
+    card1_title_mr: string;
+    card1_description_en: string;
+    card1_description_hi: string;
+    card1_description_mr: string;
+    card2_title_en: string;
+    card2_title_hi: string;
+    card2_title_mr: string;
+    card2_description_en: string;
+    card2_description_hi: string;
+    card2_description_mr: string;
+    card3_title_en: string;
+    card3_title_hi: string;
+    card3_title_mr: string;
+    card3_description_en: string;
+    card3_description_hi: string;
+    card3_description_mr: string;
+}
+
 const HistoryPageEditor = () => {
     const { setLoading: setGlobalLoading } = useLoader();
     const [activeSection, setActiveSection] = useState<
-        "hero" | "origin" | "timeline" | "traditions" | "banner"
+        "hero" | "origin" | "timeline" | "traditions" | "banner" | "home-history"
     >("hero");
     const [saving, setSaving] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -235,6 +263,34 @@ const HistoryPageEditor = () => {
         quote_mr: "",
     });
 
+    const [homeHistoryContent, setHomeHistoryContent] =
+        useState<HomeHistoryContent>({
+            title_en: "",
+            title_hi: "",
+            title_mr: "",
+            description_en: "",
+            description_hi: "",
+            description_mr: "",
+            card1_title_en: "",
+            card1_title_hi: "",
+            card1_title_mr: "",
+            card1_description_en: "",
+            card1_description_hi: "",
+            card1_description_mr: "",
+            card2_title_en: "",
+            card2_title_hi: "",
+            card2_title_mr: "",
+            card2_description_en: "",
+            card2_description_hi: "",
+            card2_description_mr: "",
+            card3_title_en: "",
+            card3_title_hi: "",
+            card3_title_mr: "",
+            card3_description_en: "",
+            card3_description_hi: "",
+            card3_description_mr: "",
+        });
+
     const imagesLoaded = useImagesLoaded([
         heroContent.existingImageUrl,
         originContent.existingImageUrl,
@@ -256,11 +312,17 @@ const HistoryPageEditor = () => {
         setLoading(true);
         setGlobalLoading(true);
         try {
-            const response = await client.get("/public/page-content/history");
-            const data = response.data;
+            const [historyResponse, homeResponse] = await Promise.all([
+                client.get("/public/page-content/history"),
+                client.get("/public/page-content/home"),
+            ]);
+            const data = historyResponse.data;
+            const homeData = homeResponse.data;
 
             const findContent = (key: string) =>
                 data.find((item: any) => item.section_key === key);
+            const findHomeContent = (key: string) =>
+                homeData.find((item: any) => item.section_key === key);
             const getImage = (key: string) => {
                 const item = findContent(key);
                 return item?.image?.file_url
@@ -496,6 +558,63 @@ const HistoryPageEditor = () => {
                 image_id: findContent("banner_image")?.image_id,
                 existingImageUrl: getImage("banner_image"),
             });
+
+            setHomeHistoryContent({
+                title_en: findHomeContent("history_title")?.content_en || "",
+                title_hi: findHomeContent("history_title")?.content_hi || "",
+                title_mr: findHomeContent("history_title")?.content_mr || "",
+                description_en:
+                    findHomeContent("history_description")?.content_en || "",
+                description_hi:
+                    findHomeContent("history_description")?.content_hi || "",
+                description_mr:
+                    findHomeContent("history_description")?.content_mr || "",
+                card1_title_en:
+                    findHomeContent("history_card1_title")?.content_en || "",
+                card1_title_hi:
+                    findHomeContent("history_card1_title")?.content_hi || "",
+                card1_title_mr:
+                    findHomeContent("history_card1_title")?.content_mr || "",
+                card1_description_en:
+                    findHomeContent("history_card1_description")?.content_en ||
+                    "",
+                card1_description_hi:
+                    findHomeContent("history_card1_description")?.content_hi ||
+                    "",
+                card1_description_mr:
+                    findHomeContent("history_card1_description")?.content_mr ||
+                    "",
+                card2_title_en:
+                    findHomeContent("history_card2_title")?.content_en || "",
+                card2_title_hi:
+                    findHomeContent("history_card2_title")?.content_hi || "",
+                card2_title_mr:
+                    findHomeContent("history_card2_title")?.content_mr || "",
+                card2_description_en:
+                    findHomeContent("history_card2_description")?.content_en ||
+                    "",
+                card2_description_hi:
+                    findHomeContent("history_card2_description")?.content_hi ||
+                    "",
+                card2_description_mr:
+                    findHomeContent("history_card2_description")?.content_mr ||
+                    "",
+                card3_title_en:
+                    findHomeContent("history_card3_title")?.content_en || "",
+                card3_title_hi:
+                    findHomeContent("history_card3_title")?.content_hi || "",
+                card3_title_mr:
+                    findHomeContent("history_card3_title")?.content_mr || "",
+                card3_description_en:
+                    findHomeContent("history_card3_description")?.content_en ||
+                    "",
+                card3_description_hi:
+                    findHomeContent("history_card3_description")?.content_hi ||
+                    "",
+                card3_description_mr:
+                    findHomeContent("history_card3_description")?.content_mr ||
+                    "",
+            });
         } catch (error) {
             toast.error("Failed to load content");
         } finally {
@@ -654,6 +773,142 @@ const HistoryPageEditor = () => {
                             : Promise.resolve(),
                     ]);
                     break;
+                case "home-history":
+                    await Promise.all([
+                        client.put("/admin/page-content/home/history_title", {
+                            language: "en",
+                            content: homeHistoryContent.title_en,
+                        }),
+                        client.put("/admin/page-content/home/history_title", {
+                            language: "hi",
+                            content: homeHistoryContent.title_hi,
+                        }),
+                        client.put("/admin/page-content/home/history_title", {
+                            language: "mr",
+                            content: homeHistoryContent.title_mr,
+                        }),
+                        client.put(
+                            "/admin/page-content/home/history_description",
+                            {
+                                language: "en",
+                                content: homeHistoryContent.description_en,
+                            },
+                        ),
+                        client.put(
+                            "/admin/page-content/home/history_description",
+                            {
+                                language: "hi",
+                                content: homeHistoryContent.description_hi,
+                            },
+                        ),
+                        client.put(
+                            "/admin/page-content/home/history_description",
+                            {
+                                language: "mr",
+                                content: homeHistoryContent.description_mr,
+                            },
+                        ),
+                        client.put("/admin/page-content/home/history_card1_title", {
+                            language: "en",
+                            content: homeHistoryContent.card1_title_en,
+                        }),
+                        client.put("/admin/page-content/home/history_card1_title", {
+                            language: "hi",
+                            content: homeHistoryContent.card1_title_hi,
+                        }),
+                        client.put("/admin/page-content/home/history_card1_title", {
+                            language: "mr",
+                            content: homeHistoryContent.card1_title_mr,
+                        }),
+                        client.put(
+                            "/admin/page-content/home/history_card1_description",
+                            {
+                                language: "en",
+                                content: homeHistoryContent.card1_description_en,
+                            },
+                        ),
+                        client.put(
+                            "/admin/page-content/home/history_card1_description",
+                            {
+                                language: "hi",
+                                content: homeHistoryContent.card1_description_hi,
+                            },
+                        ),
+                        client.put(
+                            "/admin/page-content/home/history_card1_description",
+                            {
+                                language: "mr",
+                                content: homeHistoryContent.card1_description_mr,
+                            },
+                        ),
+                        client.put("/admin/page-content/home/history_card2_title", {
+                            language: "en",
+                            content: homeHistoryContent.card2_title_en,
+                        }),
+                        client.put("/admin/page-content/home/history_card2_title", {
+                            language: "hi",
+                            content: homeHistoryContent.card2_title_hi,
+                        }),
+                        client.put("/admin/page-content/home/history_card2_title", {
+                            language: "mr",
+                            content: homeHistoryContent.card2_title_mr,
+                        }),
+                        client.put(
+                            "/admin/page-content/home/history_card2_description",
+                            {
+                                language: "en",
+                                content: homeHistoryContent.card2_description_en,
+                            },
+                        ),
+                        client.put(
+                            "/admin/page-content/home/history_card2_description",
+                            {
+                                language: "hi",
+                                content: homeHistoryContent.card2_description_hi,
+                            },
+                        ),
+                        client.put(
+                            "/admin/page-content/home/history_card2_description",
+                            {
+                                language: "mr",
+                                content: homeHistoryContent.card2_description_mr,
+                            },
+                        ),
+                        client.put("/admin/page-content/home/history_card3_title", {
+                            language: "en",
+                            content: homeHistoryContent.card3_title_en,
+                        }),
+                        client.put("/admin/page-content/home/history_card3_title", {
+                            language: "hi",
+                            content: homeHistoryContent.card3_title_hi,
+                        }),
+                        client.put("/admin/page-content/home/history_card3_title", {
+                            language: "mr",
+                            content: homeHistoryContent.card3_title_mr,
+                        }),
+                        client.put(
+                            "/admin/page-content/home/history_card3_description",
+                            {
+                                language: "en",
+                                content: homeHistoryContent.card3_description_en,
+                            },
+                        ),
+                        client.put(
+                            "/admin/page-content/home/history_card3_description",
+                            {
+                                language: "hi",
+                                content: homeHistoryContent.card3_description_hi,
+                            },
+                        ),
+                        client.put(
+                            "/admin/page-content/home/history_card3_description",
+                            {
+                                language: "mr",
+                                content: homeHistoryContent.card3_description_mr,
+                            },
+                        ),
+                    ]);
+                    break;
             }
             toast.success("Content saved successfully");
         } catch (error) {
@@ -674,19 +929,16 @@ const HistoryPageEditor = () => {
         <div className="space-y-4">
             <h3 className="font-semibold text-foreground">{label}</h3>
             <Tabs defaultValue="en" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="en">English</TabsTrigger>
-                    <TabsTrigger value="hi">हिंदी</TabsTrigger>
                     <TabsTrigger value="mr">मराठी</TabsTrigger>
                 </TabsList>
                 <TabsContent value="en" className="space-y-2 mt-4">
                     {isTextarea ? (
-                        <Textarea
+                        <RichTextEditor
                             value={en}
-                            onChange={(e) => onChange("en", e.target.value)}
+                            onChange={(value) => onChange("en", value)}
                             placeholder={`Enter ${label} in English`}
-                            disabled={loading}
-                            rows={3}
                         />
                     ) : (
                         <Input
@@ -699,12 +951,10 @@ const HistoryPageEditor = () => {
                 </TabsContent>
                 <TabsContent value="hi" className="space-y-2 mt-4">
                     {isTextarea ? (
-                        <Textarea
+                        <RichTextEditor
                             value={hi}
-                            onChange={(e) => onChange("hi", e.target.value)}
+                            onChange={(value) => onChange("hi", value)}
                             placeholder={`हिंदी में ${label} दर्ज करें`}
-                            disabled={loading}
-                            rows={3}
                         />
                     ) : (
                         <Input
@@ -717,12 +967,10 @@ const HistoryPageEditor = () => {
                 </TabsContent>
                 <TabsContent value="mr" className="space-y-2 mt-4">
                     {isTextarea ? (
-                        <Textarea
+                        <RichTextEditor
                             value={mr}
-                            onChange={(e) => onChange("mr", e.target.value)}
+                            onChange={(value) => onChange("mr", value)}
                             placeholder={`मराठीत ${label} प्रविष्ट करा`}
-                            disabled={loading}
-                            rows={3}
                         />
                     ) : (
                         <Input
@@ -763,6 +1011,11 @@ const HistoryPageEditor = () => {
             title: "Banner Section",
             description: "Title, background image",
         },
+        {
+            id: "home-history" as const,
+            title: "Home Page History Section",
+            description: "Homepage history title, description, and 3 cards",
+        },
     ];
 
     return (
@@ -774,7 +1027,7 @@ const HistoryPageEditor = () => {
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
                 {sections.map((section) => (
                     <Card
                         key={section.id}
@@ -1138,6 +1391,92 @@ const HistoryPageEditor = () => {
                             className="w-full"
                         >
                             {saving ? "Saving..." : "Save Banner Section"}
+                        </Button>
+                    </CardContent>
+                </Card>
+            )}
+
+            {activeSection === "home-history" && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Home Page History Section</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        {renderLanguageTabs(
+                            "Section Title",
+                            homeHistoryContent.title_en,
+                            homeHistoryContent.title_hi,
+                            homeHistoryContent.title_mr,
+                            (lang, value) =>
+                                setHomeHistoryContent({
+                                    ...homeHistoryContent,
+                                    [`title_${lang}`]: value,
+                                }),
+                        )}
+                        {renderLanguageTabs(
+                            "Section Description",
+                            homeHistoryContent.description_en,
+                            homeHistoryContent.description_hi,
+                            homeHistoryContent.description_mr,
+                            (lang, value) =>
+                                setHomeHistoryContent({
+                                    ...homeHistoryContent,
+                                    [`description_${lang}`]: value,
+                                }),
+                            true,
+                        )}
+
+                        {["1", "2", "3"].map((cardNo) => (
+                            <div key={cardNo} className="border rounded-lg p-4 bg-muted/30">
+                                <h3 className="font-semibold mb-4">
+                                    Card {cardNo}
+                                </h3>
+                                {renderLanguageTabs(
+                                    `Card ${cardNo} Title`,
+                                    homeHistoryContent[
+                                        `card${cardNo}_title_en` as keyof HomeHistoryContent
+                                    ] as string,
+                                    homeHistoryContent[
+                                        `card${cardNo}_title_hi` as keyof HomeHistoryContent
+                                    ] as string,
+                                    homeHistoryContent[
+                                        `card${cardNo}_title_mr` as keyof HomeHistoryContent
+                                    ] as string,
+                                    (lang, value) =>
+                                        setHomeHistoryContent({
+                                            ...homeHistoryContent,
+                                            [`card${cardNo}_title_${lang}`]: value,
+                                        }),
+                                )}
+                                {renderLanguageTabs(
+                                    `Card ${cardNo} Description`,
+                                    homeHistoryContent[
+                                        `card${cardNo}_description_en` as keyof HomeHistoryContent
+                                    ] as string,
+                                    homeHistoryContent[
+                                        `card${cardNo}_description_hi` as keyof HomeHistoryContent
+                                    ] as string,
+                                    homeHistoryContent[
+                                        `card${cardNo}_description_mr` as keyof HomeHistoryContent
+                                    ] as string,
+                                    (lang, value) =>
+                                        setHomeHistoryContent({
+                                            ...homeHistoryContent,
+                                            [`card${cardNo}_description_${lang}`]: value,
+                                        }),
+                                    true,
+                                )}
+                            </div>
+                        ))}
+
+                        <Button
+                            onClick={() => saveSection("home-history")}
+                            disabled={saving}
+                            className="w-full"
+                        >
+                            {saving
+                                ? "Saving..."
+                                : "Save Home Page History Section"}
                         </Button>
                     </CardContent>
                 </Card>

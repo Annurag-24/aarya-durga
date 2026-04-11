@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import { toast } from 'sonner';
 import client from '@/api/client';
 import { ImageUpload } from '@/components/admin/ImageUpload';
@@ -24,53 +25,6 @@ interface SectionContent {
   description_mr: string;
   image_id?: number;
   existingImageUrl?: string;
-}
-
-interface BlessingContent {
-  title_en: string;
-  title_hi: string;
-  title_mr: string;
-  content_en: string;
-  content_hi: string;
-  content_mr: string;
-  image_id?: number;
-  existingImageUrl?: string;
-}
-
-interface HistoryContent {
-  title_en: string;
-  title_hi: string;
-  title_mr: string;
-  description_en: string;
-  description_hi: string;
-  description_mr: string;
-  card1_title_en: string;
-  card1_title_hi: string;
-  card1_title_mr: string;
-  card1_description_en: string;
-  card1_description_hi: string;
-  card1_description_mr: string;
-  card2_title_en: string;
-  card2_title_hi: string;
-  card2_title_mr: string;
-  card2_description_en: string;
-  card2_description_hi: string;
-  card2_description_mr: string;
-  card3_title_en: string;
-  card3_title_hi: string;
-  card3_title_mr: string;
-  card3_description_en: string;
-  card3_description_hi: string;
-  card3_description_mr: string;
-}
-
-interface EventsContent {
-  title_en: string;
-  title_hi: string;
-  title_mr: string;
-  description_en: string;
-  description_hi: string;
-  description_mr: string;
 }
 
 interface VisitContent {
@@ -166,56 +120,6 @@ const HomePageEditor = () => {
     description_hi: '',
     description_mr: '',
   });
-  const [aboutContent, setAboutContent] = useState<SectionContent>({
-    title_en: '',
-    title_hi: '',
-    title_mr: '',
-    description_en: '',
-    description_hi: '',
-    description_mr: '',
-  });
-  const [blessingContent, setBlessingContent] = useState<BlessingContent>({
-    title_en: '',
-    title_hi: '',
-    title_mr: '',
-    content_en: '',
-    content_hi: '',
-    content_mr: '',
-  });
-  const [historyContent, setHistoryContent] = useState<HistoryContent>({
-    title_en: '',
-    title_hi: '',
-    title_mr: '',
-    description_en: '',
-    description_hi: '',
-    description_mr: '',
-    card1_title_en: '',
-    card1_title_hi: '',
-    card1_title_mr: '',
-    card1_description_en: '',
-    card1_description_hi: '',
-    card1_description_mr: '',
-    card2_title_en: '',
-    card2_title_hi: '',
-    card2_title_mr: '',
-    card2_description_en: '',
-    card2_description_hi: '',
-    card2_description_mr: '',
-    card3_title_en: '',
-    card3_title_hi: '',
-    card3_title_mr: '',
-    card3_description_en: '',
-    card3_description_hi: '',
-    card3_description_mr: '',
-  });
-  const [eventsContent, setEventsContent] = useState<EventsContent>({
-    title_en: '',
-    title_hi: '',
-    title_mr: '',
-    description_en: '',
-    description_hi: '',
-    description_mr: '',
-  });
   const [visitContent, setVisitContent] = useState<VisitContent>({
     darshan_morning_start_en: '',
     darshan_morning_start_hi: '',
@@ -271,16 +175,10 @@ const HomePageEditor = () => {
   const [saving, setSaving] = useState(false);
   const imagesLoaded = useImagesLoaded([
     heroContent.existingImageUrl,
-    aboutContent.existingImageUrl,
-    blessingContent.existingImageUrl,
   ]);
 
   const sections = [
     { label: 'Hero Section', key: 'hero', description: 'Homepage hero title, subtitle, and background' },
-    { label: 'About Section', key: 'about', description: 'About temple content' },
-    { label: 'Blessing Banner', key: 'blessing', description: 'Blessing message and quote' },
-    { label: 'History Section', key: 'history', description: 'History title, description, and 3 cards' },
-    { label: 'Events Section', key: 'events', description: 'Temple events title and description' },
     { label: 'Visit Section', key: 'visit', description: 'Visit information and heading' },
     { label: 'Footer Section', key: 'footer', description: 'Footer title, social links, and copyright' },
   ];
@@ -326,96 +224,6 @@ const HomePageEditor = () => {
           description_mr: descriptionData?.content_mr || '',
           image_id: imageData?.image_id,
           existingImageUrl,
-        });
-      } else if (sectionKey === 'about') {
-        const titleData = response.data.find((item: any) => item.section_key === 'about_title');
-        const descriptionData = response.data.find((item: any) => item.section_key === 'about_description');
-        const imageData = response.data.find((item: any) => item.section_key === 'about_image');
-
-        // Construct image URL if image exists
-        let existingImageUrl: string | undefined;
-        if (imageData?.image?.file_url) {
-          existingImageUrl = constructImageUrl(imageData.image.file_url);
-        }
-
-        setAboutContent({
-          title_en: titleData?.content_en || '',
-          title_hi: titleData?.content_hi || '',
-          title_mr: titleData?.content_mr || '',
-          description_en: descriptionData?.content_en || '',
-          description_hi: descriptionData?.content_hi || '',
-          description_mr: descriptionData?.content_mr || '',
-          image_id: imageData?.image_id,
-          existingImageUrl,
-        });
-      } else if (sectionKey === 'blessing') {
-        const titleData = response.data.find((item: any) => item.section_key === 'blessing_title');
-        const contentData = response.data.find((item: any) => item.section_key === 'blessing_content');
-        const imageData = response.data.find((item: any) => item.section_key === 'blessing_image');
-
-        // Construct image URL if image exists
-        let existingImageUrl: string | undefined;
-        if (imageData?.image?.file_url) {
-          existingImageUrl = constructImageUrl(imageData.image.file_url);
-        }
-
-        setBlessingContent({
-          title_en: titleData?.content_en || '',
-          title_hi: titleData?.content_hi || '',
-          title_mr: titleData?.content_mr || '',
-          content_en: contentData?.content_en || '',
-          content_hi: contentData?.content_hi || '',
-          content_mr: contentData?.content_mr || '',
-          image_id: imageData?.image_id,
-          existingImageUrl,
-        });
-      } else if (sectionKey === 'history') {
-        const titleData = response.data.find((item: any) => item.section_key === 'history_title');
-        const descriptionData = response.data.find((item: any) => item.section_key === 'history_description');
-        const card1TitleData = response.data.find((item: any) => item.section_key === 'history_card1_title');
-        const card1DescData = response.data.find((item: any) => item.section_key === 'history_card1_description');
-        const card2TitleData = response.data.find((item: any) => item.section_key === 'history_card2_title');
-        const card2DescData = response.data.find((item: any) => item.section_key === 'history_card2_description');
-        const card3TitleData = response.data.find((item: any) => item.section_key === 'history_card3_title');
-        const card3DescData = response.data.find((item: any) => item.section_key === 'history_card3_description');
-
-        setHistoryContent({
-          title_en: titleData?.content_en || '',
-          title_hi: titleData?.content_hi || '',
-          title_mr: titleData?.content_mr || '',
-          description_en: descriptionData?.content_en || '',
-          description_hi: descriptionData?.content_hi || '',
-          description_mr: descriptionData?.content_mr || '',
-          card1_title_en: card1TitleData?.content_en || '',
-          card1_title_hi: card1TitleData?.content_hi || '',
-          card1_title_mr: card1TitleData?.content_mr || '',
-          card1_description_en: card1DescData?.content_en || '',
-          card1_description_hi: card1DescData?.content_hi || '',
-          card1_description_mr: card1DescData?.content_mr || '',
-          card2_title_en: card2TitleData?.content_en || '',
-          card2_title_hi: card2TitleData?.content_hi || '',
-          card2_title_mr: card2TitleData?.content_mr || '',
-          card2_description_en: card2DescData?.content_en || '',
-          card2_description_hi: card2DescData?.content_hi || '',
-          card2_description_mr: card2DescData?.content_mr || '',
-          card3_title_en: card3TitleData?.content_en || '',
-          card3_title_hi: card3TitleData?.content_hi || '',
-          card3_title_mr: card3TitleData?.content_mr || '',
-          card3_description_en: card3DescData?.content_en || '',
-          card3_description_hi: card3DescData?.content_hi || '',
-          card3_description_mr: card3DescData?.content_mr || '',
-        });
-      } else if (sectionKey === 'events') {
-        const titleData = response.data.find((item: any) => item.section_key === 'events_title');
-        const descriptionData = response.data.find((item: any) => item.section_key === 'events_description');
-
-        setEventsContent({
-          title_en: titleData?.content_en || '',
-          title_hi: titleData?.content_hi || '',
-          title_mr: titleData?.content_mr || '',
-          description_en: descriptionData?.content_en || '',
-          description_hi: descriptionData?.content_hi || '',
-          description_mr: descriptionData?.content_mr || '',
         });
       } else if (sectionKey === 'visit') {
         const morningStartData = response.data.find((item: any) => item.section_key === 'visit_darshan_morning_start');
@@ -503,56 +311,6 @@ const HomePageEditor = () => {
         subtitle_en: '',
         subtitle_hi: '',
         subtitle_mr: '',
-        description_en: '',
-        description_hi: '',
-        description_mr: '',
-      });
-      setAboutContent({
-        title_en: '',
-        title_hi: '',
-        title_mr: '',
-        description_en: '',
-        description_hi: '',
-        description_mr: '',
-      });
-      setBlessingContent({
-        title_en: '',
-        title_hi: '',
-        title_mr: '',
-        content_en: '',
-        content_hi: '',
-        content_mr: '',
-      });
-      setHistoryContent({
-        title_en: '',
-        title_hi: '',
-        title_mr: '',
-        description_en: '',
-        description_hi: '',
-        description_mr: '',
-        card1_title_en: '',
-        card1_title_hi: '',
-        card1_title_mr: '',
-        card1_description_en: '',
-        card1_description_hi: '',
-        card1_description_mr: '',
-        card2_title_en: '',
-        card2_title_hi: '',
-        card2_title_mr: '',
-        card2_description_en: '',
-        card2_description_hi: '',
-        card2_description_mr: '',
-        card3_title_en: '',
-        card3_title_hi: '',
-        card3_title_mr: '',
-        card3_description_en: '',
-        card3_description_hi: '',
-        card3_description_mr: '',
-      });
-      setEventsContent({
-        title_en: '',
-        title_hi: '',
-        title_mr: '',
         description_en: '',
         description_hi: '',
         description_mr: '',
@@ -699,339 +457,6 @@ const HomePageEditor = () => {
       toast.success('Image removed successfully');
     } catch (error) {
       toast.error('Failed to remove image');
-    }
-  };
-
-  const saveAboutSection = async () => {
-    setSaving(true);
-    try {
-      // Save title
-      if (aboutContent.title_en || aboutContent.title_hi || aboutContent.title_mr) {
-        await Promise.all([
-          aboutContent.title_en && client.put(`/admin/page-content/home/about_title`, {
-            language: 'en',
-            content: aboutContent.title_en,
-          }),
-          aboutContent.title_hi && client.put(`/admin/page-content/home/about_title`, {
-            language: 'hi',
-            content: aboutContent.title_hi,
-          }),
-          aboutContent.title_mr && client.put(`/admin/page-content/home/about_title`, {
-            language: 'mr',
-            content: aboutContent.title_mr,
-          }),
-        ].filter(Boolean));
-      }
-
-      // Save description with image
-      if (aboutContent.description_en || aboutContent.description_hi || aboutContent.description_mr || aboutContent.image_id !== undefined) {
-        await client.put(`/admin/page-content/home/about_description`, {
-          language: 'en',
-          content: aboutContent.description_en,
-          image_id: aboutContent.image_id || null,
-        });
-        await client.put(`/admin/page-content/home/about_description`, {
-          language: 'hi',
-          content: aboutContent.description_hi,
-          image_id: aboutContent.image_id || null,
-        });
-        await client.put(`/admin/page-content/home/about_description`, {
-          language: 'mr',
-          content: aboutContent.description_mr,
-          image_id: aboutContent.image_id || null,
-        });
-      }
-
-      toast.success('About section saved successfully');
-    } catch (error) {
-      toast.error('Failed to save about section');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleRemoveAboutImage = async () => {
-    try {
-      await client.put(`/admin/page-content/home/about_description`, {
-        image_id: null,
-      });
-      setAboutContent({
-        ...aboutContent,
-        image_id: undefined,
-        existingImageUrl: undefined,
-      });
-      toast.success('Image removed successfully');
-    } catch {
-      toast.error('Failed to remove image');
-    }
-  };
-
-  const saveBlessing = async () => {
-    setSaving(true);
-    try {
-      // Save title
-      if (blessingContent.title_en || blessingContent.title_hi || blessingContent.title_mr) {
-        await Promise.all([
-          blessingContent.title_en && client.put(`/admin/page-content/home/blessing_title`, {
-            language: 'en',
-            content: blessingContent.title_en,
-          }),
-          blessingContent.title_hi && client.put(`/admin/page-content/home/blessing_title`, {
-            language: 'hi',
-            content: blessingContent.title_hi,
-          }),
-          blessingContent.title_mr && client.put(`/admin/page-content/home/blessing_title`, {
-            language: 'mr',
-            content: blessingContent.title_mr,
-          }),
-        ].filter(Boolean));
-      }
-
-      // Save content
-      if (blessingContent.content_en || blessingContent.content_hi || blessingContent.content_mr) {
-        await Promise.all([
-          blessingContent.content_en && client.put(`/admin/page-content/home/blessing_content`, {
-            language: 'en',
-            content: blessingContent.content_en,
-          }),
-          blessingContent.content_hi && client.put(`/admin/page-content/home/blessing_content`, {
-            language: 'hi',
-            content: blessingContent.content_hi,
-          }),
-          blessingContent.content_mr && client.put(`/admin/page-content/home/blessing_content`, {
-            language: 'mr',
-            content: blessingContent.content_mr,
-          }),
-        ].filter(Boolean));
-      }
-
-      // Save image
-      if (blessingContent.image_id !== undefined) {
-        await client.put(`/admin/page-content/home/blessing_image`, {
-          image_id: blessingContent.image_id || null,
-        });
-      }
-
-      toast.success('Blessing section saved successfully');
-    } catch {
-      toast.error('Failed to save blessing section');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleRemoveBlessingImage = async () => {
-    try {
-      await client.put(`/admin/page-content/home/blessing_image`, {
-        image_id: null,
-      });
-      setBlessingContent({
-        ...blessingContent,
-        image_id: undefined,
-        existingImageUrl: undefined,
-      });
-      toast.success('Image removed successfully');
-    } catch {
-      toast.error('Failed to remove image');
-    }
-  };
-
-  const saveHistory = async () => {
-    setSaving(true);
-    try {
-      // Save title
-      if (historyContent.title_en || historyContent.title_hi || historyContent.title_mr) {
-        await Promise.all([
-          historyContent.title_en && client.put(`/admin/page-content/home/history_title`, {
-            language: 'en',
-            content: historyContent.title_en,
-          }),
-          historyContent.title_hi && client.put(`/admin/page-content/home/history_title`, {
-            language: 'hi',
-            content: historyContent.title_hi,
-          }),
-          historyContent.title_mr && client.put(`/admin/page-content/home/history_title`, {
-            language: 'mr',
-            content: historyContent.title_mr,
-          }),
-        ].filter(Boolean));
-      }
-
-      // Save description
-      if (historyContent.description_en || historyContent.description_hi || historyContent.description_mr) {
-        await Promise.all([
-          historyContent.description_en && client.put(`/admin/page-content/home/history_description`, {
-            language: 'en',
-            content: historyContent.description_en,
-          }),
-          historyContent.description_hi && client.put(`/admin/page-content/home/history_description`, {
-            language: 'hi',
-            content: historyContent.description_hi,
-          }),
-          historyContent.description_mr && client.put(`/admin/page-content/home/history_description`, {
-            language: 'mr',
-            content: historyContent.description_mr,
-          }),
-        ].filter(Boolean));
-      }
-
-      // Save card 1
-      if (historyContent.card1_title_en || historyContent.card1_title_hi || historyContent.card1_title_mr) {
-        await Promise.all([
-          historyContent.card1_title_en && client.put(`/admin/page-content/home/history_card1_title`, {
-            language: 'en',
-            content: historyContent.card1_title_en,
-          }),
-          historyContent.card1_title_hi && client.put(`/admin/page-content/home/history_card1_title`, {
-            language: 'hi',
-            content: historyContent.card1_title_hi,
-          }),
-          historyContent.card1_title_mr && client.put(`/admin/page-content/home/history_card1_title`, {
-            language: 'mr',
-            content: historyContent.card1_title_mr,
-          }),
-        ].filter(Boolean));
-      }
-
-      if (historyContent.card1_description_en || historyContent.card1_description_hi || historyContent.card1_description_mr) {
-        await Promise.all([
-          historyContent.card1_description_en && client.put(`/admin/page-content/home/history_card1_description`, {
-            language: 'en',
-            content: historyContent.card1_description_en,
-          }),
-          historyContent.card1_description_hi && client.put(`/admin/page-content/home/history_card1_description`, {
-            language: 'hi',
-            content: historyContent.card1_description_hi,
-          }),
-          historyContent.card1_description_mr && client.put(`/admin/page-content/home/history_card1_description`, {
-            language: 'mr',
-            content: historyContent.card1_description_mr,
-          }),
-        ].filter(Boolean));
-      }
-
-      // Save card 2
-      if (historyContent.card2_title_en || historyContent.card2_title_hi || historyContent.card2_title_mr) {
-        await Promise.all([
-          historyContent.card2_title_en && client.put(`/admin/page-content/home/history_card2_title`, {
-            language: 'en',
-            content: historyContent.card2_title_en,
-          }),
-          historyContent.card2_title_hi && client.put(`/admin/page-content/home/history_card2_title`, {
-            language: 'hi',
-            content: historyContent.card2_title_hi,
-          }),
-          historyContent.card2_title_mr && client.put(`/admin/page-content/home/history_card2_title`, {
-            language: 'mr',
-            content: historyContent.card2_title_mr,
-          }),
-        ].filter(Boolean));
-      }
-
-      if (historyContent.card2_description_en || historyContent.card2_description_hi || historyContent.card2_description_mr) {
-        await Promise.all([
-          historyContent.card2_description_en && client.put(`/admin/page-content/home/history_card2_description`, {
-            language: 'en',
-            content: historyContent.card2_description_en,
-          }),
-          historyContent.card2_description_hi && client.put(`/admin/page-content/home/history_card2_description`, {
-            language: 'hi',
-            content: historyContent.card2_description_hi,
-          }),
-          historyContent.card2_description_mr && client.put(`/admin/page-content/home/history_card2_description`, {
-            language: 'mr',
-            content: historyContent.card2_description_mr,
-          }),
-        ].filter(Boolean));
-      }
-
-      // Save card 3
-      if (historyContent.card3_title_en || historyContent.card3_title_hi || historyContent.card3_title_mr) {
-        await Promise.all([
-          historyContent.card3_title_en && client.put(`/admin/page-content/home/history_card3_title`, {
-            language: 'en',
-            content: historyContent.card3_title_en,
-          }),
-          historyContent.card3_title_hi && client.put(`/admin/page-content/home/history_card3_title`, {
-            language: 'hi',
-            content: historyContent.card3_title_hi,
-          }),
-          historyContent.card3_title_mr && client.put(`/admin/page-content/home/history_card3_title`, {
-            language: 'mr',
-            content: historyContent.card3_title_mr,
-          }),
-        ].filter(Boolean));
-      }
-
-      if (historyContent.card3_description_en || historyContent.card3_description_hi || historyContent.card3_description_mr) {
-        await Promise.all([
-          historyContent.card3_description_en && client.put(`/admin/page-content/home/history_card3_description`, {
-            language: 'en',
-            content: historyContent.card3_description_en,
-          }),
-          historyContent.card3_description_hi && client.put(`/admin/page-content/home/history_card3_description`, {
-            language: 'hi',
-            content: historyContent.card3_description_hi,
-          }),
-          historyContent.card3_description_mr && client.put(`/admin/page-content/home/history_card3_description`, {
-            language: 'mr',
-            content: historyContent.card3_description_mr,
-          }),
-        ].filter(Boolean));
-      }
-
-      toast.success('History section saved successfully');
-    } catch {
-      toast.error('Failed to save history section');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const saveEvents = async () => {
-    setSaving(true);
-    try {
-      // Save title
-      if (eventsContent.title_en || eventsContent.title_hi || eventsContent.title_mr) {
-        await Promise.all([
-          eventsContent.title_en && client.put(`/admin/page-content/home/events_title`, {
-            language: 'en',
-            content: eventsContent.title_en,
-          }),
-          eventsContent.title_hi && client.put(`/admin/page-content/home/events_title`, {
-            language: 'hi',
-            content: eventsContent.title_hi,
-          }),
-          eventsContent.title_mr && client.put(`/admin/page-content/home/events_title`, {
-            language: 'mr',
-            content: eventsContent.title_mr,
-          }),
-        ].filter(Boolean));
-      }
-
-      // Save description
-      if (eventsContent.description_en || eventsContent.description_hi || eventsContent.description_mr) {
-        await Promise.all([
-          eventsContent.description_en && client.put(`/admin/page-content/home/events_description`, {
-            language: 'en',
-            content: eventsContent.description_en,
-          }),
-          eventsContent.description_hi && client.put(`/admin/page-content/home/events_description`, {
-            language: 'hi',
-            content: eventsContent.description_hi,
-          }),
-          eventsContent.description_mr && client.put(`/admin/page-content/home/events_description`, {
-            language: 'mr',
-            content: eventsContent.description_mr,
-          }),
-        ].filter(Boolean));
-      }
-
-      toast.success('Events section saved successfully');
-    } catch {
-      toast.error('Failed to save events section');
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -1336,9 +761,8 @@ const HomePageEditor = () => {
             <div className="space-y-4">
               <h3 className="font-semibold text-foreground">Hero Title</h3>
               <Tabs defaultValue="en" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="en">English</TabsTrigger>
-                  <TabsTrigger value="hi">हिंदी</TabsTrigger>
                   <TabsTrigger value="mr">मराठी</TabsTrigger>
                 </TabsList>
 
@@ -1387,9 +811,8 @@ const HomePageEditor = () => {
             <div className="space-y-4">
               <h3 className="font-semibold text-foreground">Hero Subtitle</h3>
               <Tabs defaultValue="en" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="en">English</TabsTrigger>
-                  <TabsTrigger value="hi">हिंदी</TabsTrigger>
                   <TabsTrigger value="mr">मराठी</TabsTrigger>
                 </TabsList>
 
@@ -1438,51 +861,41 @@ const HomePageEditor = () => {
             <div className="space-y-4">
               <h3 className="font-semibold text-foreground">Hero Description</h3>
               <Tabs defaultValue="en" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="en">English</TabsTrigger>
-                  <TabsTrigger value="hi">हिंदी</TabsTrigger>
                   <TabsTrigger value="mr">मराठी</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="en" className="space-y-2 mt-4">
                   <Label htmlFor="desc_en">Description</Label>
-                  <Textarea
-                    id="desc_en"
+                  <RichTextEditor
                     value={heroContent.description_en}
-                    onChange={(e) =>
-                      setHeroContent({ ...heroContent, description_en: e.target.value })
+                    onChange={(value) =>
+                      setHeroContent({ ...heroContent, description_en: value })
                     }
                     placeholder="Enter hero description in English"
-                    rows={3}
-                    disabled={loading}
                   />
                 </TabsContent>
 
                 <TabsContent value="hi" className="space-y-2 mt-4">
                   <Label htmlFor="desc_hi">विवरण</Label>
-                  <Textarea
-                    id="desc_hi"
+                  <RichTextEditor
                     value={heroContent.description_hi}
-                    onChange={(e) =>
-                      setHeroContent({ ...heroContent, description_hi: e.target.value })
+                    onChange={(value) =>
+                      setHeroContent({ ...heroContent, description_hi: value })
                     }
                     placeholder="हिंदी में विवरण दर्ज करें"
-                    rows={3}
-                    disabled={loading}
                   />
                 </TabsContent>
 
                 <TabsContent value="mr" className="space-y-2 mt-4">
                   <Label htmlFor="desc_mr">विवरण</Label>
-                  <Textarea
-                    id="desc_mr"
+                  <RichTextEditor
                     value={heroContent.description_mr}
-                    onChange={(e) =>
-                      setHeroContent({ ...heroContent, description_mr: e.target.value })
+                    onChange={(value) =>
+                      setHeroContent({ ...heroContent, description_mr: value })
                     }
                     placeholder="मराठीत विवरण प्रविष्ट करा"
-                    rows={3}
-                    disabled={loading}
                   />
                 </TabsContent>
               </Tabs>
@@ -1503,792 +916,6 @@ const HomePageEditor = () => {
 
             <Button onClick={saveHeroSection} disabled={saving} className="w-full">
               {saving ? 'Saving...' : 'Save Hero Section'}
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {activeSection === 'about' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>About Section</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* About Section Image */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-foreground">Section Image</h3>
-              <ImageUpload
-                onUpload={(mediaId) => {
-                  setAboutContent({ ...aboutContent, image_id: mediaId });
-                }}
-                existingImageUrl={aboutContent.existingImageUrl}
-                onRemove={handleRemoveAboutImage}
-                section="about"
-              />
-            </div>
-
-            {/* About Title */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-foreground">Section Title</h3>
-              <Tabs defaultValue="en" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="en">English</TabsTrigger>
-                  <TabsTrigger value="hi">हिंदी</TabsTrigger>
-                  <TabsTrigger value="mr">मराठी</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="en" className="space-y-2 mt-4">
-                  <Label htmlFor="about_title_en">Title</Label>
-                  <Input
-                    id="about_title_en"
-                    value={aboutContent.title_en}
-                    onChange={(e) =>
-                      setAboutContent({ ...aboutContent, title_en: e.target.value })
-                    }
-                    placeholder="Enter about section title in English"
-                    disabled={loading}
-                  />
-                </TabsContent>
-
-                <TabsContent value="hi" className="space-y-2 mt-4">
-                  <Label htmlFor="about_title_hi">शीर्षक</Label>
-                  <Input
-                    id="about_title_hi"
-                    value={aboutContent.title_hi}
-                    onChange={(e) =>
-                      setAboutContent({ ...aboutContent, title_hi: e.target.value })
-                    }
-                    placeholder="हिंदी में शीर्षक दर्ज करें"
-                    disabled={loading}
-                  />
-                </TabsContent>
-
-                <TabsContent value="mr" className="space-y-2 mt-4">
-                  <Label htmlFor="about_title_mr">शीर्षक</Label>
-                  <Input
-                    id="about_title_mr"
-                    value={aboutContent.title_mr}
-                    onChange={(e) =>
-                      setAboutContent({ ...aboutContent, title_mr: e.target.value })
-                    }
-                    placeholder="मराठीत शीर्षक प्रविष्ट करा"
-                    disabled={loading}
-                  />
-                </TabsContent>
-              </Tabs>
-            </div>
-
-            {/* About Description */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-foreground">Description</h3>
-              <Tabs defaultValue="en" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="en">English</TabsTrigger>
-                  <TabsTrigger value="hi">हिंदी</TabsTrigger>
-                  <TabsTrigger value="mr">मराठी</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="en" className="space-y-2 mt-4">
-                  <Label htmlFor="about_desc_en">Description</Label>
-                  <Textarea
-                    id="about_desc_en"
-                    value={aboutContent.description_en}
-                    onChange={(e) =>
-                      setAboutContent({ ...aboutContent, description_en: e.target.value })
-                    }
-                    placeholder="Enter about section description in English"
-                    rows={6}
-                    disabled={loading}
-                  />
-                </TabsContent>
-
-                <TabsContent value="hi" className="space-y-2 mt-4">
-                  <Label htmlFor="about_desc_hi">विवरण</Label>
-                  <Textarea
-                    id="about_desc_hi"
-                    value={aboutContent.description_hi}
-                    onChange={(e) =>
-                      setAboutContent({ ...aboutContent, description_hi: e.target.value })
-                    }
-                    placeholder="हिंदी में विवरण दर्ज करें"
-                    rows={6}
-                    disabled={loading}
-                  />
-                </TabsContent>
-
-                <TabsContent value="mr" className="space-y-2 mt-4">
-                  <Label htmlFor="about_desc_mr">विवरण</Label>
-                  <Textarea
-                    id="about_desc_mr"
-                    value={aboutContent.description_mr}
-                    onChange={(e) =>
-                      setAboutContent({ ...aboutContent, description_mr: e.target.value })
-                    }
-                    placeholder="मराठीत विवरण प्रविष्ट करा"
-                    rows={6}
-                    disabled={loading}
-                  />
-                </TabsContent>
-              </Tabs>
-            </div>
-
-            <Button onClick={saveAboutSection} disabled={saving} className="w-full">
-              {saving ? 'Saving...' : 'Save About Section'}
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {activeSection === 'blessing' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Blessing Section</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Blessing Section Image */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-foreground">Background Image</h3>
-              <ImageUpload
-                onUpload={(mediaId) => {
-                  setBlessingContent({ ...blessingContent, image_id: mediaId });
-                }}
-                existingImageUrl={blessingContent.existingImageUrl}
-                onRemove={handleRemoveBlessingImage}
-                section="blessing"
-              />
-            </div>
-
-            {/* Blessing Title */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-foreground">Section Title</h3>
-              <Tabs defaultValue="en" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="en">English</TabsTrigger>
-                  <TabsTrigger value="hi">हिंदी</TabsTrigger>
-                  <TabsTrigger value="mr">मराठी</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="en" className="space-y-2 mt-4">
-                  <Label htmlFor="blessing_title_en">Title</Label>
-                  <Input
-                    id="blessing_title_en"
-                    value={blessingContent.title_en}
-                    onChange={(e) =>
-                      setBlessingContent({ ...blessingContent, title_en: e.target.value })
-                    }
-                    placeholder="Enter blessing section title in English"
-                    disabled={loading}
-                  />
-                </TabsContent>
-
-                <TabsContent value="hi" className="space-y-2 mt-4">
-                  <Label htmlFor="blessing_title_hi">शीर्षक</Label>
-                  <Input
-                    id="blessing_title_hi"
-                    value={blessingContent.title_hi}
-                    onChange={(e) =>
-                      setBlessingContent({ ...blessingContent, title_hi: e.target.value })
-                    }
-                    placeholder="हिंदी में शीर्षक दर्ज करें"
-                    disabled={loading}
-                  />
-                </TabsContent>
-
-                <TabsContent value="mr" className="space-y-2 mt-4">
-                  <Label htmlFor="blessing_title_mr">शीर्षक</Label>
-                  <Input
-                    id="blessing_title_mr"
-                    value={blessingContent.title_mr}
-                    onChange={(e) =>
-                      setBlessingContent({ ...blessingContent, title_mr: e.target.value })
-                    }
-                    placeholder="मराठीत शीर्षक प्रविष्ट करा"
-                    disabled={loading}
-                  />
-                </TabsContent>
-              </Tabs>
-            </div>
-
-            {/* Blessing Content */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-foreground">Blessing Message</h3>
-              <Tabs defaultValue="en" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="en">English</TabsTrigger>
-                  <TabsTrigger value="hi">हिंदी</TabsTrigger>
-                  <TabsTrigger value="mr">मराठी</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="en" className="space-y-2 mt-4">
-                  <Label htmlFor="blessing_content_en">Message</Label>
-                  <Textarea
-                    id="blessing_content_en"
-                    value={blessingContent.content_en}
-                    onChange={(e) =>
-                      setBlessingContent({ ...blessingContent, content_en: e.target.value })
-                    }
-                    placeholder="Enter blessing message in English"
-                    rows={4}
-                    disabled={loading}
-                  />
-                </TabsContent>
-
-                <TabsContent value="hi" className="space-y-2 mt-4">
-                  <Label htmlFor="blessing_content_hi">संदेश</Label>
-                  <Textarea
-                    id="blessing_content_hi"
-                    value={blessingContent.content_hi}
-                    onChange={(e) =>
-                      setBlessingContent({ ...blessingContent, content_hi: e.target.value })
-                    }
-                    placeholder="हिंदी में संदेश दर्ज करें"
-                    rows={4}
-                    disabled={loading}
-                  />
-                </TabsContent>
-
-                <TabsContent value="mr" className="space-y-2 mt-4">
-                  <Label htmlFor="blessing_content_mr">संदेश</Label>
-                  <Textarea
-                    id="blessing_content_mr"
-                    value={blessingContent.content_mr}
-                    onChange={(e) =>
-                      setBlessingContent({ ...blessingContent, content_mr: e.target.value })
-                    }
-                    placeholder="मराठीत संदेश प्रविष्ट करा"
-                    rows={4}
-                    disabled={loading}
-                  />
-                </TabsContent>
-              </Tabs>
-            </div>
-
-            <Button onClick={saveBlessing} disabled={saving} className="w-full">
-              {saving ? 'Saving...' : 'Save Blessing Section'}
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {activeSection === 'history' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>History Section</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* History Title */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-foreground">Section Title</h3>
-              <Tabs defaultValue="en" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="en">English</TabsTrigger>
-                  <TabsTrigger value="hi">हिंदी</TabsTrigger>
-                  <TabsTrigger value="mr">मराठी</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="en" className="space-y-2 mt-4">
-                  <Label htmlFor="history_title_en">Title</Label>
-                  <Input
-                    id="history_title_en"
-                    value={historyContent.title_en}
-                    onChange={(e) =>
-                      setHistoryContent({ ...historyContent, title_en: e.target.value })
-                    }
-                    placeholder="Enter history section title in English"
-                    disabled={loading}
-                  />
-                </TabsContent>
-
-                <TabsContent value="hi" className="space-y-2 mt-4">
-                  <Label htmlFor="history_title_hi">शीर्षक</Label>
-                  <Input
-                    id="history_title_hi"
-                    value={historyContent.title_hi}
-                    onChange={(e) =>
-                      setHistoryContent({ ...historyContent, title_hi: e.target.value })
-                    }
-                    placeholder="हिंदी में शीर्षक दर्ज करें"
-                    disabled={loading}
-                  />
-                </TabsContent>
-
-                <TabsContent value="mr" className="space-y-2 mt-4">
-                  <Label htmlFor="history_title_mr">शीर्षक</Label>
-                  <Input
-                    id="history_title_mr"
-                    value={historyContent.title_mr}
-                    onChange={(e) =>
-                      setHistoryContent({ ...historyContent, title_mr: e.target.value })
-                    }
-                    placeholder="मराठीत शीर्षक प्रविष्ट करा"
-                    disabled={loading}
-                  />
-                </TabsContent>
-              </Tabs>
-            </div>
-
-            {/* History Description */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-foreground">Description</h3>
-              <Tabs defaultValue="en" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="en">English</TabsTrigger>
-                  <TabsTrigger value="hi">हिंदी</TabsTrigger>
-                  <TabsTrigger value="mr">मराठी</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="en" className="space-y-2 mt-4">
-                  <Label htmlFor="history_desc_en">Description</Label>
-                  <Textarea
-                    id="history_desc_en"
-                    value={historyContent.description_en}
-                    onChange={(e) =>
-                      setHistoryContent({ ...historyContent, description_en: e.target.value })
-                    }
-                    placeholder="Enter history section description in English"
-                    rows={4}
-                    disabled={loading}
-                  />
-                </TabsContent>
-
-                <TabsContent value="hi" className="space-y-2 mt-4">
-                  <Label htmlFor="history_desc_hi">विवरण</Label>
-                  <Textarea
-                    id="history_desc_hi"
-                    value={historyContent.description_hi}
-                    onChange={(e) =>
-                      setHistoryContent({ ...historyContent, description_hi: e.target.value })
-                    }
-                    placeholder="हिंदी में विवरण दर्ज करें"
-                    rows={4}
-                    disabled={loading}
-                  />
-                </TabsContent>
-
-                <TabsContent value="mr" className="space-y-2 mt-4">
-                  <Label htmlFor="history_desc_mr">विवरण</Label>
-                  <Textarea
-                    id="history_desc_mr"
-                    value={historyContent.description_mr}
-                    onChange={(e) =>
-                      setHistoryContent({ ...historyContent, description_mr: e.target.value })
-                    }
-                    placeholder="मराठीत विवरण प्रविष्ट करा"
-                    rows={4}
-                    disabled={loading}
-                  />
-                </TabsContent>
-              </Tabs>
-            </div>
-
-            {/* Card 1 */}
-            <div className="border-t pt-6">
-              <h3 className="font-semibold text-foreground mb-4">Card 1</h3>
-
-              <div className="space-y-4 mb-6">
-                <h4 className="text-sm font-medium text-foreground">Title</h4>
-                <Tabs defaultValue="en" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="en">English</TabsTrigger>
-                    <TabsTrigger value="hi">हिंदी</TabsTrigger>
-                    <TabsTrigger value="mr">मराठी</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="en" className="space-y-2 mt-4">
-                    <Input
-                      value={historyContent.card1_title_en}
-                      onChange={(e) =>
-                        setHistoryContent({ ...historyContent, card1_title_en: e.target.value })
-                      }
-                      placeholder="Enter card title in English"
-                      disabled={loading}
-                    />
-                  </TabsContent>
-
-                  <TabsContent value="hi" className="space-y-2 mt-4">
-                    <Input
-                      value={historyContent.card1_title_hi}
-                      onChange={(e) =>
-                        setHistoryContent({ ...historyContent, card1_title_hi: e.target.value })
-                      }
-                      placeholder="हिंदी में शीर्षक दर्ज करें"
-                      disabled={loading}
-                    />
-                  </TabsContent>
-
-                  <TabsContent value="mr" className="space-y-2 mt-4">
-                    <Input
-                      value={historyContent.card1_title_mr}
-                      onChange={(e) =>
-                        setHistoryContent({ ...historyContent, card1_title_mr: e.target.value })
-                      }
-                      placeholder="मराठीत शीर्षक प्रविष्ट करा"
-                      disabled={loading}
-                    />
-                  </TabsContent>
-                </Tabs>
-              </div>
-
-              <div className="space-y-4">
-                <h4 className="text-sm font-medium text-foreground">Description</h4>
-                <Tabs defaultValue="en" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="en">English</TabsTrigger>
-                    <TabsTrigger value="hi">हिंदी</TabsTrigger>
-                    <TabsTrigger value="mr">मराठी</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="en" className="space-y-2 mt-4">
-                    <Textarea
-                      value={historyContent.card1_description_en}
-                      onChange={(e) =>
-                        setHistoryContent({ ...historyContent, card1_description_en: e.target.value })
-                      }
-                      placeholder="Enter card description in English"
-                      rows={3}
-                      disabled={loading}
-                    />
-                  </TabsContent>
-
-                  <TabsContent value="hi" className="space-y-2 mt-4">
-                    <Textarea
-                      value={historyContent.card1_description_hi}
-                      onChange={(e) =>
-                        setHistoryContent({ ...historyContent, card1_description_hi: e.target.value })
-                      }
-                      placeholder="हिंदी में विवरण दर्ज करें"
-                      rows={3}
-                      disabled={loading}
-                    />
-                  </TabsContent>
-
-                  <TabsContent value="mr" className="space-y-2 mt-4">
-                    <Textarea
-                      value={historyContent.card1_description_mr}
-                      onChange={(e) =>
-                        setHistoryContent({ ...historyContent, card1_description_mr: e.target.value })
-                      }
-                      placeholder="मराठीत विवरण प्रविष्ट करा"
-                      rows={3}
-                      disabled={loading}
-                    />
-                  </TabsContent>
-                </Tabs>
-              </div>
-            </div>
-
-            {/* Card 2 */}
-            <div className="border-t pt-6">
-              <h3 className="font-semibold text-foreground mb-4">Card 2</h3>
-
-              <div className="space-y-4 mb-6">
-                <h4 className="text-sm font-medium text-foreground">Title</h4>
-                <Tabs defaultValue="en" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="en">English</TabsTrigger>
-                    <TabsTrigger value="hi">हिंदी</TabsTrigger>
-                    <TabsTrigger value="mr">मराठी</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="en" className="space-y-2 mt-4">
-                    <Input
-                      value={historyContent.card2_title_en}
-                      onChange={(e) =>
-                        setHistoryContent({ ...historyContent, card2_title_en: e.target.value })
-                      }
-                      placeholder="Enter card title in English"
-                      disabled={loading}
-                    />
-                  </TabsContent>
-
-                  <TabsContent value="hi" className="space-y-2 mt-4">
-                    <Input
-                      value={historyContent.card2_title_hi}
-                      onChange={(e) =>
-                        setHistoryContent({ ...historyContent, card2_title_hi: e.target.value })
-                      }
-                      placeholder="हिंदी में शीर्षक दर्ज करें"
-                      disabled={loading}
-                    />
-                  </TabsContent>
-
-                  <TabsContent value="mr" className="space-y-2 mt-4">
-                    <Input
-                      value={historyContent.card2_title_mr}
-                      onChange={(e) =>
-                        setHistoryContent({ ...historyContent, card2_title_mr: e.target.value })
-                      }
-                      placeholder="मराठीत शीर्षक प्रविष्ट करा"
-                      disabled={loading}
-                    />
-                  </TabsContent>
-                </Tabs>
-              </div>
-
-              <div className="space-y-4">
-                <h4 className="text-sm font-medium text-foreground">Description</h4>
-                <Tabs defaultValue="en" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="en">English</TabsTrigger>
-                    <TabsTrigger value="hi">हिंदी</TabsTrigger>
-                    <TabsTrigger value="mr">मराठी</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="en" className="space-y-2 mt-4">
-                    <Textarea
-                      value={historyContent.card2_description_en}
-                      onChange={(e) =>
-                        setHistoryContent({ ...historyContent, card2_description_en: e.target.value })
-                      }
-                      placeholder="Enter card description in English"
-                      rows={3}
-                      disabled={loading}
-                    />
-                  </TabsContent>
-
-                  <TabsContent value="hi" className="space-y-2 mt-4">
-                    <Textarea
-                      value={historyContent.card2_description_hi}
-                      onChange={(e) =>
-                        setHistoryContent({ ...historyContent, card2_description_hi: e.target.value })
-                      }
-                      placeholder="हिंदी में विवरण दर्ज करें"
-                      rows={3}
-                      disabled={loading}
-                    />
-                  </TabsContent>
-
-                  <TabsContent value="mr" className="space-y-2 mt-4">
-                    <Textarea
-                      value={historyContent.card2_description_mr}
-                      onChange={(e) =>
-                        setHistoryContent({ ...historyContent, card2_description_mr: e.target.value })
-                      }
-                      placeholder="मराठीत विवरण प्रविष्ट करा"
-                      rows={3}
-                      disabled={loading}
-                    />
-                  </TabsContent>
-                </Tabs>
-              </div>
-            </div>
-
-            {/* Card 3 */}
-            <div className="border-t pt-6">
-              <h3 className="font-semibold text-foreground mb-4">Card 3</h3>
-
-              <div className="space-y-4 mb-6">
-                <h4 className="text-sm font-medium text-foreground">Title</h4>
-                <Tabs defaultValue="en" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="en">English</TabsTrigger>
-                    <TabsTrigger value="hi">हिंदी</TabsTrigger>
-                    <TabsTrigger value="mr">मराठी</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="en" className="space-y-2 mt-4">
-                    <Input
-                      value={historyContent.card3_title_en}
-                      onChange={(e) =>
-                        setHistoryContent({ ...historyContent, card3_title_en: e.target.value })
-                      }
-                      placeholder="Enter card title in English"
-                      disabled={loading}
-                    />
-                  </TabsContent>
-
-                  <TabsContent value="hi" className="space-y-2 mt-4">
-                    <Input
-                      value={historyContent.card3_title_hi}
-                      onChange={(e) =>
-                        setHistoryContent({ ...historyContent, card3_title_hi: e.target.value })
-                      }
-                      placeholder="हिंदी में शीर्षक दर्ज करें"
-                      disabled={loading}
-                    />
-                  </TabsContent>
-
-                  <TabsContent value="mr" className="space-y-2 mt-4">
-                    <Input
-                      value={historyContent.card3_title_mr}
-                      onChange={(e) =>
-                        setHistoryContent({ ...historyContent, card3_title_mr: e.target.value })
-                      }
-                      placeholder="मराठीत शीर्षक प्रविष्ट करा"
-                      disabled={loading}
-                    />
-                  </TabsContent>
-                </Tabs>
-              </div>
-
-              <div className="space-y-4">
-                <h4 className="text-sm font-medium text-foreground">Description</h4>
-                <Tabs defaultValue="en" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="en">English</TabsTrigger>
-                    <TabsTrigger value="hi">हिंदी</TabsTrigger>
-                    <TabsTrigger value="mr">मराठी</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="en" className="space-y-2 mt-4">
-                    <Textarea
-                      value={historyContent.card3_description_en}
-                      onChange={(e) =>
-                        setHistoryContent({ ...historyContent, card3_description_en: e.target.value })
-                      }
-                      placeholder="Enter card description in English"
-                      rows={3}
-                      disabled={loading}
-                    />
-                  </TabsContent>
-
-                  <TabsContent value="hi" className="space-y-2 mt-4">
-                    <Textarea
-                      value={historyContent.card3_description_hi}
-                      onChange={(e) =>
-                        setHistoryContent({ ...historyContent, card3_description_hi: e.target.value })
-                      }
-                      placeholder="हिंदी में विवरण दर्ज करें"
-                      rows={3}
-                      disabled={loading}
-                    />
-                  </TabsContent>
-
-                  <TabsContent value="mr" className="space-y-2 mt-4">
-                    <Textarea
-                      value={historyContent.card3_description_mr}
-                      onChange={(e) =>
-                        setHistoryContent({ ...historyContent, card3_description_mr: e.target.value })
-                      }
-                      placeholder="मराठीत विवरण प्रविष्ट करा"
-                      rows={3}
-                      disabled={loading}
-                    />
-                  </TabsContent>
-                </Tabs>
-              </div>
-            </div>
-
-            <Button onClick={saveHistory} disabled={saving} className="w-full">
-              {saving ? 'Saving...' : 'Save History Section'}
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {activeSection === 'events' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Events Section</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Events Title */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-foreground">Section Title</h3>
-              <Tabs defaultValue="en" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="en">English</TabsTrigger>
-                  <TabsTrigger value="hi">हिंदी</TabsTrigger>
-                  <TabsTrigger value="mr">मराठी</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="en" className="space-y-2 mt-4">
-                  <Label htmlFor="events_title_en">Title</Label>
-                  <Input
-                    id="events_title_en"
-                    value={eventsContent.title_en}
-                    onChange={(e) =>
-                      setEventsContent({ ...eventsContent, title_en: e.target.value })
-                    }
-                    placeholder="Enter events section title in English"
-                    disabled={loading}
-                  />
-                </TabsContent>
-
-                <TabsContent value="hi" className="space-y-2 mt-4">
-                  <Label htmlFor="events_title_hi">शीर्षक</Label>
-                  <Input
-                    id="events_title_hi"
-                    value={eventsContent.title_hi}
-                    onChange={(e) =>
-                      setEventsContent({ ...eventsContent, title_hi: e.target.value })
-                    }
-                    placeholder="हिंदी में शीर्षक दर्ज करें"
-                    disabled={loading}
-                  />
-                </TabsContent>
-
-                <TabsContent value="mr" className="space-y-2 mt-4">
-                  <Label htmlFor="events_title_mr">शीर्षक</Label>
-                  <Input
-                    id="events_title_mr"
-                    value={eventsContent.title_mr}
-                    onChange={(e) =>
-                      setEventsContent({ ...eventsContent, title_mr: e.target.value })
-                    }
-                    placeholder="मराठीत शीर्षक प्रविष्ट करा"
-                    disabled={loading}
-                  />
-                </TabsContent>
-              </Tabs>
-            </div>
-
-            {/* Events Description */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-foreground">Description</h3>
-              <Tabs defaultValue="en" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="en">English</TabsTrigger>
-                  <TabsTrigger value="hi">हिंदी</TabsTrigger>
-                  <TabsTrigger value="mr">मराठी</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="en" className="space-y-2 mt-4">
-                  <Label htmlFor="events_desc_en">Description</Label>
-                  <Textarea
-                    id="events_desc_en"
-                    value={eventsContent.description_en}
-                    onChange={(e) =>
-                      setEventsContent({ ...eventsContent, description_en: e.target.value })
-                    }
-                    placeholder="Enter events section description in English"
-                    rows={4}
-                    disabled={loading}
-                  />
-                </TabsContent>
-
-                <TabsContent value="hi" className="space-y-2 mt-4">
-                  <Label htmlFor="events_desc_hi">विवरण</Label>
-                  <Textarea
-                    id="events_desc_hi"
-                    value={eventsContent.description_hi}
-                    onChange={(e) =>
-                      setEventsContent({ ...eventsContent, description_hi: e.target.value })
-                    }
-                    placeholder="हिंदी में विवरण दर्ज करें"
-                    rows={4}
-                    disabled={loading}
-                  />
-                </TabsContent>
-
-                <TabsContent value="mr" className="space-y-2 mt-4">
-                  <Label htmlFor="events_desc_mr">विवरण</Label>
-                  <Textarea
-                    id="events_desc_mr"
-                    value={eventsContent.description_mr}
-                    onChange={(e) =>
-                      setEventsContent({ ...eventsContent, description_mr: e.target.value })
-                    }
-                    placeholder="मराठीत विवरण प्रविष्ट करा"
-                    rows={4}
-                    disabled={loading}
-                  />
-                </TabsContent>
-              </Tabs>
-            </div>
-
-            <Button onClick={saveEvents} disabled={saving} className="w-full">
-              {saving ? 'Saving...' : 'Save Events Section'}
             </Button>
           </CardContent>
         </Card>
@@ -2388,9 +1015,8 @@ const HomePageEditor = () => {
             <div className="space-y-4">
               <h3 className="font-semibold text-foreground">Temple Name</h3>
               <Tabs defaultValue="en" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="en">English</TabsTrigger>
-                  <TabsTrigger value="hi">हिंदी</TabsTrigger>
                   <TabsTrigger value="mr">मराठी</TabsTrigger>
                 </TabsList>
 
@@ -2471,9 +1097,8 @@ const HomePageEditor = () => {
             <div className="space-y-4">
               <h3 className="font-semibold text-foreground">Address</h3>
               <Tabs defaultValue="en" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="en">English</TabsTrigger>
-                  <TabsTrigger value="hi">हिंदी</TabsTrigger>
                   <TabsTrigger value="mr">मराठी</TabsTrigger>
                 </TabsList>
 
@@ -2585,9 +1210,8 @@ const HomePageEditor = () => {
             <div className="space-y-4">
               <h3 className="font-semibold text-foreground">Footer Title</h3>
               <Tabs defaultValue="en" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="en">English</TabsTrigger>
-                  <TabsTrigger value="hi">हिंदी</TabsTrigger>
                   <TabsTrigger value="mr">मराठी</TabsTrigger>
                 </TabsList>
 
@@ -2630,9 +1254,8 @@ const HomePageEditor = () => {
             <div className="space-y-4">
               <h3 className="font-semibold text-foreground">Social Section Label</h3>
               <Tabs defaultValue="en" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="en">English</TabsTrigger>
-                  <TabsTrigger value="hi">हिंदी</TabsTrigger>
                   <TabsTrigger value="mr">मराठी</TabsTrigger>
                 </TabsList>
 
@@ -2713,9 +1336,8 @@ const HomePageEditor = () => {
             <div className="space-y-4">
               <h3 className="font-semibold text-foreground">Copyright Text</h3>
               <Tabs defaultValue="en" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="en">English</TabsTrigger>
-                  <TabsTrigger value="hi">हिंदी</TabsTrigger>
                   <TabsTrigger value="mr">मराठी</TabsTrigger>
                 </TabsList>
 

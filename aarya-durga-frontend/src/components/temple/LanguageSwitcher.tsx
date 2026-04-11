@@ -11,7 +11,7 @@ interface LanguageSwitcherProps {
 const LanguageSwitcher = ({ mobile }: LanguageSwitcherProps) => {
     const [langOpen, setLangOpen] = useState(false);
     const { language, setLanguage } = useLanguage();
-    const languages: Language[] = ["en", "mr", "hi"];
+    const languages: Language[] = ["en", "mr"];
 
     if (mobile) {
         return (

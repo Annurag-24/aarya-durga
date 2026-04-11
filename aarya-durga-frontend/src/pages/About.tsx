@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Navbar from "@/components/temple/Navbar";
 import Footer from "@/components/temple/Footer";
 import DevotionalQuote from "@/components/temple/DevotionalQuote";
+import AboutSection from "@/components/temple/AboutSection";
 import { useLanguage } from "@/i18n/LanguageContext";
 import {
     fetchPageContent,
@@ -14,16 +15,14 @@ import {
 import { useLoader } from "@/contexts/LoaderContext";
 import { HomePageProvider } from "@/contexts/HomePageContext";
 import { useImagesLoaded } from "@/hooks/useImagesLoaded";
+import { RichTextContent } from "@/components/global/RichTextContent";
 
 const About = () => {
     const { language } = useLanguage();
     const { setLoading: setGlobalLoading } = useLoader();
-    const [heroTitle, setHeroTitle] = useState<string>("");
-    const [heroSubtitle, setHeroSubtitle] = useState<string>("");
+    const [heroMainTitle, setHeroMainTitle] = useState<string>("");
+    const [heroMainSubtitle, setHeroMainSubtitle] = useState<string>("");
     const [heroImage, setHeroImage] = useState<string>("");
-    const [aboutTitle, setAboutTitle] = useState<string>("");
-    const [aboutDescription, setAboutDescription] = useState<string>("");
-    const [aboutImage, setAboutImage] = useState<string>("");
     const [missionTitle, setMissionTitle] = useState<string>("");
     const [missionDesc, setMissionDesc] = useState<string>("");
     const [valuesTitle, setValuesTitle] = useState<string>("");
@@ -43,7 +42,7 @@ const About = () => {
     const [member2Title, setMember2Title] = useState<string>("");
     const [member3Title, setMember3Title] = useState<string>("");
     const [loading, setLoading] = useState(true);
-    const imagesLoaded = useImagesLoaded([heroImage, aboutImage, bannerImage]);
+    const imagesLoaded = useImagesLoaded([heroImage, bannerImage]);
 
     useEffect(() => {
         if (loading || !imagesLoaded) {
@@ -67,15 +66,10 @@ const About = () => {
                 const getImg = (arr: any[], key: string) =>
                     getImageUrl(findContentItem(arr, key));
 
-                // Hero section from about page
-                setHeroTitle(getContent(aboutData, "hero_title"));
-                setHeroSubtitle(getContent(aboutData, "hero_subtitle"));
-                setHeroImage(getImg(aboutData, "hero_image"));
-
-                // About section from home page
-                setAboutTitle(getContent(homeData, "about_title"));
-                setAboutDescription(getContent(homeData, "about_description"));
-                setAboutImage(getImg(homeData, "about_image"));
+                // Hero overlay content comes from the about page
+                setHeroMainTitle(getContent(aboutData, "hero_main_title"));
+                setHeroMainSubtitle(getContent(aboutData, "hero_main_subtitle"));
+                setHeroImage(getImg(homeData, "about_image"));
 
                 // Mission section
                 setMissionTitle(getContent(aboutData, "mission_title"));
@@ -151,56 +145,16 @@ const About = () => {
                             animate={{ opacity: 1, y: 0 }}
                             className="font-heading text-4xl md:text-6xl font-bold text-primary-foreground mb-4"
                         >
-                            {heroTitle}
+                            {heroMainTitle}
                         </motion.h1>
-                        <p className="text-primary-foreground/80 text-lg max-w-2xl mx-auto">
-                            {heroSubtitle}
-                        </p>
+                        <RichTextContent
+                            content={heroMainSubtitle}
+                            className="mx-auto max-w-2xl text-lg text-primary-foreground/80 prose-p:text-primary-foreground/80 prose-strong:text-primary-foreground prose-em:text-primary-foreground/90"
+                        />
                     </div>
                 </section>
 
-                <section className="py-20 bg-card">
-                    <div className="container mx-auto px-4">
-                        <div className="grid md:grid-cols-2 gap-12 items-center">
-                            <motion.div
-                                initial={{ opacity: 0, x: -40 }}
-                                whileInView={{ opacity: 1, x: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.7 }}
-                                className="rounded-lg overflow-hidden shadow-xl"
-                            >
-                                <img
-                                    src={aboutImage}
-                                    alt="Temple interior"
-                                    className="w-full h-[450px] object-cover"
-                                />
-                            </motion.div>
-                            <motion.div
-                                initial={{ opacity: 0, x: 40 }}
-                                whileInView={{ opacity: 1, x: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.7, delay: 0.2 }}
-                            >
-                                <div className="gold-line mb-4" />
-                                <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-6">
-                                    {aboutTitle}
-                                </h2>
-                                <div className="space-y-4">
-                                    {aboutDescription
-                                        .split("\n\n")
-                                        .map((paragraph, idx) => (
-                                            <p
-                                                key={idx}
-                                                className="text-muted-foreground leading-relaxed"
-                                            >
-                                                {paragraph}
-                                            </p>
-                                        ))}
-                                </div>
-                            </motion.div>
-                        </div>
-                    </div>
-                </section>
+                <AboutSection showReadMore={false} />
 
                 <section className="py-20 bg-accent mandala-bg">
                     <div className="container mx-auto px-4 text-center">
@@ -208,9 +162,10 @@ const About = () => {
                         <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-6">
                             {missionTitle}
                         </h2>
-                        <p className="text-muted-foreground max-w-3xl mx-auto mb-6 leading-relaxed">
-                            {missionDesc}
-                        </p>
+                        <RichTextContent
+                            content={missionDesc}
+                            className="mx-auto mb-6 max-w-3xl text-muted-foreground"
+                        />
                     </div>
                 </section>
 
@@ -244,9 +199,10 @@ const About = () => {
                                     <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
                                         {item.title}
                                     </h3>
-                                    <p className="text-muted-foreground text-sm">
-                                        {item.desc}
-                                    </p>
+                                    <RichTextContent
+                                        content={item.desc}
+                                        className="text-sm text-muted-foreground"
+                                    />
                                 </motion.div>
                             ))}
                         </div>
@@ -286,9 +242,10 @@ const About = () => {
                         <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-6">
                             {committeeTitle}
                         </h2>
-                        <p className="text-muted-foreground max-w-2xl mx-auto mb-10">
-                            {committeeDesc}
-                        </p>
+                        <RichTextContent
+                            content={committeeDesc}
+                            className="mx-auto mb-10 max-w-2xl text-muted-foreground"
+                        />
                         <div className="grid md:grid-cols-3 gap-8">
                             {roles.map((role, i) => (
                                 <motion.div

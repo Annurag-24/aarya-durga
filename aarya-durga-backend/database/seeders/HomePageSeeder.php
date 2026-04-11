@@ -42,20 +42,6 @@ class HomePageSeeder extends Seeder
             ]
         );
 
-        // Create media record for blessing section image
-        $blessingMedia = Media::updateOrCreate(
-            ['filename' => 'home-blessing.jpg'],
-            [
-                'original_name' => 'home-blessing.jpg',
-                'file_path' => 'uploads/home-blessing.jpg',
-                'file_url' => '/storage/uploads/home-blessing.jpg',
-                'file_size' => 237 * 1024, // 237KB
-                'mime_type' => 'image/jpeg',
-                'width' => 1920,
-                'height' => 1280,
-            ]
-        );
-
         // Create media record for visit section background image
         $visitMedia = Media::updateOrCreate(
             ['filename' => 'home-visit.jpg'],
@@ -136,34 +122,6 @@ class HomePageSeeder extends Seeder
             ]
         );
 
-        // Blessing Section Title
-        PageContent::firstOrCreate(
-            ['page_key' => 'home', 'section_key' => 'blessing_title'],
-            [
-                'content_en' => 'Divine Blessings',
-                'content_hi' => 'दिव्य आशीर्वाद',
-                'content_mr' => 'दिव्य आशीर्वाद',
-            ]
-        );
-
-        // Blessing Banner Content
-        PageContent::firstOrCreate(
-            ['page_key' => 'home', 'section_key' => 'blessing_content'],
-            [
-                'content_en' => 'May the divine blessings of Aarya Durga shield and guide you through all moments of your life.',
-                'content_hi' => 'आर्य दुर्गा के दिव्य आशीर्वाद आपके जीवन के हर पल में आपकी रक्षा और मार्गदर्शन करें।',
-                'content_mr' => 'आर्य दुर्गा यांचे दिव्य आशीर्वाद आपल्या जीवनातील प्रत्येक क्षणी आपली रक्षा आणि मार्गदर्शन करो।',
-            ]
-        );
-
-        // Blessing Section Image
-        PageContent::firstOrCreate(
-            ['page_key' => 'home', 'section_key' => 'blessing_image'],
-            [
-                'image_id' => $blessingMedia->id,
-            ]
-        );
-
         // History Section Title
         PageContent::firstOrCreate(
             ['page_key' => 'home', 'section_key' => 'history_title'],
@@ -241,26 +199,6 @@ class HomePageSeeder extends Seeder
                 'content_en' => 'Every Navratri, the temple comes alive with vibrant celebrations, bringing together thousands of devotees in reverence and joy.',
                 'content_hi' => 'हर नवरात्रि, मंदिर जीवंत उत्सवों से जीवंत हो जाता है, हजारों भक्तों को श्रद्धा और आनंद में एकत्रित करता है।',
                 'content_mr' => 'प्रत्येक नवरात्रीला, मंदिर जीवंत उत्सवांने जीवंत होते, हजारो भक्तांना श्रद्धा आणि आनंदात एकत्र करते।',
-            ]
-        );
-
-        // Temple Events Section Title
-        PageContent::firstOrCreate(
-            ['page_key' => 'home', 'section_key' => 'events_title'],
-            [
-                'content_en' => 'Temple Festivals & Events',
-                'content_hi' => 'आने वाले मंदिर कार्यक्रम',
-                'content_mr' => 'आसन्न मंदिर कार्यक्रम',
-            ]
-        );
-
-        // Temple Events Section Description
-        PageContent::firstOrCreate(
-            ['page_key' => 'home', 'section_key' => 'events_description'],
-            [
-                'content_en' => 'Join us in celebrating the divine through festivals, rituals, and community gatherings.',
-                'content_hi' => 'पूरे साल हमारे सबसे महत्वपूर्ण मंदिर कार्यक्रमों और त्योहारों पर हमारे साथ मनाएं। हजारों भक्तों के साथ पवित्र समारोहों और आध्यात्मिक अनुभवों में शामिल हों।',
-                'content_mr' => 'वर्षभर आमच्या सर्वात महत्वाच्या मंदिर कार्यक्रमांमध्ये आणि उत्सवांमध्ये आमच्या सोबत साजरे करा। हजारो भक्तांसह पवित्र समारोहात आणि आध्यात्मिक अनुभवांमध्ये सामील व्हा।',
             ]
         );
 

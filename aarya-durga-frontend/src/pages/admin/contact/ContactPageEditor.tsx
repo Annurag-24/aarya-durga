@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { Label } from "@/components/ui/label";
 import {
     Table,
@@ -353,20 +354,17 @@ const ContactPageEditor = () => {
         <div className="space-y-4">
             <h3 className="font-semibold text-foreground">{label}</h3>
             <Tabs defaultValue="en" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="en">English</TabsTrigger>
-                    <TabsTrigger value="hi">हिंदी</TabsTrigger>
                     <TabsTrigger value="mr">मराठी</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="en" className="space-y-2 mt-4">
                     {isTextarea ? (
-                        <Textarea
+                        <RichTextEditor
                             value={en}
-                            onChange={(e) => onChange("en", e.target.value)}
+                            onChange={(value) => onChange("en", value)}
                             placeholder={`Enter ${label} in English`}
-                            disabled={loading}
-                            rows={3}
                         />
                     ) : (
                         <Input
@@ -380,12 +378,10 @@ const ContactPageEditor = () => {
 
                 <TabsContent value="hi" className="space-y-2 mt-4">
                     {isTextarea ? (
-                        <Textarea
+                        <RichTextEditor
                             value={hi}
-                            onChange={(e) => onChange("hi", e.target.value)}
+                            onChange={(value) => onChange("hi", value)}
                             placeholder={`हिंदी में ${label} दर्ज करें`}
-                            disabled={loading}
-                            rows={3}
                         />
                     ) : (
                         <Input
@@ -399,12 +395,10 @@ const ContactPageEditor = () => {
 
                 <TabsContent value="mr" className="space-y-2 mt-4">
                     {isTextarea ? (
-                        <Textarea
+                        <RichTextEditor
                             value={mr}
-                            onChange={(e) => onChange("mr", e.target.value)}
+                            onChange={(value) => onChange("mr", value)}
                             placeholder={`मराठीत ${label} प्रविष्ट करा`}
-                            disabled={loading}
-                            rows={3}
                         />
                     ) : (
                         <Input

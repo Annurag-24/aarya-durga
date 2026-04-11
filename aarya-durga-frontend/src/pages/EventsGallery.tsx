@@ -120,9 +120,7 @@ const EventsGallery = () => {
                             ? new Date(dateRaw).toLocaleDateString(
                                   language === "en"
                                       ? "en-US"
-                                      : language === "hi"
-                                        ? "hi-IN"
-                                        : "mr-IN",
+                                      : "mr-IN",
                                   {
                                       year: "numeric",
                                       month: "long",

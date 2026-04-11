@@ -2,7 +2,6 @@ import { useEffect, useMemo } from "react";
 import Navbar from "@/components/temple/Navbar";
 import HeroSection from "@/components/temple/HeroSection";
 import AboutSection from "@/components/temple/AboutSection";
-import BlessingBanner from "@/components/temple/BlessingBanner";
 import HistorySection from "@/components/temple/HistorySection";
 import EventsSection from "@/components/temple/EventsSection";
 import GallerySection from "@/components/temple/GallerySection";
@@ -52,7 +51,6 @@ const IndexContent = () => {
             <Navbar />
             <HeroSection />
             <AboutSection />
-            <BlessingBanner />
             <HistorySection />
             <EventsSection />
             <GallerySection />

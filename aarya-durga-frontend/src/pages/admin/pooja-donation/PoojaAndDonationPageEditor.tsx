@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import { toast } from 'sonner';
 import client from '@/api/client';
 import { ImageUpload } from '@/components/admin/ImageUpload';
@@ -424,15 +425,14 @@ const PoojaAndDonationPageEditor = () => {
     <div className="space-y-4">
       <h3 className="font-semibold text-foreground">{label}</h3>
       <Tabs defaultValue="en" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="en">English</TabsTrigger>
-          <TabsTrigger value="hi">हिंदी</TabsTrigger>
           <TabsTrigger value="mr">मराठी</TabsTrigger>
         </TabsList>
 
         <TabsContent value="en" className="space-y-2 mt-4">
           {isTextarea ? (
-            <Textarea value={en} onChange={(e) => onChange('en', e.target.value)} placeholder={`Enter ${label} in English`} disabled={loading} rows={3} />
+            <RichTextEditor value={en} onChange={(value) => onChange('en', value)} placeholder={`Enter ${label} in English`} />
           ) : (
             <Input value={en} onChange={(e) => onChange('en', e.target.value)} placeholder={`Enter ${label} in English`} disabled={loading} />
           )}
@@ -440,7 +440,7 @@ const PoojaAndDonationPageEditor = () => {
 
         <TabsContent value="hi" className="space-y-2 mt-4">
           {isTextarea ? (
-            <Textarea value={hi} onChange={(e) => onChange('hi', e.target.value)} placeholder={`हिंदी में ${label} दर्ज करें`} disabled={loading} rows={3} />
+            <RichTextEditor value={hi} onChange={(value) => onChange('hi', value)} placeholder={`हिंदी में ${label} दर्ज करें`} />
           ) : (
             <Input value={hi} onChange={(e) => onChange('hi', e.target.value)} placeholder={`हिंदी में ${label} दर्ज करें`} disabled={loading} />
           )}
@@ -448,7 +448,7 @@ const PoojaAndDonationPageEditor = () => {
 
         <TabsContent value="mr" className="space-y-2 mt-4">
           {isTextarea ? (
-            <Textarea value={mr} onChange={(e) => onChange('mr', e.target.value)} placeholder={`मराठीत ${label} प्रविष्ट करा`} disabled={loading} rows={3} />
+            <RichTextEditor value={mr} onChange={(value) => onChange('mr', value)} placeholder={`मराठीत ${label} प्रविष्ट करा`} />
           ) : (
             <Input value={mr} onChange={(e) => onChange('mr', e.target.value)} placeholder={`मराठीत ${label} प्रविष्ट करा`} disabled={loading} />
           )}
