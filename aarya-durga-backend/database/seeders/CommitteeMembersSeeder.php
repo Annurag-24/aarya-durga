@@ -16,7 +16,9 @@ class CommitteeMembersSeeder extends Seeder
         $members = [
             [
                 'filename' => 'committee-member-1.png',
-                'name' => 'Rushikesh Jayant Patwardhan',
+                'name_en' => 'Rushikesh Jayant Patwardhan',
+                'name_hi' => 'Rushikesh Jayant Patwardhan',
+                'name_mr' => 'Rushikesh Jayant Patwardhan',
                 'role_en' => 'President',
                 'role_hi' => 'अध्यक्ष',
                 'role_mr' => 'अध्यक्ष',
@@ -29,7 +31,9 @@ class CommitteeMembersSeeder extends Seeder
             ],
             [
                 'filename' => 'committee-member-2.png',
-                'name' => 'Meera Anant Joshi',
+                'name_en' => 'Meera Anant Joshi',
+                'name_hi' => 'Meera Anant Joshi',
+                'name_mr' => 'Meera Anant Joshi',
                 'role_en' => 'Vice President',
                 'role_hi' => 'उपाध्यक्ष',
                 'role_mr' => 'उपाध्यक्षा',
@@ -42,7 +46,9 @@ class CommitteeMembersSeeder extends Seeder
             ],
             [
                 'filename' => 'committee-member-3.png',
-                'name' => 'Aniket Madhav Kulkarni',
+                'name_en' => 'Aniket Madhav Kulkarni',
+                'name_hi' => 'Aniket Madhav Kulkarni',
+                'name_mr' => 'Aniket Madhav Kulkarni',
                 'role_en' => 'Secretary',
                 'role_hi' => 'सचिव',
                 'role_mr' => 'सचिव',
@@ -55,7 +61,9 @@ class CommitteeMembersSeeder extends Seeder
             ],
             [
                 'filename' => 'committee-member-4.png',
-                'name' => 'Vaishnavi Suresh Deshpande',
+                'name_en' => 'Vaishnavi Suresh Deshpande',
+                'name_hi' => 'Vaishnavi Suresh Deshpande',
+                'name_mr' => 'Vaishnavi Suresh Deshpande',
                 'role_en' => 'Treasurer',
                 'role_hi' => 'कोषाध्यक्ष',
                 'role_mr' => 'कोषाध्यक्षा',
@@ -68,7 +76,9 @@ class CommitteeMembersSeeder extends Seeder
             ],
             [
                 'filename' => 'committee-member-5.png',
-                'name' => 'Sandeep Vishnu Sawant',
+                'name_en' => 'Sandeep Vishnu Sawant',
+                'name_hi' => 'Sandeep Vishnu Sawant',
+                'name_mr' => 'Sandeep Vishnu Sawant',
                 'role_en' => 'Trustee',
                 'role_hi' => 'ट्रस्टी',
                 'role_mr' => 'विश्वस्त',
@@ -96,8 +106,10 @@ class CommitteeMembersSeeder extends Seeder
             );
 
             CommitteeMember::updateOrCreate(
-                ['name' => $member['name']],
+                ['name_en' => $member['name_en']],
                 [
+                    'name_hi' => $member['name_hi'],
+                    'name_mr' => $member['name_mr'],
                     'role_en' => $member['role_en'],
                     'role_hi' => $member['role_hi'],
                     'role_mr' => $member['role_mr'],

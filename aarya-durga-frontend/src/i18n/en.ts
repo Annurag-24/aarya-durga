@@ -3,10 +3,11 @@ import { Translations } from "./types";
 export const en: Translations = {
     nav: {
         home: "Home",
-        about: "About Us",
+        about: "Management",
         history: "Devi History",
-        poojaDonation: "Pooja & Donation",
-        eventsGallery: "Events & Gallery",
+        poojaDonation: "Pooja",
+        eventsGallery: "Events",
+        gallery: "Gallery",
         contact: "Contact Us",
         templeName: "Aarya Durga Temple",
     },
@@ -88,7 +89,7 @@ export const en: Translations = {
         modernTitle: "Community Center",
         modernDesc:
             "Today the temple serves as both a spiritual sanctuary and a cultural hub.",
-        sacredTraditions: "Sacred Traditions",
+        sacredTraditions: "Annual Events",
         traditionsSubtitle:
             "Living traditions that make Aarya Durga Temple unique",
         navratriTitle: "Navratri Celebration",

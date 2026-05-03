@@ -25,7 +25,9 @@ import client from "@/api/client";
 
 interface CommitteeMember {
     id: number;
-    name: string;
+    name_en: string;
+    name_hi?: string;
+    name_mr?: string;
     role_en?: string;
     role_hi?: string;
     role_mr?: string;
@@ -167,6 +169,12 @@ const About = () => {
                         ) : (
                             <div className="mx-auto grid w-full max-w-5xl gap-6 md:grid-cols-2 xl:grid-cols-3 items-stretch">
                                 {committeeMembers.map((member, i) => {
+                                    const memberName =
+                                        language === "mr"
+                                            ? member.name_mr || member.name_en
+                                            : language === "hi"
+                                              ? member.name_hi || member.name_en
+                                              : member.name_en;
                                     const designation =
                                         language === "mr"
                                             ? member.role_mr
@@ -203,7 +211,7 @@ const About = () => {
                                                 {imageUrl ? (
                                                     <img
                                                         src={imageUrl}
-                                                        alt={member.name}
+                                                        alt={memberName}
                                                         className="h-full w-full object-cover"
                                                     />
                                                 ) : (
@@ -214,7 +222,7 @@ const About = () => {
                                                 )}
                                             </div>
                                             <h3 className="font-heading text-xl font-bold text-foreground text-center">
-                                                {member.name}
+                                                {memberName}
                                             </h3>
                                             <div className="mt-auto pt-4 w-full">
                                                 <p className="font-heading text-2xl font-semibold text-primary text-center">
@@ -233,7 +241,7 @@ const About = () => {
                                                             <a
                                                                 href={`tel:${member.phone}`}
                                                                 className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-secondary/40 text-primary transition-colors hover:bg-accent"
-                                                                aria-label={`Call ${member.name}`}
+                                                                aria-label={`Call ${memberName}`}
                                                             >
                                                                 <Phone
                                                                     size={18}
@@ -245,13 +253,13 @@ const About = () => {
                                                                 onClick={() =>
                                                                     setSelectedAddress(
                                                                         {
-                                                                            name: member.name,
+                                                                            name: memberName,
                                                                             address,
                                                                         },
                                                                     )
                                                                 }
                                                                 className="inline-flex h-12 w-12 items-center justify-center rounded-3xl border border-secondary/40 text-primary transition-colors hover:bg-accent"
-                                                                aria-label={`View address for ${member.name}`}
+                                                                aria-label={`View address for ${memberName}`}
                                                             >
                                                                 <MapPin
                                                                     size={18}

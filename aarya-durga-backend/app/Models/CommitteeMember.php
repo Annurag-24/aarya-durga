@@ -11,7 +11,9 @@ class CommitteeMember extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'name',
+        'name_en',
+        'name_hi',
+        'name_mr',
         'role_en',
         'role_hi',
         'role_mr',

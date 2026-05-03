@@ -62,6 +62,64 @@ interface VisitContent {
   existingImageUrl?: string;
 }
 
+interface AboutUsContent {
+  main_title_en: string;
+  main_title_hi: string;
+  main_title_mr: string;
+  main_subtitle_en: string;
+  main_subtitle_hi: string;
+  main_subtitle_mr: string;
+  title_en: string;
+  title_hi: string;
+  title_mr: string;
+  description_en: string;
+  description_hi: string;
+  description_mr: string;
+  image_id?: string;
+  existingImageUrl?: string;
+}
+
+interface LegalContent {
+  title_en: string;
+  title_hi: string;
+  title_mr: string;
+  subtitle_en: string;
+  subtitle_hi: string;
+  subtitle_mr: string;
+  content_en: string;
+  content_hi: string;
+  content_mr: string;
+  image_id?: number;
+  existingImageUrl?: string;
+}
+
+interface HomeHistoryContent {
+  title_en: string;
+  title_hi: string;
+  title_mr: string;
+  description_en: string;
+  description_hi: string;
+  description_mr: string;
+  card1_title_en: string;
+  card1_title_hi: string;
+  card1_title_mr: string;
+  card1_description_en: string;
+  card1_description_hi: string;
+  card1_description_mr: string;
+  card2_title_en: string;
+  card2_title_hi: string;
+  card2_title_mr: string;
+  card2_description_en: string;
+  card2_description_hi: string;
+  card2_description_mr: string;
+  card3_title_en: string;
+  card3_title_hi: string;
+  card3_title_mr: string;
+  card3_description_en: string;
+  card3_description_hi: string;
+  card3_description_mr: string;
+}
+
 interface FooterContent {
   social_label_en: string;
   social_label_hi: string;
@@ -72,6 +130,9 @@ interface FooterContent {
   youtube_link_en: string;
   youtube_link_hi: string;
   youtube_link_mr: string;
+  instagram_link_en: string;
+  instagram_link_hi: string;
+  instagram_link_mr: string;
   copyright_en: string;
   copyright_hi: string;
   copyright_mr: string;
@@ -151,6 +212,22 @@ const HomePageEditor = () => {
     image_id: undefined,
     existingImageUrl: undefined,
   });
+  const [aboutUsContent, setAboutUsContent] = useState<AboutUsContent>({
+    main_title_en: '',
+    main_title_hi: '',
+    main_title_mr: '',
+    main_subtitle_en: '',
+    main_subtitle_hi: '',
+    main_subtitle_mr: '',
+    title_en: '',
+    title_hi: '',
+    title_mr: '',
+    description_en: '',
+    description_hi: '',
+    description_mr: '',
+    image_id: undefined,
+    existingImageUrl: undefined,
+  });
   const [footerContent, setFooterContent] = useState<FooterContent>({
     social_label_en: '',
     social_label_hi: '',
@@ -161,20 +238,53 @@ const HomePageEditor = () => {
     youtube_link_en: '',
     youtube_link_hi: '',
     youtube_link_mr: '',
+    instagram_link_en: '',
+    instagram_link_hi: '',
+    instagram_link_mr: '',
     copyright_en: '',
     copyright_hi: '',
     copyright_mr: '',
+  });
+  const emptyLegal: LegalContent = {
+    title_en: '',
+    title_hi: '',
+    title_mr: '',
+    subtitle_en: '',
+    subtitle_hi: '',
+    subtitle_mr: '',
+    content_en: '',
+    content_hi: '',
+    content_mr: '',
+    image_id: undefined,
+    existingImageUrl: undefined,
+  };
+  const [privacyContent, setPrivacyContent] = useState<LegalContent>({ ...emptyLegal });
+  const [termsContent, setTermsContent] = useState<LegalContent>({ ...emptyLegal });
+  const [homeHistoryContent, setHomeHistoryContent] = useState<HomeHistoryContent>({
+    title_en: '', title_hi: '', title_mr: '',
+    description_en: '', description_hi: '', description_mr: '',
+    card1_title_en: '', card1_title_hi: '', card1_title_mr: '',
+    card1_description_en: '', card1_description_hi: '', card1_description_mr: '',
+    card2_title_en: '', card2_title_hi: '', card2_title_mr: '',
+    card2_description_en: '', card2_description_hi: '', card2_description_mr: '',
+    card3_title_en: '', card3_title_hi: '', card3_title_mr: '',
+    card3_description_en: '', card3_description_hi: '', card3_description_mr: '',
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const imagesLoaded = useImagesLoaded([
     heroContent.existingImageUrl,
+    aboutUsContent.existingImageUrl,
   ]);
 
   const sections = [
     { label: 'Hero Section', key: 'hero', description: 'Homepage hero title, subtitle, and background' },
+    { label: 'About Us', key: 'about_us', description: 'About us heading, subtitle, description and image' },
     { label: 'Visit Section', key: 'visit', description: 'Visit information and heading' },
+    { label: 'History Section', key: 'history', description: 'Home page history title, description, and 3 cards' },
     { label: 'Footer Section', key: 'footer', description: 'Social links and copyright' },
+    { label: 'Privacy Policy', key: 'privacy_policy', description: 'Privacy policy page title and rich-text content' },
+    { label: 'Terms & Conditions', key: 'terms_conditions', description: 'Terms & conditions page title and rich-text content' },
   ];
 
   // Hide global loader once local loading is done AND images are loaded
@@ -217,6 +327,38 @@ const HomePageEditor = () => {
           description_hi: descriptionData?.content_hi || '',
           description_mr: descriptionData?.content_mr || '',
           image_id: imageData?.image_id,
+          existingImageUrl,
+        });
+      } else if (sectionKey === 'about_us') {
+        const aboutResponse = await client.get(`/public/page-content/about`);
+        const homeData = response.data;
+        const aboutData = aboutResponse.data;
+
+        const mainTitleData = aboutData.find((item: any) => item.section_key === 'hero_main_title');
+        const mainSubtitleData = aboutData.find((item: any) => item.section_key === 'hero_main_subtitle');
+        const titleData = homeData.find((item: any) => item.section_key === 'about_title');
+        const descriptionData = homeData.find((item: any) => item.section_key === 'about_description');
+        const imageData = homeData.find((item: any) => item.section_key === 'about_image');
+
+        let existingImageUrl: string | undefined;
+        if (imageData?.image?.file_url) {
+          existingImageUrl = constructImageUrl(imageData.image.file_url);
+        }
+
+        setAboutUsContent({
+          main_title_en: mainTitleData?.content_en || '',
+          main_title_hi: mainTitleData?.content_hi || '',
+          main_title_mr: mainTitleData?.content_mr || '',
+          main_subtitle_en: mainSubtitleData?.content_en || '',
+          main_subtitle_hi: mainSubtitleData?.content_hi || '',
+          main_subtitle_mr: mainSubtitleData?.content_mr || '',
+          title_en: titleData?.content_en || '',
+          title_hi: titleData?.content_hi || '',
+          title_mr: titleData?.content_mr || '',
+          description_en: descriptionData?.content_en || '',
+          description_hi: descriptionData?.content_hi || '',
+          description_mr: descriptionData?.content_mr || '',
+          image_id: imageData?.image_id ? String(imageData.image_id) : undefined,
           existingImageUrl,
         });
       } else if (sectionKey === 'visit') {
@@ -276,6 +418,7 @@ const HomePageEditor = () => {
         const socialLabelData = response.data.find((item: any) => item.section_key === 'footer_social_label');
         const facebookData = response.data.find((item: any) => item.section_key === 'footer_facebook_link');
         const youtubeData = response.data.find((item: any) => item.section_key === 'footer_youtube_link');
+        const instagramData = response.data.find((item: any) => item.section_key === 'footer_instagram_link');
         const copyrightData = response.data.find((item: any) => item.section_key === 'footer_copyright');
 
         setFooterContent({
@@ -288,9 +431,88 @@ const HomePageEditor = () => {
           youtube_link_en: youtubeData?.content_en || '',
           youtube_link_hi: youtubeData?.content_hi || '',
           youtube_link_mr: youtubeData?.content_mr || '',
+          instagram_link_en: instagramData?.content_en || '',
+          instagram_link_hi: instagramData?.content_hi || '',
+          instagram_link_mr: instagramData?.content_mr || '',
           copyright_en: copyrightData?.content_en || '',
           copyright_hi: copyrightData?.content_hi || '',
           copyright_mr: copyrightData?.content_mr || '',
+        });
+      } else if (sectionKey === 'privacy_policy') {
+        const titleData = response.data.find((item: any) => item.section_key === 'privacy_policy_title');
+        const subtitleData = response.data.find((item: any) => item.section_key === 'privacy_policy_subtitle');
+        const contentData = response.data.find((item: any) => item.section_key === 'privacy_policy_content');
+        const imageData = response.data.find((item: any) => item.section_key === 'privacy_policy_image');
+        setPrivacyContent({
+          title_en: titleData?.content_en || '',
+          title_hi: titleData?.content_hi || '',
+          title_mr: titleData?.content_mr || '',
+          subtitle_en: subtitleData?.content_en || '',
+          subtitle_hi: subtitleData?.content_hi || '',
+          subtitle_mr: subtitleData?.content_mr || '',
+          content_en: contentData?.content_en || '',
+          content_hi: contentData?.content_hi || '',
+          content_mr: contentData?.content_mr || '',
+          image_id: imageData?.image_id,
+          existingImageUrl: imageData?.image?.file_url
+            ? constructImageUrl(imageData.image.file_url)
+            : undefined,
+        });
+      } else if (sectionKey === 'terms_conditions') {
+        const titleData = response.data.find((item: any) => item.section_key === 'terms_conditions_title');
+        const subtitleData = response.data.find((item: any) => item.section_key === 'terms_conditions_subtitle');
+        const contentData = response.data.find((item: any) => item.section_key === 'terms_conditions_content');
+        const imageData = response.data.find((item: any) => item.section_key === 'terms_conditions_image');
+        setTermsContent({
+          title_en: titleData?.content_en || '',
+          title_hi: titleData?.content_hi || '',
+          title_mr: titleData?.content_mr || '',
+          subtitle_en: subtitleData?.content_en || '',
+          subtitle_hi: subtitleData?.content_hi || '',
+          subtitle_mr: subtitleData?.content_mr || '',
+          content_en: contentData?.content_en || '',
+          content_hi: contentData?.content_hi || '',
+          content_mr: contentData?.content_mr || '',
+          image_id: imageData?.image_id,
+          existingImageUrl: imageData?.image?.file_url
+            ? constructImageUrl(imageData.image.file_url)
+            : undefined,
+        });
+      } else if (sectionKey === 'history') {
+        const find = (key: string) => response.data.find((item: any) => item.section_key === key);
+        const titleData = find('history_title');
+        const descData = find('history_description');
+        const c1t = find('history_card1_title');
+        const c1d = find('history_card1_description');
+        const c2t = find('history_card2_title');
+        const c2d = find('history_card2_description');
+        const c3t = find('history_card3_title');
+        const c3d = find('history_card3_description');
+        setHomeHistoryContent({
+          title_en: titleData?.content_en || '',
+          title_hi: titleData?.content_hi || '',
+          title_mr: titleData?.content_mr || '',
+          description_en: descData?.content_en || '',
+          description_hi: descData?.content_hi || '',
+          description_mr: descData?.content_mr || '',
+          card1_title_en: c1t?.content_en || '',
+          card1_title_hi: c1t?.content_hi || '',
+          card1_title_mr: c1t?.content_mr || '',
+          card1_description_en: c1d?.content_en || '',
+          card1_description_hi: c1d?.content_hi || '',
+          card1_description_mr: c1d?.content_mr || '',
+          card2_title_en: c2t?.content_en || '',
+          card2_title_hi: c2t?.content_hi || '',
+          card2_title_mr: c2t?.content_mr || '',
+          card2_description_en: c2d?.content_en || '',
+          card2_description_hi: c2d?.content_hi || '',
+          card2_description_mr: c2d?.content_mr || '',
+          card3_title_en: c3t?.content_en || '',
+          card3_title_hi: c3t?.content_hi || '',
+          card3_title_mr: c3t?.content_mr || '',
+          card3_description_en: c3d?.content_en || '',
+          card3_description_hi: c3d?.content_hi || '',
+          card3_description_mr: c3d?.content_mr || '',
         });
       }
     } catch {
@@ -349,6 +571,9 @@ const HomePageEditor = () => {
         youtube_link_en: '',
         youtube_link_hi: '',
         youtube_link_mr: '',
+        instagram_link_en: '',
+        instagram_link_hi: '',
+        instagram_link_mr: '',
         copyright_en: '',
         copyright_hi: '',
         copyright_mr: '',
@@ -446,6 +671,91 @@ const HomePageEditor = () => {
       toast.error('Failed to remove image');
     }
   };
+
+  const saveAboutUs = async () => {
+    setSaving(true);
+    try {
+      await Promise.all([
+        client.put(`/admin/page-content/about/hero_main_title`, { language: 'en', content: aboutUsContent.main_title_en }),
+        client.put(`/admin/page-content/about/hero_main_title`, { language: 'hi', content: aboutUsContent.main_title_hi }),
+        client.put(`/admin/page-content/about/hero_main_title`, { language: 'mr', content: aboutUsContent.main_title_mr }),
+        client.put(`/admin/page-content/about/hero_main_subtitle`, { language: 'en', content: aboutUsContent.main_subtitle_en }),
+        client.put(`/admin/page-content/about/hero_main_subtitle`, { language: 'hi', content: aboutUsContent.main_subtitle_hi }),
+        client.put(`/admin/page-content/about/hero_main_subtitle`, { language: 'mr', content: aboutUsContent.main_subtitle_mr }),
+      ]);
+
+      if (aboutUsContent.title_en || aboutUsContent.title_hi || aboutUsContent.title_mr) {
+        await Promise.all([
+          aboutUsContent.title_en && client.put(`/admin/page-content/home/about_title`, { language: 'en', content: aboutUsContent.title_en }),
+          aboutUsContent.title_hi && client.put(`/admin/page-content/home/about_title`, { language: 'hi', content: aboutUsContent.title_hi }),
+          aboutUsContent.title_mr && client.put(`/admin/page-content/home/about_title`, { language: 'mr', content: aboutUsContent.title_mr }),
+        ].filter(Boolean));
+      }
+
+      await Promise.all([
+        client.put(`/admin/page-content/home/about_description`, { language: 'en', content: aboutUsContent.description_en }),
+        client.put(`/admin/page-content/home/about_description`, { language: 'hi', content: aboutUsContent.description_hi }),
+        client.put(`/admin/page-content/home/about_description`, { language: 'mr', content: aboutUsContent.description_mr }),
+        client.put(`/admin/page-content/home/about_image`, { image_id: aboutUsContent.image_id || null }),
+      ]);
+
+      toast.success('About Us section saved successfully');
+    } catch {
+      toast.error('Failed to save About Us section');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleRemoveAboutUsImage = async () => {
+    try {
+      await client.put(`/admin/page-content/home/about_image`, { image_id: null });
+      setAboutUsContent({ ...aboutUsContent, image_id: undefined, existingImageUrl: undefined });
+      toast.success('Image removed successfully');
+    } catch {
+      toast.error('Failed to remove image');
+    }
+  };
+
+  const renderAboutUsLanguageTabs = (
+    label: string,
+    enValue: string,
+    hiValue: string,
+    mrValue: string,
+    onChange: (lang: 'en' | 'hi' | 'mr', value: string) => void,
+    isTextarea = false,
+  ) => (
+    <div className="space-y-4">
+      <h3 className="font-semibold text-foreground">{label}</h3>
+      <Tabs defaultValue="en" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="en">English</TabsTrigger>
+          <TabsTrigger value="mr">मराठी</TabsTrigger>
+        </TabsList>
+        <TabsContent value="en" className="space-y-2 mt-4">
+          {isTextarea ? (
+            <RichTextEditor value={enValue} onChange={(value) => onChange('en', value)} placeholder={`Enter ${label} in English`} />
+          ) : (
+            <Input value={enValue} onChange={(e) => onChange('en', e.target.value)} placeholder={`Enter ${label} in English`} disabled={loading} />
+          )}
+        </TabsContent>
+        <TabsContent value="hi" className="space-y-2 mt-4">
+          {isTextarea ? (
+            <RichTextEditor value={hiValue} onChange={(value) => onChange('hi', value)} placeholder={`हिंदी में ${label} दर्ज करें`} />
+          ) : (
+            <Input value={hiValue} onChange={(e) => onChange('hi', e.target.value)} placeholder={`हिंदी में ${label} दर्ज करें`} disabled={loading} />
+          )}
+        </TabsContent>
+        <TabsContent value="mr" className="space-y-2 mt-4">
+          {isTextarea ? (
+            <RichTextEditor value={mrValue} onChange={(value) => onChange('mr', value)} placeholder={`मराठीत ${label} प्रविष्ट करा`} />
+          ) : (
+            <Input value={mrValue} onChange={(e) => onChange('mr', e.target.value)} placeholder={`मराठीत ${label} प्रविष्ट करा`} disabled={loading} />
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
 
   const saveVisit = async () => {
     setSaving(true);
@@ -623,6 +933,34 @@ const HomePageEditor = () => {
     }
   };
 
+  const saveHistory = async () => {
+    setSaving(true);
+    try {
+      const fields: Array<[string, string, string, string]> = [
+        ['history_title', homeHistoryContent.title_en, homeHistoryContent.title_hi, homeHistoryContent.title_mr],
+        ['history_description', homeHistoryContent.description_en, homeHistoryContent.description_hi, homeHistoryContent.description_mr],
+        ['history_card1_title', homeHistoryContent.card1_title_en, homeHistoryContent.card1_title_hi, homeHistoryContent.card1_title_mr],
+        ['history_card1_description', homeHistoryContent.card1_description_en, homeHistoryContent.card1_description_hi, homeHistoryContent.card1_description_mr],
+        ['history_card2_title', homeHistoryContent.card2_title_en, homeHistoryContent.card2_title_hi, homeHistoryContent.card2_title_mr],
+        ['history_card2_description', homeHistoryContent.card2_description_en, homeHistoryContent.card2_description_hi, homeHistoryContent.card2_description_mr],
+        ['history_card3_title', homeHistoryContent.card3_title_en, homeHistoryContent.card3_title_hi, homeHistoryContent.card3_title_mr],
+        ['history_card3_description', homeHistoryContent.card3_description_en, homeHistoryContent.card3_description_hi, homeHistoryContent.card3_description_mr],
+      ];
+      await Promise.all(
+        fields.flatMap(([key, en, hi, mr]) => [
+          client.put(`/admin/page-content/home/${key}`, { language: 'en', content: en }),
+          client.put(`/admin/page-content/home/${key}`, { language: 'hi', content: hi }),
+          client.put(`/admin/page-content/home/${key}`, { language: 'mr', content: mr }),
+        ]),
+      );
+      toast.success('History section saved successfully');
+    } catch {
+      toast.error('Failed to save history section');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const saveFooter = async () => {
     setSaving(true);
     try {
@@ -674,6 +1012,22 @@ const HomePageEditor = () => {
         }),
       ].filter(Boolean));
 
+      // Save instagram link
+      await Promise.all([
+        footerContent.instagram_link_en && client.put(`/admin/page-content/home/footer_instagram_link`, {
+          language: 'en',
+          content: footerContent.instagram_link_en,
+        }),
+        footerContent.instagram_link_hi && client.put(`/admin/page-content/home/footer_instagram_link`, {
+          language: 'hi',
+          content: footerContent.instagram_link_hi,
+        }),
+        footerContent.instagram_link_mr && client.put(`/admin/page-content/home/footer_instagram_link`, {
+          language: 'mr',
+          content: footerContent.instagram_link_mr,
+        }),
+      ].filter(Boolean));
+
       // Save copyright
       await Promise.all([
         footerContent.copyright_en && client.put(`/admin/page-content/home/footer_copyright`, {
@@ -695,6 +1049,81 @@ const HomePageEditor = () => {
       toast.error('Failed to save footer section');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const saveLegalSection = async (
+    kind: 'privacy_policy' | 'terms_conditions',
+    data: LegalContent,
+    label: string,
+  ) => {
+    setSaving(true);
+    try {
+      const titleKey = `${kind}_title`;
+      const subtitleKey = `${kind}_subtitle`;
+      const contentKey = `${kind}_content`;
+      const imageKey = `${kind}_image`;
+      const langs: Array<'en' | 'hi' | 'mr'> = ['en', 'hi', 'mr'];
+
+      await client.put(`/admin/page-content/home/${imageKey}`, {
+        image_id: data.image_id ?? null,
+      });
+
+      await Promise.all(
+        langs.flatMap((lang) => {
+          const requests = [];
+          const titleVal = data[`title_${lang}` as keyof LegalContent];
+          const subtitleVal = data[`subtitle_${lang}` as keyof LegalContent];
+          const contentVal = data[`content_${lang}` as keyof LegalContent];
+          if (titleVal !== undefined) {
+            requests.push(
+              client.put(`/admin/page-content/home/${titleKey}`, {
+                language: lang,
+                content: titleVal,
+              }),
+            );
+          }
+          if (subtitleVal !== undefined) {
+            requests.push(
+              client.put(`/admin/page-content/home/${subtitleKey}`, {
+                language: lang,
+                content: subtitleVal,
+              }),
+            );
+          }
+          if (contentVal !== undefined) {
+            requests.push(
+              client.put(`/admin/page-content/home/${contentKey}`, {
+                language: lang,
+                content: contentVal,
+              }),
+            );
+          }
+          return requests;
+        }),
+      );
+
+      toast.success(`${label} saved successfully`);
+    } catch {
+      toast.error(`Failed to save ${label}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleRemoveLegalImage = async (
+    kind: 'privacy_policy' | 'terms_conditions',
+  ) => {
+    try {
+      await client.put(`/admin/page-content/home/${kind}_image`, { image_id: null });
+      if (kind === 'privacy_policy') {
+        setPrivacyContent({ ...privacyContent, image_id: undefined, existingImageUrl: undefined });
+      } else {
+        setTermsContent({ ...termsContent, image_id: undefined, existingImageUrl: undefined });
+      }
+      toast.success('Image removed successfully');
+    } catch {
+      toast.error('Failed to remove image');
     }
   };
 
@@ -887,6 +1316,61 @@ const HomePageEditor = () => {
 
             <Button onClick={saveHeroSection} disabled={saving} className="w-full">
               {saving ? 'Saving...' : 'Save Hero Section'}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {activeSection === 'about_us' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>About Us</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {renderAboutUsLanguageTabs(
+              'Main Title',
+              aboutUsContent.main_title_en,
+              aboutUsContent.main_title_hi,
+              aboutUsContent.main_title_mr,
+              (lang, val) => setAboutUsContent({ ...aboutUsContent, [`main_title_${lang}`]: val }),
+            )}
+            {renderAboutUsLanguageTabs(
+              'Main Subtitle',
+              aboutUsContent.main_subtitle_en,
+              aboutUsContent.main_subtitle_hi,
+              aboutUsContent.main_subtitle_mr,
+              (lang, val) => setAboutUsContent({ ...aboutUsContent, [`main_subtitle_${lang}`]: val }),
+            )}
+            {renderAboutUsLanguageTabs(
+              'Section Title',
+              aboutUsContent.title_en,
+              aboutUsContent.title_hi,
+              aboutUsContent.title_mr,
+              (lang, val) => setAboutUsContent({ ...aboutUsContent, [`title_${lang}`]: val }),
+            )}
+            {renderAboutUsLanguageTabs(
+              'Section Description',
+              aboutUsContent.description_en,
+              aboutUsContent.description_hi,
+              aboutUsContent.description_mr,
+              (lang, val) => setAboutUsContent({ ...aboutUsContent, [`description_${lang}`]: val }),
+              true,
+            )}
+
+            <div className="space-y-4">
+              <h3 className="font-semibold text-foreground">About Us Image</h3>
+              <ImageUpload
+                onUpload={(mediaId: number) =>
+                  setAboutUsContent({ ...aboutUsContent, image_id: String(mediaId) })
+                }
+                existingImageUrl={aboutUsContent.existingImageUrl}
+                onRemove={handleRemoveAboutUsImage}
+                section="about-hero"
+              />
+            </div>
+
+            <Button onClick={saveAboutUs} disabled={saving} className="w-full">
+              {saving ? 'Saving...' : 'Save About Us Section'}
             </Button>
           </CardContent>
         </Card>
@@ -1171,6 +1655,110 @@ const HomePageEditor = () => {
         </Card>
       )}
 
+      {activeSection === 'history' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Home Page History Section</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {([
+              { label: 'Section Title', field: 'title' as const, rich: false },
+              { label: 'Section Description', field: 'description' as const, rich: true },
+            ]).map(({ label, field, rich }) => (
+              <div key={field} className="space-y-4">
+                <h3 className="font-semibold text-foreground">{label}</h3>
+                <Tabs defaultValue="en" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="en">English</TabsTrigger>
+                    <TabsTrigger value="mr">मराठी</TabsTrigger>
+                  </TabsList>
+                  {(['en', 'mr'] as const).map((lang) => (
+                    <TabsContent key={lang} value={lang} className="space-y-2 mt-4">
+                      {rich ? (
+                        <RichTextEditor
+                          value={homeHistoryContent[`${field}_${lang}` as keyof HomeHistoryContent] as string}
+                          onChange={(value) =>
+                            setHomeHistoryContent({
+                              ...homeHistoryContent,
+                              [`${field}_${lang}`]: value,
+                            })
+                          }
+                          placeholder={`Enter ${label.toLowerCase()}`}
+                        />
+                      ) : (
+                        <Input
+                          value={homeHistoryContent[`${field}_${lang}` as keyof HomeHistoryContent] as string}
+                          onChange={(e) =>
+                            setHomeHistoryContent({
+                              ...homeHistoryContent,
+                              [`${field}_${lang}`]: e.target.value,
+                            })
+                          }
+                          placeholder={`Enter ${label.toLowerCase()}`}
+                          disabled={loading}
+                        />
+                      )}
+                    </TabsContent>
+                  ))}
+                </Tabs>
+              </div>
+            ))}
+
+            {(['1', '2', '3'] as const).map((cardNo) => (
+              <div key={cardNo} className="border rounded-lg p-4 bg-muted/30 space-y-4">
+                <h3 className="font-semibold text-foreground">Card {cardNo}</h3>
+                {([
+                  { label: 'Title', field: `card${cardNo}_title` as const, rich: false },
+                  { label: 'Description', field: `card${cardNo}_description` as const, rich: true },
+                ]).map(({ label, field, rich }) => (
+                  <div key={field} className="space-y-2">
+                    <h4 className="text-sm font-medium text-foreground">Card {cardNo} {label}</h4>
+                    <Tabs defaultValue="en" className="w-full">
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="en">English</TabsTrigger>
+                        <TabsTrigger value="mr">मराठी</TabsTrigger>
+                      </TabsList>
+                      {(['en', 'mr'] as const).map((lang) => (
+                        <TabsContent key={lang} value={lang} className="space-y-2 mt-3">
+                          {rich ? (
+                            <RichTextEditor
+                              value={homeHistoryContent[`${field}_${lang}` as keyof HomeHistoryContent] as string}
+                              onChange={(value) =>
+                                setHomeHistoryContent({
+                                  ...homeHistoryContent,
+                                  [`${field}_${lang}`]: value,
+                                })
+                              }
+                              placeholder={`Card ${cardNo} ${label.toLowerCase()}`}
+                            />
+                          ) : (
+                            <Input
+                              value={homeHistoryContent[`${field}_${lang}` as keyof HomeHistoryContent] as string}
+                              onChange={(e) =>
+                                setHomeHistoryContent({
+                                  ...homeHistoryContent,
+                                  [`${field}_${lang}`]: e.target.value,
+                                })
+                              }
+                              placeholder={`Card ${cardNo} ${label.toLowerCase()}`}
+                              disabled={loading}
+                            />
+                          )}
+                        </TabsContent>
+                      ))}
+                    </Tabs>
+                  </div>
+                ))}
+              </div>
+            ))}
+
+            <Button onClick={saveHistory} disabled={saving} className="w-full">
+              {saving ? 'Saving...' : 'Save History Section'}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {activeSection === 'footer' && (
         <Card>
           <CardHeader>
@@ -1259,6 +1847,25 @@ const HomePageEditor = () => {
               />
             </div>
 
+            {/* Instagram Link */}
+            <div className="space-y-2">
+              <Label htmlFor="instagram_link">Instagram Link</Label>
+              <Input
+                id="instagram_link"
+                value={footerContent.instagram_link_en}
+                onChange={(e) =>
+                  setFooterContent({
+                    ...footerContent,
+                    instagram_link_en: e.target.value,
+                    instagram_link_hi: e.target.value,
+                    instagram_link_mr: e.target.value,
+                  })
+                }
+                placeholder="https://www.instagram.com/aaryadurgatemple"
+                disabled={loading}
+              />
+            </div>
+
             {/* Copyright Text */}
             <div className="space-y-4">
               <h3 className="font-semibold text-foreground">Copyright Text</h3>
@@ -1312,6 +1919,126 @@ const HomePageEditor = () => {
           </CardContent>
         </Card>
       )}
+
+      {(activeSection === 'privacy_policy' || activeSection === 'terms_conditions') && (() => {
+        const isPrivacy = activeSection === 'privacy_policy';
+        const data = isPrivacy ? privacyContent : termsContent;
+        const setData = isPrivacy ? setPrivacyContent : setTermsContent;
+        const label = isPrivacy ? 'Privacy Policy' : 'Terms & Conditions';
+        const langs: Array<{ key: 'en' | 'hi' | 'mr'; label: string }> = [
+          { key: 'en', label: 'English' },
+          { key: 'hi', label: 'हिंदी' },
+          { key: 'mr', label: 'मराठी' },
+        ];
+
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>{label}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="font-semibold text-foreground">Page Title</h3>
+                <Tabs defaultValue="en" className="w-full">
+                  <TabsList className="grid w-full grid-cols-3">
+                    {langs.map((l) => (
+                      <TabsTrigger key={l.key} value={l.key}>{l.label}</TabsTrigger>
+                    ))}
+                  </TabsList>
+                  {langs.map((l) => (
+                    <TabsContent key={l.key} value={l.key} className="space-y-2 mt-4">
+                      <Input
+                        value={data[`title_${l.key}` as keyof LegalContent]}
+                        onChange={(e) =>
+                          setData({ ...data, [`title_${l.key}`]: e.target.value })
+                        }
+                        placeholder={`Enter ${label} title in ${l.label}`}
+                        disabled={loading}
+                      />
+                    </TabsContent>
+                  ))}
+                </Tabs>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="font-semibold text-foreground">Hero Background Image</h3>
+                <ImageUpload
+                  onUpload={(mediaId) =>
+                    setData({ ...data, image_id: mediaId })
+                  }
+                  existingImageUrl={data.existingImageUrl}
+                  onRemove={() =>
+                    handleRemoveLegalImage(
+                      isPrivacy ? 'privacy_policy' : 'terms_conditions',
+                    )
+                  }
+                  section={isPrivacy ? 'privacy-policy' : 'terms-conditions'}
+                />
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="font-semibold text-foreground">Hero Subtitle</h3>
+                <Tabs defaultValue="en" className="w-full">
+                  <TabsList className="grid w-full grid-cols-3">
+                    {langs.map((l) => (
+                      <TabsTrigger key={l.key} value={l.key}>{l.label}</TabsTrigger>
+                    ))}
+                  </TabsList>
+                  {langs.map((l) => (
+                    <TabsContent key={l.key} value={l.key} className="space-y-2 mt-4">
+                      <Textarea
+                        value={data[`subtitle_${l.key}` as keyof LegalContent]}
+                        onChange={(e) =>
+                          setData({ ...data, [`subtitle_${l.key}`]: e.target.value })
+                        }
+                        placeholder={`Enter ${label} subtitle in ${l.label}`}
+                        rows={2}
+                        disabled={loading}
+                      />
+                    </TabsContent>
+                  ))}
+                </Tabs>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="font-semibold text-foreground">Page Content</h3>
+                <Tabs defaultValue="en" className="w-full">
+                  <TabsList className="grid w-full grid-cols-3">
+                    {langs.map((l) => (
+                      <TabsTrigger key={l.key} value={l.key}>{l.label}</TabsTrigger>
+                    ))}
+                  </TabsList>
+                  {langs.map((l) => (
+                    <TabsContent key={l.key} value={l.key} className="space-y-2 mt-4">
+                      <RichTextEditor
+                        value={data[`content_${l.key}` as keyof LegalContent]}
+                        onChange={(value) =>
+                          setData({ ...data, [`content_${l.key}`]: value })
+                        }
+                        placeholder={`Write the ${label} content in ${l.label}`}
+                      />
+                    </TabsContent>
+                  ))}
+                </Tabs>
+              </div>
+
+              <Button
+                onClick={() =>
+                  saveLegalSection(
+                    isPrivacy ? 'privacy_policy' : 'terms_conditions',
+                    data,
+                    label,
+                  )
+                }
+                disabled={saving}
+                className="w-full"
+              >
+                {saving ? 'Saving...' : `Save ${label}`}
+              </Button>
+            </CardContent>
+          </Card>
+        );
+      })()}
     </div>
   );
 };

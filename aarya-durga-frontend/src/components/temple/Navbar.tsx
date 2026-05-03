@@ -24,6 +24,7 @@ const Navbar = () => {
     { label: t.nav.history, href: "/history" },
     { label: t.nav.poojaDonation, href: "/pooja-donation" },
     { label: t.nav.eventsGallery, href: "/events-gallery" },
+    { label: t.nav.gallery, href: "/gallery" },
     { label: t.nav.contact, href: "/contact" },
   ];
 

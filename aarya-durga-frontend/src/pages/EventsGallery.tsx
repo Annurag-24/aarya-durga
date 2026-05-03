@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Link, useSearchParams } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, Clock3, MapPin, X } from "lucide-react";
+import { CalendarDays, Clock3, MapPin } from "lucide-react";
 import Navbar from "@/components/temple/Navbar";
 import Footer from "@/components/temple/Footer";
 import { useLanguage } from "@/i18n/LanguageContext";
@@ -24,11 +24,6 @@ import {
 } from "@/api/events";
 
 const EventsGallery = () => {
-    const [selected, setSelected] = useState<number | null>(null);
-    const [searchParams] = useSearchParams();
-    const [activeTab, setActiveTab] = useState<"events" | "gallery">(
-        (searchParams.get("tab") as "events" | "gallery") || "events",
-    );
     const [eventFilter, setEventFilter] = useState<"upcoming" | "past">(
         "upcoming",
     );
@@ -39,24 +34,12 @@ const EventsGallery = () => {
     const [heroSubtitle, setHeroSubtitle] = useState("");
     const [heroImage, setHeroImage] = useState("");
     const [eventsTitle, setEventsTitle] = useState("");
-    const [galleryTitle, setGalleryTitle] = useState("");
-    const [gallerySubtitle, setGallerySubtitle] = useState("");
     const [events, setEvents] = useState<ApiEvent[]>([]);
-    const [galleryImages, setGalleryImages] = useState<
-        Array<{ src: string; alt: string }>
-    >([]);
-
     const visibleImageUrls = useMemo(() => {
         const urls = [heroImage];
-
-        if (activeTab === "events") {
-            urls.push(...events.map((event) => getEventCoverImageUrl(event)));
-        } else {
-            urls.push(...galleryImages.map((img) => img.src));
-        }
-
+        urls.push(...events.map((event) => getEventCoverImageUrl(event)));
         return urls.filter(Boolean);
-    }, [heroImage, activeTab, events, galleryImages]);
+    }, [heroImage, events]);
 
     const imagesLoaded = useImagesLoaded([loading, ...visibleImageUrls]);
 
@@ -108,29 +91,7 @@ const EventsGallery = () => {
                 setHeroSubtitle(getContent("hero_subtitle"));
                 setHeroImage(getImg("hero_image"));
                 setEventsTitle(getContent("events_title"));
-                setGalleryTitle(getContent("gallery_title"));
-                setGallerySubtitle(getContent("gallery_subtitle"));
                 setEvents(publicEvents);
-
-                const galleryImageNumbers = new Set<number>();
-                pageData.forEach((item: { section_key: string }) => {
-                    const match = item.section_key.match(/^gallery_(\d+)_/);
-                    if (match) {
-                        galleryImageNumbers.add(parseInt(match[1], 10));
-                    }
-                });
-
-                const sortedGalleryNumbers = Array.from(galleryImageNumbers).sort(
-                    (a, b) => a - b,
-                );
-                setGalleryImages(
-                    sortedGalleryNumbers.map((num) => ({
-                        src: getImageUrl(
-                            findContentItem(pageData, `gallery_${num}_image`),
-                        ),
-                        alt: `Gallery Image ${num}`,
-                    })),
-                );
             } catch (error) {
                 console.error("Error fetching events gallery content:", error);
             } finally {
@@ -172,30 +133,7 @@ const EventsGallery = () => {
                     </div>
                 </section>
 
-                <section className="py-6 bg-card border-b border-border sticky top-16 z-40">
-                    <div className="container mx-auto px-4 flex justify-center gap-4">
-                        <Button
-                            variant={
-                                activeTab === "events" ? "temple" : "outline"
-                            }
-                            size="lg"
-                            onClick={() => setActiveTab("events")}
-                        >
-                            {t.eventsGalleryPage.templeEvents}
-                        </Button>
-                        <Button
-                            variant={
-                                activeTab === "gallery" ? "temple" : "outline"
-                            }
-                            size="lg"
-                            onClick={() => setActiveTab("gallery")}
-                        >
-                            {t.eventsGalleryPage.photoGallery}
-                        </Button>
-                    </div>
-                </section>
-
-                {activeTab === "events" && (
+                {(
                     <section className="py-20 bg-accent mandala-bg">
                         <div className="container mx-auto px-4">
                             <div className="relative mb-12">
@@ -393,80 +331,6 @@ const EventsGallery = () => {
                         </div>
                     </section>
                 )}
-
-                {activeTab === "gallery" && (
-                    <section className="py-20 bg-card">
-                        <div className="container mx-auto px-4">
-                            <div className="text-center mb-12">
-                                <div className="gold-line mx-auto mb-4" />
-                                <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-4">
-                                    {galleryTitle ||
-                                        t.eventsGalleryPage.templeMoments}
-                                </h2>
-                                <RichTextContent
-                                    content={
-                                        gallerySubtitle ||
-                                        t.eventsGalleryPage.momentsSubtitle
-                                    }
-                                    className="mx-auto max-w-2xl text-muted-foreground"
-                                />
-                            </div>
-                            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                                {galleryImages.map((image, index) => (
-                                    <motion.button
-                                        key={`${image.src}-${index}`}
-                                        initial={{ opacity: 0, y: 30 }}
-                                        whileInView={{ opacity: 1, y: 0 }}
-                                        viewport={{ once: true }}
-                                        transition={{
-                                            duration: 0.45,
-                                            delay: index * 0.06,
-                                        }}
-                                        onClick={() => setSelected(index)}
-                                        className="group overflow-hidden rounded-[1.75rem] border border-border bg-accent text-left shadow-sm"
-                                    >
-                                        <div className="h-80 overflow-hidden">
-                                            <img
-                                                src={image.src}
-                                                alt={image.alt}
-                                                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                            />
-                                        </div>
-                                    </motion.button>
-                                ))}
-                            </div>
-                        </div>
-                    </section>
-                )}
-
-                <AnimatePresence>
-                    {selected !== null && galleryImages[selected] && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-4"
-                            onClick={() => setSelected(null)}
-                        >
-                            <button
-                                type="button"
-                                className="absolute right-6 top-6 text-white"
-                                onClick={() => setSelected(null)}
-                            >
-                                <X size={32} />
-                            </button>
-                            <motion.img
-                                initial={{ scale: 0.95, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                exit={{ scale: 0.95, opacity: 0 }}
-                                src={galleryImages[selected].src}
-                                alt={galleryImages[selected].alt}
-                                className="max-h-[90vh] max-w-[90vw] rounded-2xl object-contain"
-                                onClick={(event) => event.stopPropagation()}
-                            />
-                        </motion.div>
-                    )}
-                </AnimatePresence>
 
                 <Footer />
             </div>

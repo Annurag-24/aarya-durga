@@ -27,5 +27,6 @@ class DatabaseSeeder extends Seeder
         $this->call(ContactPageSeeder::class);
         $this->call(ContactSubjectsSeeder::class);
         $this->call(ContactSubmissionSeeder::class);
+        $this->call(LegalPagesSeeder::class);
     }
 }

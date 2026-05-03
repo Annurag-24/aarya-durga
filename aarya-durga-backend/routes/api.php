@@ -63,6 +63,17 @@ Route::middleware('admin.auth')->prefix('admin')->group(function () {
     Route::apiResource('/sacred-traditions', \App\Http\Controllers\Admin\SacredTraditionController::class);
     Route::post('/sacred-traditions/reorder', [\App\Http\Controllers\Admin\SacredTraditionController::class, 'reorder']);
 
+    // Bank Details
+    Route::apiResource('/bank-details', \App\Http\Controllers\Admin\BankDetailController::class);
+
+    // Gallery Albums
+    Route::apiResource('/gallery-albums', \App\Http\Controllers\Admin\GalleryAlbumController::class);
+    Route::post('/gallery-albums/reorder', [\App\Http\Controllers\Admin\GalleryAlbumController::class, 'reorder']);
+
+    // Facilities
+    Route::apiResource('/facilities', \App\Http\Controllers\Admin\FacilityController::class);
+    Route::post('/facilities/reorder', [\App\Http\Controllers\Admin\FacilityController::class, 'reorder']);
+
     // Core Values
     Route::apiResource('/core-values', \App\Http\Controllers\Admin\CoreValueController::class);
     Route::post('/core-values/reorder', [\App\Http\Controllers\Admin\CoreValueController::class, 'reorder']);
@@ -110,6 +121,11 @@ Route::prefix('public')->group(function () {
     Route::get('/sacred-traditions', [\App\Http\Controllers\Admin\SacredTraditionController::class, 'index']);
     Route::get('/core-values', [\App\Http\Controllers\Admin\CoreValueController::class, 'index']);
     Route::get('/committee-members', [\App\Http\Controllers\Admin\CommitteeMemberController::class, 'index']);
+    Route::get('/bank-details', [\App\Http\Controllers\Admin\BankDetailController::class, 'index']);
+    Route::get('/gallery-albums', [\App\Http\Controllers\Admin\GalleryAlbumController::class, 'publicIndex']);
+    Route::get('/gallery-albums/{slug}', [\App\Http\Controllers\Admin\GalleryAlbumController::class, 'publicShowBySlug']);
+    Route::get('/facilities', [\App\Http\Controllers\Admin\FacilityController::class, 'publicIndex']);
+    Route::get('/facilities/{slug}', [\App\Http\Controllers\Admin\FacilityController::class, 'publicShowBySlug']);
     Route::get('/page-content/{pageKey}', [\App\Http\Controllers\Admin\PageContentController::class, 'show']);
     Route::get('/page-content/{pageKey}/{sectionKey}', [\App\Http\Controllers\Admin\PageContentController::class, 'showSection']);
     Route::get('/quotes/{placement}', [\App\Http\Controllers\Admin\QuoteController::class, 'byPlacement']);

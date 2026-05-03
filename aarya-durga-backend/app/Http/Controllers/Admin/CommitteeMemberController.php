@@ -20,7 +20,9 @@ class CommitteeMemberController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string',
+            'name_en' => 'required|string',
+            'name_hi' => 'nullable|string',
+            'name_mr' => 'nullable|string',
             'role_en' => 'required|string',
             'role_hi' => 'required|string',
             'role_mr' => 'required|string',
@@ -47,7 +49,9 @@ class CommitteeMemberController extends Controller
     public function update(Request $request, CommitteeMember $committeeMember)
     {
         $validated = $request->validate([
-            'name' => 'string',
+            'name_en' => 'string',
+            'name_hi' => 'nullable|string',
+            'name_mr' => 'nullable|string',
             'role_en' => 'string',
             'role_hi' => 'string',
             'role_mr' => 'string',

@@ -3,10 +3,11 @@ import { Translations } from "./types";
 export const hi: Translations = {
   nav: {
     home: "होम",
-    about: "हमारे बारे में",
+    about: "प्रबंधन",
     history: "देवी इतिहास",
-    poojaDonation: "पूजा एवं दान",
-    eventsGallery: "कार्यक्रम एवं गैलरी",
+    poojaDonation: "पूजा",
+    eventsGallery: "कार्यक्रम",
+    gallery: "गैलरी",
     contact: "संपर्क करें",
     templeName: "आर्या दुर्गा मंदिर",
   },

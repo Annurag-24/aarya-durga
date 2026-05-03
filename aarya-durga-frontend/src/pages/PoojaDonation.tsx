@@ -10,11 +10,14 @@ import {
     Sparkles,
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { Copy, Check } from "lucide-react";
 import Navbar from "@/components/temple/Navbar";
 import Footer from "@/components/temple/Footer";
 import BankDetailsModal from "@/components/temple/BankDetailsModal";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useLoader } from "@/contexts/LoaderContext";
+import client from "@/api/client";
+import { constructImageUrl } from "@/api/imageUrl";
 import {
     fetchPageContent,
     findContentItem,
@@ -86,6 +89,34 @@ const PoojaDonation = () => {
     const [donationsData, setDonationsData] = useState<
         Array<{ icon: any; title: string; desc: string; suggested: string }>
     >([]);
+    const [bankDetails, setBankDetails] = useState<
+        Array<{
+            id: number;
+            account_name: string;
+            bank_name: string;
+            branch: string;
+            account_number: string;
+            ifsc_code: string;
+            upi_id?: string;
+            qr_image?: { file_url?: string };
+            qrImage?: { file_url?: string };
+        }>
+    >([]);
+    const [copiedField, setCopiedField] = useState<string | null>(null);
+
+    useEffect(() => {
+        client
+            .get("/public/bank-details")
+            .then((response) => setBankDetails(response.data as typeof bankDetails))
+            .catch(() => setBankDetails([]));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const handleCopy = (value: string, field: string) => {
+        navigator.clipboard.writeText(value);
+        setCopiedField(field);
+        setTimeout(() => setCopiedField(null), 2000);
+    };
     const imagesLoaded = useImagesLoaded([heroImage]);
 
     useEffect(() => {
@@ -305,8 +336,16 @@ const PoojaDonation = () => {
                                         className="mb-4 flex-1 text-sm text-muted-foreground prose-p:text-muted-foreground prose-strong:text-foreground prose-em:text-muted-foreground"
                                     />
                                     <div className="flex items-center justify-between">
-                                        <span className="font-heading text-lg font-bold text-primary">
-                                            {pooja.price}
+                                        <span className="font-serif text-3xl font-extrabold tracking-tight text-primary">
+                                            {(() => {
+                                                const raw = (pooja.price ?? "").toString().trim();
+                                                if (!raw) return raw;
+                                                const match = raw.match(/^(\D*)(-?\d+(?:\.\d+)?)(.*)$/);
+                                                if (!match) return raw;
+                                                const [, prefix, num, suffix] = match;
+                                                const formatted = Number(num).toFixed(2);
+                                                return `${prefix}${formatted}${suffix}`;
+                                            })()}
                                         </span>
                                         <Button
                                             variant="temple"
@@ -325,7 +364,7 @@ const PoojaDonation = () => {
                     </div>
                 </section>
 
-                {schedule.length > 0 && (
+                {false && schedule.length > 0 && (
                     <section className="py-20 bg-accent mandala-bg">
                         <div className="container mx-auto px-4">
                             <div className="text-center mb-12">
@@ -368,7 +407,116 @@ const PoojaDonation = () => {
                     </section>
                 )}
 
-                {donations.length > 0 && (
+                {bankDetails.length > 0 && (
+                    <section className="pt-8 pb-20 bg-card">
+                        <div className="container mx-auto px-4">
+                            <div className="text-center mb-12">
+                                <div className="gold-line mx-auto mb-4" />
+                                <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground">
+                                    Donation Details
+                                </h2>
+                                <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
+                                    Please use these details for your donation or temple offering
+                                </p>
+                            </div>
+                            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                                {bankDetails.map((account, accountIdx) => (
+                                    <motion.div
+                                        key={account.id}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ duration: 0.5 }}
+                                        className="bg-accent rounded-lg p-6 shadow-md border border-border space-y-3"
+                                    >
+                                        {bankDetails.length > 1 && (
+                                            <p className="font-heading text-lg font-semibold text-foreground">
+                                                Account {accountIdx + 1}
+                                            </p>
+                                        )}
+                                        {[
+                                            account.account_name && {
+                                                label: "Account Name",
+                                                value: account.account_name,
+                                                field: `accountName-${account.id}`,
+                                            },
+                                            (account.bank_name || account.branch) && {
+                                                label: "Bank",
+                                                value: [account.bank_name, account.branch]
+                                                    .filter(Boolean)
+                                                    .join(", "),
+                                                field: `bankName-${account.id}`,
+                                            },
+                                            account.account_number && {
+                                                label: "Account Number",
+                                                value: account.account_number,
+                                                field: `accountNumber-${account.id}`,
+                                            },
+                                            account.ifsc_code && {
+                                                label: "IFSC Code",
+                                                value: account.ifsc_code,
+                                                field: `ifscCode-${account.id}`,
+                                            },
+                                            account.upi_id && {
+                                                label: "UPI ID",
+                                                value: account.upi_id,
+                                                field: `upiId-${account.id}`,
+                                            },
+                                        ]
+                                            .filter(Boolean)
+                                            .map((row: any) => (
+                                                <div
+                                                    key={row.field}
+                                                    className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+                                                >
+                                                    <div>
+                                                        <p className="text-xs text-muted-foreground mb-0.5">
+                                                            {row.label}
+                                                        </p>
+                                                        <p className="font-mono text-sm text-foreground font-semibold break-all">
+                                                            {row.value}
+                                                        </p>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleCopy(row.value, row.field)}
+                                                        className="ml-4 p-2 rounded-lg hover:bg-primary/10 transition-colors shrink-0"
+                                                        title="Copy to clipboard"
+                                                    >
+                                                        {copiedField === row.field ? (
+                                                            <Check className="w-5 h-5 text-green-600" />
+                                                        ) : (
+                                                            <Copy className="w-5 h-5 text-primary" />
+                                                        )}
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        {(() => {
+                                            const qr =
+                                                account.qr_image ||
+                                                account.qrImage;
+                                            return qr?.file_url ? (
+                                                <div className="mt-2 flex flex-col items-center gap-2 rounded-lg border border-border p-3 bg-muted/20">
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Scan to pay
+                                                    </p>
+                                                    <img
+                                                        src={constructImageUrl(
+                                                            qr.file_url,
+                                                        )}
+                                                        alt="Payment QR"
+                                                        className="h-48 w-48 object-contain bg-white rounded"
+                                                    />
+                                                </div>
+                                            ) : null;
+                                        })()}
+                                    </motion.div>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+                )}
+
+                {false && donations.length > 0 && (
                     <section className="py-20 bg-card">
                         <div className="container mx-auto px-4">
                             <div className="text-center mb-12">

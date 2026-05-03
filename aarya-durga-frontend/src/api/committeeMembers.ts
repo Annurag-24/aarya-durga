@@ -2,7 +2,9 @@ import client from './client';
 
 export interface CommitteeMember {
   id: number;
-  name: string;
+  name_en: string;
+  name_hi?: string;
+  name_mr?: string;
   role_en: string;
   role_hi: string;
   role_mr: string;

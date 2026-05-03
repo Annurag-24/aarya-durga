@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
+import TextAlign from '@tiptap/extension-text-align';
 import {
   Bold,
   Italic,
@@ -18,6 +19,10 @@ import {
   Redo2,
   Eraser,
   Strikethrough,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -47,6 +52,10 @@ export const RichTextEditor = ({
       StarterKit,
       Placeholder.configure({
         placeholder,
+      }),
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+        alignments: ['left', 'center', 'right', 'justify'],
       }),
     ],
     content: value,
@@ -223,6 +232,47 @@ export const RichTextEditor = ({
             onClick={() => editor.chain().focus().setHorizontalRule().run()}
           >
             <Minus size={16} />
+          </ToolbarButton>
+          <div className="w-px bg-border mx-1" />
+          <ToolbarButton
+            label="Align Left"
+            type="button"
+            size="sm"
+            variant={editor.isActive({ textAlign: 'left' }) ? 'default' : 'ghost'}
+            onMouseDown={keepEditorFocus}
+            onClick={() => editor.chain().focus().setTextAlign('left').run()}
+          >
+            <AlignLeft size={16} />
+          </ToolbarButton>
+          <ToolbarButton
+            label="Align Center"
+            type="button"
+            size="sm"
+            variant={editor.isActive({ textAlign: 'center' }) ? 'default' : 'ghost'}
+            onMouseDown={keepEditorFocus}
+            onClick={() => editor.chain().focus().setTextAlign('center').run()}
+          >
+            <AlignCenter size={16} />
+          </ToolbarButton>
+          <ToolbarButton
+            label="Align Right"
+            type="button"
+            size="sm"
+            variant={editor.isActive({ textAlign: 'right' }) ? 'default' : 'ghost'}
+            onMouseDown={keepEditorFocus}
+            onClick={() => editor.chain().focus().setTextAlign('right').run()}
+          >
+            <AlignRight size={16} />
+          </ToolbarButton>
+          <ToolbarButton
+            label="Justify"
+            type="button"
+            size="sm"
+            variant={editor.isActive({ textAlign: 'justify' }) ? 'default' : 'ghost'}
+            onMouseDown={keepEditorFocus}
+            onClick={() => editor.chain().focus().setTextAlign('justify').run()}
+          >
+            <AlignJustify size={16} />
           </ToolbarButton>
           <div className="w-px bg-border mx-1" />
           <ToolbarButton

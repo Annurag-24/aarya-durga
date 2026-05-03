@@ -5,6 +5,7 @@ import { ArrowLeft, CalendarDays, Clock3, MapPin } from "lucide-react";
 import Navbar from "@/components/temple/Navbar";
 import Footer from "@/components/temple/Footer";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useLoader } from "@/contexts/LoaderContext";
 import { HomePageProvider } from "@/contexts/HomePageContext";
@@ -14,7 +15,7 @@ import {
     ApiEvent,
     fetchPublicEventBySlug,
     getEventCoverImageUrl,
-    getEventGalleryUrls,
+    getEventGalleryItems,
     getLocalizedEventValue,
 } from "@/api/events";
 
@@ -24,6 +25,14 @@ const EventDetails = () => {
     const { setLoading: setGlobalLoading } = useLoader();
     const [event, setEvent] = useState<ApiEvent | null>(null);
     const [loading, setLoading] = useState(true);
+    const [activeMediaIndex, setActiveMediaIndex] = useState<number | null>(
+        null,
+    );
+
+    const galleryItems = useMemo(
+        () => (event ? getEventGalleryItems(event) : []),
+        [event],
+    );
 
     const imageUrls = useMemo(() => {
         if (!event) {
@@ -32,9 +41,11 @@ const EventDetails = () => {
 
         return [
             getEventCoverImageUrl(event),
-            ...getEventGalleryUrls(event),
+            ...galleryItems
+                .filter((item) => !item.isVideo)
+                .map((item) => item.url),
         ].filter(Boolean);
-    }, [event]);
+    }, [event, galleryItems]);
 
     const imagesLoaded = useImagesLoaded([loading, ...imageUrls]);
 
@@ -247,7 +258,7 @@ const EventDetails = () => {
                     </div>
                 </section>
 
-                {event && getEventGalleryUrls(event).length > 0 && (
+                {event && galleryItems.length > 0 && (
                     <section className="bg-accent py-20">
                         <div className="container mx-auto px-4">
                             <div className="text-center">
@@ -258,9 +269,11 @@ const EventDetails = () => {
                             </div>
 
                             <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                                {getEventGalleryUrls(event).map((imageUrl, index) => (
-                                    <motion.div
-                                        key={`${imageUrl}-${index}`}
+                                {galleryItems.map((item, index) => (
+                                    <motion.button
+                                        type="button"
+                                        onClick={() => setActiveMediaIndex(index)}
+                                        key={`${item.url}-${index}`}
                                         initial={{ opacity: 0, y: 24 }}
                                         whileInView={{ opacity: 1, y: 0 }}
                                         viewport={{ once: true }}
@@ -268,19 +281,66 @@ const EventDetails = () => {
                                             duration: 0.45,
                                             delay: index * 0.06,
                                         }}
-                                        className="overflow-hidden rounded-[1.75rem] border border-border bg-card shadow-sm"
+                                        className="group relative overflow-hidden rounded-[1.75rem] border border-border bg-card shadow-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
                                     >
-                                        <img
-                                            src={imageUrl}
-                                            alt={`${title} gallery ${index + 1}`}
-                                            className="h-72 w-full object-cover"
-                                        />
-                                    </motion.div>
+                                        {item.isVideo ? (
+                                            <>
+                                                <video
+                                                    src={item.url}
+                                                    muted
+                                                    playsInline
+                                                    preload="metadata"
+                                                    className="h-72 w-full bg-black object-cover pointer-events-none"
+                                                />
+                                                <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
+                                                    <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
+                                                        <div className="w-0 h-0 border-y-[10px] border-y-transparent border-l-[16px] border-l-foreground ml-1" />
+                                                    </div>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <img
+                                                src={item.url}
+                                                alt={`${title} gallery ${index + 1}`}
+                                                className="h-72 w-full object-cover transition-transform group-hover:scale-105"
+                                            />
+                                        )}
+                                    </motion.button>
                                 ))}
                             </div>
                         </div>
                     </section>
                 )}
+
+                <Dialog
+                    open={activeMediaIndex !== null}
+                    onOpenChange={(open) => {
+                        if (!open) setActiveMediaIndex(null);
+                    }}
+                >
+                    <DialogContent className="max-w-5xl w-[95vw] p-0 bg-black border-0 overflow-hidden [&>button]:bg-white/15 [&>button]:hover:bg-white/30 [&>button]:text-white [&>button]:rounded-full [&>button]:p-2 [&>button]:opacity-100 [&>button>svg]:h-5 [&>button>svg]:w-5">
+                        {activeMediaIndex !== null &&
+                            galleryItems[activeMediaIndex] && (
+                                <div className="relative flex items-center justify-center bg-black">
+                                    {galleryItems[activeMediaIndex].isVideo ? (
+                                        <video
+                                            src={galleryItems[activeMediaIndex].url}
+                                            controls
+                                            autoPlay
+                                            playsInline
+                                            className="w-full max-h-[85vh] bg-black"
+                                        />
+                                    ) : (
+                                        <img
+                                            src={galleryItems[activeMediaIndex].url}
+                                            alt={`${title} gallery ${activeMediaIndex + 1}`}
+                                            className="w-full max-h-[85vh] object-contain bg-black"
+                                        />
+                                    )}
+                                </div>
+                            )}
+                    </DialogContent>
+                </Dialog>
 
                 <Footer />
             </div>

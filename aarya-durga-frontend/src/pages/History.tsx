@@ -21,6 +21,7 @@ import {
     getContentByLanguage,
     getImageUrl,
 } from "@/api/helpers";
+import client from "@/api/client";
 import { HomePageProvider } from "@/contexts/HomePageContext";
 import { useImagesLoaded } from "@/hooks/useImagesLoaded";
 import { RichTextContent } from "@/components/global/RichTextContent";
@@ -43,23 +44,16 @@ const History = () => {
 
     // Timeline
     const [timelineTitle, setTimelineTitle] = useState("");
-    const [ancient, setAncient] = useState({ era: "", title: "", desc: "" });
-    const [medieval, setMedieval] = useState({ era: "", title: "", desc: "" });
-    const [colonial, setColonial] = useState({ era: "", title: "", desc: "" });
-    const [postIndep, setPostIndep] = useState({
-        era: "",
-        title: "",
-        desc: "",
-    });
-    const [modern, setModern] = useState({ era: "", title: "", desc: "" });
+    const [timelineItems, setTimelineItems] = useState<
+        Array<{ era: string; title: string; desc: string }>
+    >([]);
 
     // Traditions
     const [traditionsTitle, setTraditionsTitle] = useState("");
     const [traditionsSubtitle, setTraditionsSubtitle] = useState("");
-    const [navratri, setNavratri] = useState({ title: "", desc: "" });
-    const [texts, setTexts] = useState({ title: "", desc: "" });
-    const [konkan, setKonkan] = useState({ title: "", desc: "" });
-    const [diwali, setDiwali] = useState({ title: "", desc: "" });
+    const [traditionItems, setTraditionItems] = useState<
+        Array<{ title: string; desc: string }>
+    >([]);
 
     const imagesLoaded = useImagesLoaded([heroImage, originImage]);
 
@@ -100,51 +94,77 @@ const History = () => {
 
             // Timeline
             setTimelineTitle(getContent("timeline_title"));
-            setAncient({
-                era: getContent("ancient_era"),
-                title: getContent("ancient_title"),
-                desc: getContent("ancient_description"),
-            });
-            setMedieval({
-                era: getContent("medieval_era"),
-                title: getContent("medieval_title"),
-                desc: getContent("medieval_description"),
-            });
-            setColonial({
-                era: getContent("colonial_era"),
-                title: getContent("colonial_title"),
-                desc: getContent("colonial_description"),
-            });
-            setPostIndep({
-                era: getContent("post_independence_era"),
-                title: getContent("post_independence_title"),
-                desc: getContent("post_independence_description"),
-            });
-            setModern({
-                era: getContent("modern_day_era"),
-                title: getContent("modern_day_title"),
-                desc: getContent("modern_day_description"),
-            });
+            try {
+                const timelineRes = await client.get(
+                    "/public/history-timeline",
+                );
+                const items = (timelineRes.data as Array<{
+                    era_label_en: string;
+                    era_label_hi: string;
+                    era_label_mr: string;
+                    title_en: string;
+                    title_hi: string;
+                    title_mr: string;
+                    description_en?: string;
+                    description_hi?: string;
+                    description_mr?: string;
+                }>).map((item) => ({
+                    era:
+                        lang === "mr"
+                            ? item.era_label_mr || item.era_label_en
+                            : lang === "hi"
+                              ? item.era_label_hi || item.era_label_en
+                              : item.era_label_en,
+                    title:
+                        lang === "mr"
+                            ? item.title_mr || item.title_en
+                            : lang === "hi"
+                              ? item.title_hi || item.title_en
+                              : item.title_en,
+                    desc:
+                        lang === "mr"
+                            ? item.description_mr || item.description_en || ""
+                            : lang === "hi"
+                              ? item.description_hi || item.description_en || ""
+                              : item.description_en || "",
+                }));
+                setTimelineItems(items);
+            } catch {
+                setTimelineItems([]);
+            }
 
             // Traditions
             setTraditionsTitle(getContent("traditions_title"));
             setTraditionsSubtitle(getContent("traditions_subtitle"));
-            setNavratri({
-                title: getContent("navratri_title"),
-                desc: getContent("navratri_description"),
-            });
-            setTexts({
-                title: getContent("texts_title"),
-                desc: getContent("texts_description"),
-            });
-            setKonkan({
-                title: getContent("konkan_title"),
-                desc: getContent("konkan_description"),
-            });
-            setDiwali({
-                title: getContent("diwali_title"),
-                desc: getContent("diwali_description"),
-            });
+            try {
+                const traditionsRes = await client.get(
+                    "/public/sacred-traditions",
+                );
+                const items = (traditionsRes.data as Array<{
+                    title_en: string;
+                    title_hi: string;
+                    title_mr: string;
+                    description_en?: string;
+                    description_hi?: string;
+                    description_mr?: string;
+                }>).map((item) => ({
+                    title:
+                        lang === "mr"
+                            ? item.title_mr || item.title_en
+                            : lang === "hi"
+                              ? item.title_hi || item.title_en
+                              : item.title_en,
+                    desc:
+                        lang === "mr"
+                            ? item.description_mr || item.description_en || ""
+                            : lang === "hi"
+                              ? item.description_hi || item.description_en || ""
+                              : item.description_en || "",
+                }));
+                setTraditionItems(items);
+            } catch {
+                setTraditionItems([]);
+            }
 
         } catch (error) {
             // Error fetching history content
@@ -153,40 +173,20 @@ const History = () => {
         }
     };
 
-    const timeline = [
-        {
-            icon: Landmark,
-            year: ancient.era,
-            title: ancient.title,
-            desc: ancient.desc,
-        },
-        {
-            icon: Crown,
-            year: medieval.era,
-            title: medieval.title,
-            desc: medieval.desc,
-        },
-        {
-            icon: TreePalm,
-            year: colonial.era,
-            title: colonial.title,
-            desc: colonial.desc,
-        },
-        {
-            icon: Flame,
-            year: postIndep.era,
-            title: postIndep.title,
-            desc: postIndep.desc,
-        },
-        { icon: Sun, year: modern.era, title: modern.title, desc: modern.desc },
-    ];
+    const timelineIcons = [Landmark, Crown, TreePalm, Flame, Sun];
+    const timeline = timelineItems.map((item, idx) => ({
+        icon: timelineIcons[idx % timelineIcons.length],
+        year: item.era,
+        title: item.title,
+        desc: item.desc,
+    }));
 
-    const traditions = [
-        { icon: Flame, title: navratri.title, desc: navratri.desc },
-        { icon: BookOpen, title: texts.title, desc: texts.desc },
-        { icon: Mountain, title: konkan.title, desc: konkan.desc },
-        { icon: Sparkles, title: diwali.title, desc: diwali.desc },
-    ];
+    const traditionIcons = [Flame, BookOpen, Mountain, Sparkles];
+    const traditions = traditionItems.map((item, idx) => ({
+        icon: traditionIcons[idx % traditionIcons.length],
+        title: item.title,
+        desc: item.desc,
+    }));
 
     return (
         <HomePageProvider>

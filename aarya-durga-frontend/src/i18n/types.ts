@@ -8,6 +8,7 @@ export interface Translations {
     history: string;
     poojaDonation: string;
     eventsGallery: string;
+    gallery: string;
     contact: string;
     templeName: string;
   };

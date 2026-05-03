@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Mail, Phone, MapPin, Facebook, Youtube } from "lucide-react";
+import { Mail, Phone, MapPin, Facebook, Youtube, Instagram } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useState, useEffect } from "react";
 import { findContentItem, getContentByLanguage } from "@/api/helpers";
@@ -12,6 +12,7 @@ interface FooterData {
   socialLabel: string;
   facebookLink: string;
   youtubeLink: string;
+  instagramLink: string;
   copyrightText: string;
 }
 
@@ -25,6 +26,7 @@ const Footer = () => {
     socialLabel: "",
     facebookLink: "",
     youtubeLink: "",
+    instagramLink: "",
     copyrightText: "",
   });
 
@@ -42,6 +44,7 @@ const Footer = () => {
       const socialLabel = getContent('footer_social_label');
       const facebook = getContent('footer_facebook_link');
       const youtube = getContent('footer_youtube_link');
+      const instagram = getContent('footer_instagram_link');
       const copyright = getContent('footer_copyright');
 
       setFooterData({
@@ -51,6 +54,7 @@ const Footer = () => {
         socialLabel,
         facebookLink: facebook,
         youtubeLink: youtube,
+        instagramLink: instagram,
         copyrightText: copyright,
       });
     }
@@ -97,11 +101,20 @@ const Footer = () => {
                   <Youtube size={16} />
                 </a>
               )}
+              {footerData.instagramLink && footerData.instagramLink !== "#" && (
+                <a href={footerData.instagramLink} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-primary-foreground/10 flex items-center justify-center text-sm hover:bg-secondary hover:text-secondary-foreground transition-colors" title="Instagram">
+                  <Instagram size={16} />
+                </a>
+              )}
             </div>
           </div>
         </div>
-        <div className="border-t border-primary-foreground/20 mt-8 pt-6 text-center text-sm text-primary-foreground/80">
-          {footerData.copyrightText}
+        <div className="border-t border-primary-foreground/20 mt-8 pt-6 flex flex-col md:flex-row items-center justify-between gap-3 text-sm text-primary-foreground/80">
+          <span className="text-center md:text-left">{footerData.copyrightText}</span>
+          <div className="flex gap-4">
+            <Link to="/privacy-policy" className="hover:text-secondary transition-colors">Privacy Policy</Link>
+            <Link to="/terms-conditions" className="hover:text-secondary transition-colors">Terms &amp; Conditions</Link>
+          </div>
         </div>
       </div>
     </footer>

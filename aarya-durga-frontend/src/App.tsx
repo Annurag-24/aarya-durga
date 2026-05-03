@@ -15,7 +15,12 @@ import History from "./pages/History";
 import PoojaDonation from "./pages/PoojaDonation";
 import EventsGallery from "./pages/EventsGallery";
 import EventDetails from "./pages/EventDetails";
+import Gallery from "./pages/Gallery";
+import AlbumDetails from "./pages/AlbumDetails";
+import FacilityDetails from "./pages/FacilityDetails";
 import Contact from "./pages/Contact";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsConditions from "./pages/TermsConditions";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
@@ -39,6 +44,8 @@ import PageContentEditor from "./pages/admin/settings/PageContentEditor";
 import HistoryPageEditor from "./pages/admin/history/HistoryPageEditor";
 import PoojaAndDonationPageEditor from "./pages/admin/pooja-donation/PoojaAndDonationPageEditor";
 import EventsGalleryPageEditor from "./pages/admin/events-gallery/EventsGalleryPageEditor";
+import GalleryPageEditor from "./pages/admin/gallery/GalleryPageEditor";
+import FacilitiesPageEditor from "./pages/admin/facilities/FacilitiesPageEditor";
 import ContactPageEditor from "./pages/admin/contact/ContactPageEditor";
 
 const queryClient = new QueryClient();
@@ -64,7 +71,12 @@ const App = () => (
                 <Route path="/pooja-donation" element={<PoojaDonation />} />
                 <Route path="/events-gallery" element={<EventsGallery />} />
                 <Route path="/events-gallery/:slug" element={<EventDetails />} />
+                <Route path="/gallery" element={<Gallery />} />
+                <Route path="/gallery/:slug" element={<AlbumDetails />} />
+                <Route path="/facilities/:slug" element={<FacilityDetails />} />
                 <Route path="/contact" element={<Contact />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="/terms-conditions" element={<TermsConditions />} />
 
                 {/* Auth Routes */}
                 <Route path="/auth/login" element={<Login />} />
@@ -89,6 +101,8 @@ const App = () => (
                         <Route path="history-editor" element={<HistoryPageEditor />} />
                         <Route path="pooja-donation-editor" element={<PoojaAndDonationPageEditor />} />
                         <Route path="events-gallery-editor" element={<EventsGalleryPageEditor />} />
+                        <Route path="gallery-editor" element={<GalleryPageEditor />} />
+                        <Route path="facilities-editor" element={<FacilitiesPageEditor />} />
                         <Route path="contact" element={<ContactPageEditor />} />
 
                         {/* Settings */}

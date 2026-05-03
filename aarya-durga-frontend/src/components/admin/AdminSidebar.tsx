@@ -8,6 +8,7 @@ import {
   Settings,
   Flame,
   Images,
+  Building2,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -21,10 +22,12 @@ import { useAdminAuth } from '@/hooks/admin/useAdminAuth';
 
 const menuItems = [
   { label: 'Home Page', icon: Home, href: '/admin/home' },
-  { label: 'About Us', icon: Info, href: '/admin/about' },
+  { label: 'Management', icon: Info, href: '/admin/about' },
   { label: 'History', icon: BookOpen, href: '/admin/history-editor' },
-  { label: 'Pooja & Donation', icon: Flame, href: '/admin/pooja-donation-editor' },
-  { label: 'Events & Gallery', icon: Images, href: '/admin/events-gallery-editor' },
+  { label: 'Pooja', icon: Flame, href: '/admin/pooja-donation-editor' },
+  { label: 'Events', icon: Images, href: '/admin/events-gallery-editor' },
+  { label: 'Gallery', icon: Images, href: '/admin/gallery-editor' },
+  { label: 'Facilities', icon: Building2, href: '/admin/facilities-editor' },
   { label: 'Contact Us', icon: MessageSquare, href: '/admin/contact' },
   { label: 'Contact Submissions', icon: Mail, href: '/admin/contact-submissions' },
   { label: 'Site Settings', icon: Settings, href: '/admin/site-settings' },

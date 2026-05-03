@@ -45,7 +45,8 @@ interface TimelineContent {
 }
 
 interface TimelineItem {
-    key: string;
+    id?: number;
+    tempId: string;
     era_en: string;
     era_hi: string;
     era_mr: string;
@@ -55,6 +56,7 @@ interface TimelineItem {
     description_en: string;
     description_hi: string;
     description_mr: string;
+    sort_order: number;
 }
 
 interface TraditionsContent {
@@ -68,41 +70,17 @@ interface TraditionsContent {
 }
 
 interface TraditionItem {
-    key: string;
+    id?: number;
+    tempId: string;
     title_en: string;
     title_hi: string;
     title_mr: string;
     description_en: string;
     description_hi: string;
     description_mr: string;
+    sort_order: number;
 }
 
-interface HomeHistoryContent {
-    title_en: string;
-    title_hi: string;
-    title_mr: string;
-    description_en: string;
-    description_hi: string;
-    description_mr: string;
-    card1_title_en: string;
-    card1_title_hi: string;
-    card1_title_mr: string;
-    card1_description_en: string;
-    card1_description_hi: string;
-    card1_description_mr: string;
-    card2_title_en: string;
-    card2_title_hi: string;
-    card2_title_mr: string;
-    card2_description_en: string;
-    card2_description_hi: string;
-    card2_description_mr: string;
-    card3_title_en: string;
-    card3_title_hi: string;
-    card3_title_mr: string;
-    card3_description_en: string;
-    card3_description_hi: string;
-    card3_description_mr: string;
-}
 
 const HistoryPageEditor = () => {
     const { setLoading: setGlobalLoading } = useLoader();
@@ -112,7 +90,6 @@ const HistoryPageEditor = () => {
         | "timeline"
         | "traditions"
         | "banner"
-        | "home-history"
     >("hero");
     const [saving, setSaving] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -142,69 +119,9 @@ const HistoryPageEditor = () => {
         title_en: "",
         title_hi: "",
         title_mr: "",
-        items: [
-            {
-                key: "ancient",
-                era_en: "",
-                era_hi: "",
-                era_mr: "",
-                title_en: "",
-                title_hi: "",
-                title_mr: "",
-                description_en: "",
-                description_hi: "",
-                description_mr: "",
-            },
-            {
-                key: "medieval",
-                era_en: "",
-                era_hi: "",
-                era_mr: "",
-                title_en: "",
-                title_hi: "",
-                title_mr: "",
-                description_en: "",
-                description_hi: "",
-                description_mr: "",
-            },
-            {
-                key: "colonial",
-                era_en: "",
-                era_hi: "",
-                era_mr: "",
-                title_en: "",
-                title_hi: "",
-                title_mr: "",
-                description_en: "",
-                description_hi: "",
-                description_mr: "",
-            },
-            {
-                key: "post",
-                era_en: "",
-                era_hi: "",
-                era_mr: "",
-                title_en: "",
-                title_hi: "",
-                title_mr: "",
-                description_en: "",
-                description_hi: "",
-                description_mr: "",
-            },
-            {
-                key: "modern",
-                era_en: "",
-                era_hi: "",
-                era_mr: "",
-                title_en: "",
-                title_hi: "",
-                title_mr: "",
-                description_en: "",
-                description_hi: "",
-                description_mr: "",
-            },
-        ],
+        items: [],
     });
+    const [removedTimelineIds, setRemovedTimelineIds] = useState<number[]>([]);
 
     const [traditionsContent, setTraditionsContent] =
         useState<TraditionsContent>({
@@ -214,73 +131,9 @@ const HistoryPageEditor = () => {
             subtitle_en: "",
             subtitle_hi: "",
             subtitle_mr: "",
-            items: [
-                {
-                    key: "navratri",
-                    title_en: "",
-                    title_hi: "",
-                    title_mr: "",
-                    description_en: "",
-                    description_hi: "",
-                    description_mr: "",
-                },
-                {
-                    key: "texts",
-                    title_en: "",
-                    title_hi: "",
-                    title_mr: "",
-                    description_en: "",
-                    description_hi: "",
-                    description_mr: "",
-                },
-                {
-                    key: "konkan",
-                    title_en: "",
-                    title_hi: "",
-                    title_mr: "",
-                    description_en: "",
-                    description_hi: "",
-                    description_mr: "",
-                },
-                {
-                    key: "diwali",
-                    title_en: "",
-                    title_hi: "",
-                    title_mr: "",
-                    description_en: "",
-                    description_hi: "",
-                    description_mr: "",
-                },
-            ],
+            items: [],
         });
-
-    const [homeHistoryContent, setHomeHistoryContent] =
-        useState<HomeHistoryContent>({
-            title_en: "",
-            title_hi: "",
-            title_mr: "",
-            description_en: "",
-            description_hi: "",
-            description_mr: "",
-            card1_title_en: "",
-            card1_title_hi: "",
-            card1_title_mr: "",
-            card1_description_en: "",
-            card1_description_hi: "",
-            card1_description_mr: "",
-            card2_title_en: "",
-            card2_title_hi: "",
-            card2_title_mr: "",
-            card2_description_en: "",
-            card2_description_hi: "",
-            card2_description_mr: "",
-            card3_title_en: "",
-            card3_title_hi: "",
-            card3_title_mr: "",
-            card3_description_en: "",
-            card3_description_hi: "",
-            card3_description_mr: "",
-        });
+    const [removedTraditionIds, setRemovedTraditionIds] = useState<number[]>([]);
 
     const imagesLoaded = useImagesLoaded([
         heroContent.existingImageUrl,
@@ -302,17 +155,13 @@ const HistoryPageEditor = () => {
         setLoading(true);
         setGlobalLoading(true);
         try {
-            const [historyResponse, homeResponse] = await Promise.all([
-                client.get("/public/page-content/history"),
-                client.get("/public/page-content/home"),
-            ]);
+            const historyResponse = await client.get(
+                "/public/page-content/history",
+            );
             const data = historyResponse.data;
-            const homeData = homeResponse.data;
 
             const findContent = (key: string) =>
                 data.find((item: any) => item.section_key === key);
-            const findHomeContent = (key: string) =>
-                homeData.find((item: any) => item.section_key === key);
             const getImage = (key: string) => {
                 const item = findContent(key);
                 return item?.image?.file_url
@@ -351,127 +200,57 @@ const HistoryPageEditor = () => {
                 existingImageUrl: getImage("origin_image"),
             });
 
+            const timelineResponse = await client.get(
+                "/admin/history-timeline",
+            );
+            const timelineData = timelineResponse.data as Array<{
+                id: number;
+                era_label_en: string;
+                era_label_hi: string;
+                era_label_mr: string;
+                title_en: string;
+                title_hi: string;
+                title_mr: string;
+                description_en?: string;
+                description_hi?: string;
+                description_mr?: string;
+                sort_order: number;
+            }>;
+
             setTimelineContent({
                 title_en: findContent("timeline_title")?.content_en || "",
                 title_hi: findContent("timeline_title")?.content_hi || "",
                 title_mr: findContent("timeline_title")?.content_mr || "",
-                items: [
-                    {
-                        key: "ancient",
-                        era_en: findContent("ancient_era")?.content_en || "",
-                        era_hi: findContent("ancient_era")?.content_hi || "",
-                        era_mr: findContent("ancient_era")?.content_mr || "",
-                        title_en:
-                            findContent("ancient_title")?.content_en || "",
-                        title_hi:
-                            findContent("ancient_title")?.content_hi || "",
-                        title_mr:
-                            findContent("ancient_title")?.content_mr || "",
-                        description_en:
-                            findContent("ancient_description")?.content_en ||
-                            "",
-                        description_hi:
-                            findContent("ancient_description")?.content_hi ||
-                            "",
-                        description_mr:
-                            findContent("ancient_description")?.content_mr ||
-                            "",
-                    },
-                    {
-                        key: "medieval",
-                        era_en: findContent("medieval_era")?.content_en || "",
-                        era_hi: findContent("medieval_era")?.content_hi || "",
-                        era_mr: findContent("medieval_era")?.content_mr || "",
-                        title_en:
-                            findContent("medieval_title")?.content_en || "",
-                        title_hi:
-                            findContent("medieval_title")?.content_hi || "",
-                        title_mr:
-                            findContent("medieval_title")?.content_mr || "",
-                        description_en:
-                            findContent("medieval_description")?.content_en ||
-                            "",
-                        description_hi:
-                            findContent("medieval_description")?.content_hi ||
-                            "",
-                        description_mr:
-                            findContent("medieval_description")?.content_mr ||
-                            "",
-                    },
-                    {
-                        key: "colonial",
-                        era_en: findContent("colonial_era")?.content_en || "",
-                        era_hi: findContent("colonial_era")?.content_hi || "",
-                        era_mr: findContent("colonial_era")?.content_mr || "",
-                        title_en:
-                            findContent("colonial_title")?.content_en || "",
-                        title_hi:
-                            findContent("colonial_title")?.content_hi || "",
-                        title_mr:
-                            findContent("colonial_title")?.content_mr || "",
-                        description_en:
-                            findContent("colonial_description")?.content_en ||
-                            "",
-                        description_hi:
-                            findContent("colonial_description")?.content_hi ||
-                            "",
-                        description_mr:
-                            findContent("colonial_description")?.content_mr ||
-                            "",
-                    },
-                    {
-                        key: "post",
-                        era_en:
-                            findContent("post_independence_era")?.content_en ||
-                            "",
-                        era_hi:
-                            findContent("post_independence_era")?.content_hi ||
-                            "",
-                        era_mr:
-                            findContent("post_independence_era")?.content_mr ||
-                            "",
-                        title_en:
-                            findContent("post_independence_title")
-                                ?.content_en || "",
-                        title_hi:
-                            findContent("post_independence_title")
-                                ?.content_hi || "",
-                        title_mr:
-                            findContent("post_independence_title")
-                                ?.content_mr || "",
-                        description_en:
-                            findContent("post_independence_description")
-                                ?.content_en || "",
-                        description_hi:
-                            findContent("post_independence_description")
-                                ?.content_hi || "",
-                        description_mr:
-                            findContent("post_independence_description")
-                                ?.content_mr || "",
-                    },
-                    {
-                        key: "modern",
-                        era_en: findContent("modern_day_era")?.content_en || "",
-                        era_hi: findContent("modern_day_era")?.content_hi || "",
-                        era_mr: findContent("modern_day_era")?.content_mr || "",
-                        title_en:
-                            findContent("modern_day_title")?.content_en || "",
-                        title_hi:
-                            findContent("modern_day_title")?.content_hi || "",
-                        title_mr:
-                            findContent("modern_day_title")?.content_mr || "",
-                        description_en:
-                            findContent("modern_day_description")?.content_en ||
-                            "",
-                        description_hi:
-                            findContent("modern_day_description")?.content_hi ||
-                            "",
-                        description_mr:
-                            findContent("modern_day_description")?.content_mr ||
-                            "",
-                    },
-                ],
+                items: timelineData.map((item, index) => ({
+                    id: item.id,
+                    tempId: String(item.id),
+                    era_en: item.era_label_en,
+                    era_hi: item.era_label_hi,
+                    era_mr: item.era_label_mr,
+                    title_en: item.title_en,
+                    title_hi: item.title_hi,
+                    title_mr: item.title_mr,
+                    description_en: item.description_en || "",
+                    description_hi: item.description_hi || "",
+                    description_mr: item.description_mr || "",
+                    sort_order: item.sort_order ?? index,
+                })),
             });
+            setRemovedTimelineIds([]);
+
+            const traditionsResponse = await client.get(
+                "/admin/sacred-traditions",
+            );
+            const traditionsData = traditionsResponse.data as Array<{
+                id: number;
+                title_en: string;
+                title_hi: string;
+                title_mr: string;
+                description_en?: string;
+                description_hi?: string;
+                description_mr?: string;
+                sort_order: number;
+            }>;
 
             setTraditionsContent({
                 title_en: findContent("traditions_title")?.content_en || "",
@@ -483,120 +262,20 @@ const HistoryPageEditor = () => {
                     findContent("traditions_subtitle")?.content_hi || "",
                 subtitle_mr:
                     findContent("traditions_subtitle")?.content_mr || "",
-                items: [
-                    {
-                        key: "navratri",
-                        title_en:
-                            findContent("navratri_title")?.content_en || "",
-                        title_hi:
-                            findContent("navratri_title")?.content_hi || "",
-                        title_mr:
-                            findContent("navratri_title")?.content_mr || "",
-                        description_en:
-                            findContent("navratri_description")?.content_en ||
-                            "",
-                        description_hi:
-                            findContent("navratri_description")?.content_hi ||
-                            "",
-                        description_mr:
-                            findContent("navratri_description")?.content_mr ||
-                            "",
-                    },
-                    {
-                        key: "texts",
-                        title_en: findContent("texts_title")?.content_en || "",
-                        title_hi: findContent("texts_title")?.content_hi || "",
-                        title_mr: findContent("texts_title")?.content_mr || "",
-                        description_en:
-                            findContent("texts_description")?.content_en || "",
-                        description_hi:
-                            findContent("texts_description")?.content_hi || "",
-                        description_mr:
-                            findContent("texts_description")?.content_mr || "",
-                    },
-                    {
-                        key: "konkan",
-                        title_en: findContent("konkan_title")?.content_en || "",
-                        title_hi: findContent("konkan_title")?.content_hi || "",
-                        title_mr: findContent("konkan_title")?.content_mr || "",
-                        description_en:
-                            findContent("konkan_description")?.content_en || "",
-                        description_hi:
-                            findContent("konkan_description")?.content_hi || "",
-                        description_mr:
-                            findContent("konkan_description")?.content_mr || "",
-                    },
-                    {
-                        key: "diwali",
-                        title_en: findContent("diwali_title")?.content_en || "",
-                        title_hi: findContent("diwali_title")?.content_hi || "",
-                        title_mr: findContent("diwali_title")?.content_mr || "",
-                        description_en:
-                            findContent("diwali_description")?.content_en || "",
-                        description_hi:
-                            findContent("diwali_description")?.content_hi || "",
-                        description_mr:
-                            findContent("diwali_description")?.content_mr || "",
-                    },
-                ],
+                items: traditionsData.map((item, index) => ({
+                    id: item.id,
+                    tempId: String(item.id),
+                    title_en: item.title_en,
+                    title_hi: item.title_hi,
+                    title_mr: item.title_mr,
+                    description_en: item.description_en || "",
+                    description_hi: item.description_hi || "",
+                    description_mr: item.description_mr || "",
+                    sort_order: item.sort_order ?? index,
+                })),
             });
+            setRemovedTraditionIds([]);
 
-            setHomeHistoryContent({
-                title_en: findHomeContent("history_title")?.content_en || "",
-                title_hi: findHomeContent("history_title")?.content_hi || "",
-                title_mr: findHomeContent("history_title")?.content_mr || "",
-                description_en:
-                    findHomeContent("history_description")?.content_en || "",
-                description_hi:
-                    findHomeContent("history_description")?.content_hi || "",
-                description_mr:
-                    findHomeContent("history_description")?.content_mr || "",
-                card1_title_en:
-                    findHomeContent("history_card1_title")?.content_en || "",
-                card1_title_hi:
-                    findHomeContent("history_card1_title")?.content_hi || "",
-                card1_title_mr:
-                    findHomeContent("history_card1_title")?.content_mr || "",
-                card1_description_en:
-                    findHomeContent("history_card1_description")?.content_en ||
-                    "",
-                card1_description_hi:
-                    findHomeContent("history_card1_description")?.content_hi ||
-                    "",
-                card1_description_mr:
-                    findHomeContent("history_card1_description")?.content_mr ||
-                    "",
-                card2_title_en:
-                    findHomeContent("history_card2_title")?.content_en || "",
-                card2_title_hi:
-                    findHomeContent("history_card2_title")?.content_hi || "",
-                card2_title_mr:
-                    findHomeContent("history_card2_title")?.content_mr || "",
-                card2_description_en:
-                    findHomeContent("history_card2_description")?.content_en ||
-                    "",
-                card2_description_hi:
-                    findHomeContent("history_card2_description")?.content_hi ||
-                    "",
-                card2_description_mr:
-                    findHomeContent("history_card2_description")?.content_mr ||
-                    "",
-                card3_title_en:
-                    findHomeContent("history_card3_title")?.content_en || "",
-                card3_title_hi:
-                    findHomeContent("history_card3_title")?.content_hi || "",
-                card3_title_mr:
-                    findHomeContent("history_card3_title")?.content_mr || "",
-                card3_description_en:
-                    findHomeContent("history_card3_description")?.content_en ||
-                    "",
-                card3_description_hi:
-                    findHomeContent("history_card3_description")?.content_hi ||
-                    "",
-                card3_description_mr:
-                    findHomeContent("history_card3_description")?.content_mr ||
-                    "",
-            });
         } catch (error) {
             toast.error("Failed to load content");
         } finally {
@@ -675,36 +354,59 @@ const HistoryPageEditor = () => {
                             content_mr: timelineContent.title_mr,
                         },
                     );
+
                     await Promise.all(
-                        timelineContent.items.map((item) =>
-                            Promise.all([
-                                client.put(
-                                    `/admin/page-content/history/${item.key}_era`,
-                                    {
-                                        content_en: item.era_en,
-                                        content_hi: item.era_hi,
-                                        content_mr: item.era_mr,
-                                    },
-                                ),
-                                client.put(
-                                    `/admin/page-content/history/${item.key}_title`,
-                                    {
-                                        content_en: item.title_en,
-                                        content_hi: item.title_hi,
-                                        content_mr: item.title_mr,
-                                    },
-                                ),
-                                client.put(
-                                    `/admin/page-content/history/${item.key}_description`,
-                                    {
-                                        content_en: item.description_en,
-                                        content_hi: item.description_hi,
-                                        content_mr: item.description_mr,
-                                    },
-                                ),
-                            ]),
+                        removedTimelineIds.map((id) =>
+                            client.delete(`/admin/history-timeline/${id}`),
                         ),
                     );
+
+                    const savedTimeline = await Promise.all(
+                        timelineContent.items.map((item, index) => {
+                            const payload = {
+                                era_label_en: item.era_en,
+                                era_label_hi: item.era_hi || item.era_en,
+                                era_label_mr: item.era_mr || item.era_en,
+                                title_en: item.title_en,
+                                title_hi: item.title_hi || item.title_en,
+                                title_mr: item.title_mr || item.title_en,
+                                description_en: item.description_en,
+                                description_hi: item.description_hi,
+                                description_mr: item.description_mr,
+                                sort_order: index,
+                            };
+
+                            if (item.id) {
+                                return client.put(
+                                    `/admin/history-timeline/${item.id}`,
+                                    payload,
+                                );
+                            }
+                            return client.post(
+                                "/admin/history-timeline",
+                                payload,
+                            );
+                        }),
+                    );
+
+                    setTimelineContent({
+                        ...timelineContent,
+                        items: savedTimeline.map((response, index) => ({
+                            id: response.data.id,
+                            tempId: String(response.data.id),
+                            era_en: response.data.era_label_en || "",
+                            era_hi: response.data.era_label_hi || "",
+                            era_mr: response.data.era_label_mr || "",
+                            title_en: response.data.title_en || "",
+                            title_hi: response.data.title_hi || "",
+                            title_mr: response.data.title_mr || "",
+                            description_en: response.data.description_en || "",
+                            description_hi: response.data.description_hi || "",
+                            description_mr: response.data.description_mr || "",
+                            sort_order: response.data.sort_order ?? index,
+                        })),
+                    });
+                    setRemovedTimelineIds([]);
                     break;
                 case "traditions":
                     await client.put(
@@ -724,199 +426,51 @@ const HistoryPageEditor = () => {
                         },
                     );
                     await Promise.all(
-                        traditionsContent.items.map((item) =>
-                            Promise.all([
-                                client.put(
-                                    `/admin/page-content/history/${item.key}_title`,
-                                    {
-                                        content_en: item.title_en,
-                                        content_hi: item.title_hi,
-                                        content_mr: item.title_mr,
-                                    },
-                                ),
-                                client.put(
-                                    `/admin/page-content/history/${item.key}_description`,
-                                    {
-                                        content_en: item.description_en,
-                                        content_hi: item.description_hi,
-                                        content_mr: item.description_mr,
-                                    },
-                                ),
-                            ]),
+                        removedTraditionIds.map((id) =>
+                            client.delete(`/admin/sacred-traditions/${id}`),
                         ),
                     );
-                    break;
-                case "home-history":
-                    await Promise.all([
-                        client.put("/admin/page-content/home/history_title", {
-                            language: "en",
-                            content: homeHistoryContent.title_en,
+
+                    const savedTraditions = await Promise.all(
+                        traditionsContent.items.map((item, index) => {
+                            const payload = {
+                                title_en: item.title_en,
+                                title_hi: item.title_hi || item.title_en,
+                                title_mr: item.title_mr || item.title_en,
+                                description_en: item.description_en,
+                                description_hi: item.description_hi,
+                                description_mr: item.description_mr,
+                                sort_order: index,
+                            };
+
+                            if (item.id) {
+                                return client.put(
+                                    `/admin/sacred-traditions/${item.id}`,
+                                    payload,
+                                );
+                            }
+                            return client.post(
+                                "/admin/sacred-traditions",
+                                payload,
+                            );
                         }),
-                        client.put("/admin/page-content/home/history_title", {
-                            language: "hi",
-                            content: homeHistoryContent.title_hi,
-                        }),
-                        client.put("/admin/page-content/home/history_title", {
-                            language: "mr",
-                            content: homeHistoryContent.title_mr,
-                        }),
-                        client.put(
-                            "/admin/page-content/home/history_description",
-                            {
-                                language: "en",
-                                content: homeHistoryContent.description_en,
-                            },
-                        ),
-                        client.put(
-                            "/admin/page-content/home/history_description",
-                            {
-                                language: "hi",
-                                content: homeHistoryContent.description_hi,
-                            },
-                        ),
-                        client.put(
-                            "/admin/page-content/home/history_description",
-                            {
-                                language: "mr",
-                                content: homeHistoryContent.description_mr,
-                            },
-                        ),
-                        client.put(
-                            "/admin/page-content/home/history_card1_title",
-                            {
-                                language: "en",
-                                content: homeHistoryContent.card1_title_en,
-                            },
-                        ),
-                        client.put(
-                            "/admin/page-content/home/history_card1_title",
-                            {
-                                language: "hi",
-                                content: homeHistoryContent.card1_title_hi,
-                            },
-                        ),
-                        client.put(
-                            "/admin/page-content/home/history_card1_title",
-                            {
-                                language: "mr",
-                                content: homeHistoryContent.card1_title_mr,
-                            },
-                        ),
-                        client.put(
-                            "/admin/page-content/home/history_card1_description",
-                            {
-                                language: "en",
-                                content:
-                                    homeHistoryContent.card1_description_en,
-                            },
-                        ),
-                        client.put(
-                            "/admin/page-content/home/history_card1_description",
-                            {
-                                language: "hi",
-                                content:
-                                    homeHistoryContent.card1_description_hi,
-                            },
-                        ),
-                        client.put(
-                            "/admin/page-content/home/history_card1_description",
-                            {
-                                language: "mr",
-                                content:
-                                    homeHistoryContent.card1_description_mr,
-                            },
-                        ),
-                        client.put(
-                            "/admin/page-content/home/history_card2_title",
-                            {
-                                language: "en",
-                                content: homeHistoryContent.card2_title_en,
-                            },
-                        ),
-                        client.put(
-                            "/admin/page-content/home/history_card2_title",
-                            {
-                                language: "hi",
-                                content: homeHistoryContent.card2_title_hi,
-                            },
-                        ),
-                        client.put(
-                            "/admin/page-content/home/history_card2_title",
-                            {
-                                language: "mr",
-                                content: homeHistoryContent.card2_title_mr,
-                            },
-                        ),
-                        client.put(
-                            "/admin/page-content/home/history_card2_description",
-                            {
-                                language: "en",
-                                content:
-                                    homeHistoryContent.card2_description_en,
-                            },
-                        ),
-                        client.put(
-                            "/admin/page-content/home/history_card2_description",
-                            {
-                                language: "hi",
-                                content:
-                                    homeHistoryContent.card2_description_hi,
-                            },
-                        ),
-                        client.put(
-                            "/admin/page-content/home/history_card2_description",
-                            {
-                                language: "mr",
-                                content:
-                                    homeHistoryContent.card2_description_mr,
-                            },
-                        ),
-                        client.put(
-                            "/admin/page-content/home/history_card3_title",
-                            {
-                                language: "en",
-                                content: homeHistoryContent.card3_title_en,
-                            },
-                        ),
-                        client.put(
-                            "/admin/page-content/home/history_card3_title",
-                            {
-                                language: "hi",
-                                content: homeHistoryContent.card3_title_hi,
-                            },
-                        ),
-                        client.put(
-                            "/admin/page-content/home/history_card3_title",
-                            {
-                                language: "mr",
-                                content: homeHistoryContent.card3_title_mr,
-                            },
-                        ),
-                        client.put(
-                            "/admin/page-content/home/history_card3_description",
-                            {
-                                language: "en",
-                                content:
-                                    homeHistoryContent.card3_description_en,
-                            },
-                        ),
-                        client.put(
-                            "/admin/page-content/home/history_card3_description",
-                            {
-                                language: "hi",
-                                content:
-                                    homeHistoryContent.card3_description_hi,
-                            },
-                        ),
-                        client.put(
-                            "/admin/page-content/home/history_card3_description",
-                            {
-                                language: "mr",
-                                content:
-                                    homeHistoryContent.card3_description_mr,
-                            },
-                        ),
-                    ]);
+                    );
+
+                    setTraditionsContent({
+                        ...traditionsContent,
+                        items: savedTraditions.map((response, index) => ({
+                            id: response.data.id,
+                            tempId: String(response.data.id),
+                            title_en: response.data.title_en || "",
+                            title_hi: response.data.title_hi || "",
+                            title_mr: response.data.title_mr || "",
+                            description_en: response.data.description_en || "",
+                            description_hi: response.data.description_hi || "",
+                            description_mr: response.data.description_mr || "",
+                            sort_order: response.data.sort_order ?? index,
+                        })),
+                    });
+                    setRemovedTraditionIds([]);
                     break;
             }
             toast.success("Content saved successfully");
@@ -1008,17 +562,12 @@ const HistoryPageEditor = () => {
         {
             id: "timeline" as const,
             title: "Timeline",
-            description: "5 historical periods",
+            description: `${timelineContent.items.length} historical period${timelineContent.items.length === 1 ? "" : "s"}`,
         },
         {
             id: "traditions" as const,
-            title: "Sacred Traditions",
-            description: "4 tradition items",
-        },
-        {
-            id: "home-history" as const,
-            title: "Home Page History Section",
-            description: "Homepage history title, description, and 3 cards",
+            title: "Annual Events",
+            description: `${traditionsContent.items.length} tradition item${traditionsContent.items.length === 1 ? "" : "s"}`,
         },
     ];
 
@@ -1192,11 +741,73 @@ const HistoryPageEditor = () => {
                                     [`title_${lang}`]: value,
                                 }),
                         )}
+                        <div className="flex items-center justify-between border-t pt-6">
+                            <h3 className="font-semibold text-foreground">
+                                Timeline Items
+                            </h3>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                    setTimelineContent({
+                                        ...timelineContent,
+                                        items: [
+                                            {
+                                                tempId: `new-${Date.now()}`,
+                                                era_en: "",
+                                                era_hi: "",
+                                                era_mr: "",
+                                                title_en: "",
+                                                title_hi: "",
+                                                title_mr: "",
+                                                description_en: "",
+                                                description_hi: "",
+                                                description_mr: "",
+                                                sort_order:
+                                                    timelineContent.items.length,
+                                            },
+                                            ...timelineContent.items,
+                                        ],
+                                    })
+                                }
+                            >
+                                + Add Timeline Item
+                            </Button>
+                        </div>
                         {timelineContent.items.map((item, idx) => (
-                            <div key={item.key} className="border-t pt-6">
-                                <h3 className="font-semibold mb-4 capitalize">
-                                    {item.key} Era
-                                </h3>
+                            <div
+                                key={item.tempId}
+                                className="border rounded-lg p-4 bg-muted/30 space-y-4"
+                            >
+                                <div className="flex items-center justify-between">
+                                    <h4 className="font-semibold text-foreground">
+                                        Item{" "}
+                                        {timelineContent.items.length - idx}
+                                    </h4>
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="sm"
+                                        onClick={() => {
+                                            if (item.id) {
+                                                setRemovedTimelineIds([
+                                                    ...removedTimelineIds,
+                                                    item.id,
+                                                ]);
+                                            }
+                                            setTimelineContent({
+                                                ...timelineContent,
+                                                items: timelineContent.items.filter(
+                                                    (i) =>
+                                                        i.tempId !== item.tempId,
+                                                ),
+                                            });
+                                        }}
+                                    >
+                                        Remove
+                                    </Button>
+                                </div>
                                 {renderLanguageTabs(
                                     `Era Label`,
                                     item.era_en,
@@ -1257,6 +868,11 @@ const HistoryPageEditor = () => {
                                 )}
                             </div>
                         ))}
+                        {timelineContent.items.length === 0 && (
+                            <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                                No timeline items yet. Click "Add Timeline Item" to add one.
+                            </div>
+                        )}
                         <Button
                             onClick={() => saveSection("timeline")}
                             disabled={saving}
@@ -1272,7 +888,7 @@ const HistoryPageEditor = () => {
             {activeSection === "traditions" && (
                 <Card>
                     <CardHeader>
-                        <CardTitle>Traditions Section</CardTitle>
+                        <CardTitle>Annual Events Section</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         {renderLanguageTabs(
@@ -1298,11 +914,72 @@ const HistoryPageEditor = () => {
                                 }),
                             true,
                         )}
+                        <div className="flex items-center justify-between border-t pt-6">
+                            <h3 className="font-semibold text-foreground">
+                                Tradition Items
+                            </h3>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                    setTraditionsContent({
+                                        ...traditionsContent,
+                                        items: [
+                                            {
+                                                tempId: `new-${Date.now()}`,
+                                                title_en: "",
+                                                title_hi: "",
+                                                title_mr: "",
+                                                description_en: "",
+                                                description_hi: "",
+                                                description_mr: "",
+                                                sort_order:
+                                                    traditionsContent.items
+                                                        .length,
+                                            },
+                                            ...traditionsContent.items,
+                                        ],
+                                    })
+                                }
+                            >
+                                + Add Tradition
+                            </Button>
+                        </div>
                         {traditionsContent.items.map((item, idx) => (
-                            <div key={item.key} className="border-t pt-6">
-                                <h3 className="font-semibold mb-4 capitalize">
-                                    {item.key}
-                                </h3>
+                            <div
+                                key={item.tempId}
+                                className="border rounded-lg p-4 bg-muted/30 space-y-4"
+                            >
+                                <div className="flex items-center justify-between">
+                                    <h4 className="font-semibold text-foreground">
+                                        Item{" "}
+                                        {traditionsContent.items.length - idx}
+                                    </h4>
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="sm"
+                                        onClick={() => {
+                                            if (item.id) {
+                                                setRemovedTraditionIds([
+                                                    ...removedTraditionIds,
+                                                    item.id,
+                                                ]);
+                                            }
+                                            setTraditionsContent({
+                                                ...traditionsContent,
+                                                items: traditionsContent.items.filter(
+                                                    (i) =>
+                                                        i.tempId !==
+                                                        item.tempId,
+                                                ),
+                                            });
+                                        }}
+                                    >
+                                        Remove
+                                    </Button>
+                                </div>
                                 {renderLanguageTabs(
                                     `Title`,
                                     item.title_en,
@@ -1344,102 +1021,17 @@ const HistoryPageEditor = () => {
                                 )}
                             </div>
                         ))}
+                        {traditionsContent.items.length === 0 && (
+                            <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                                No traditions yet. Click "Add Tradition" to add one.
+                            </div>
+                        )}
                         <Button
                             onClick={() => saveSection("traditions")}
                             disabled={saving}
                             className="w-full"
                         >
-                            {saving ? "Saving..." : "Save Traditions Section"}
-                        </Button>
-                    </CardContent>
-                </Card>
-            )}
-            {activeSection === "home-history" && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Home Page History Section</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        {renderLanguageTabs(
-                            "Section Title",
-                            homeHistoryContent.title_en,
-                            homeHistoryContent.title_hi,
-                            homeHistoryContent.title_mr,
-                            (lang, value) =>
-                                setHomeHistoryContent({
-                                    ...homeHistoryContent,
-                                    [`title_${lang}`]: value,
-                                }),
-                        )}
-                        {renderLanguageTabs(
-                            "Section Description",
-                            homeHistoryContent.description_en,
-                            homeHistoryContent.description_hi,
-                            homeHistoryContent.description_mr,
-                            (lang, value) =>
-                                setHomeHistoryContent({
-                                    ...homeHistoryContent,
-                                    [`description_${lang}`]: value,
-                                }),
-                            true,
-                        )}
-
-                        {["1", "2", "3"].map((cardNo) => (
-                            <div
-                                key={cardNo}
-                                className="border rounded-lg p-4 bg-muted/30"
-                            >
-                                <h3 className="font-semibold mb-4">
-                                    Card {cardNo}
-                                </h3>
-                                {renderLanguageTabs(
-                                    `Card ${cardNo} Title`,
-                                    homeHistoryContent[
-                                        `card${cardNo}_title_en` as keyof HomeHistoryContent
-                                    ] as string,
-                                    homeHistoryContent[
-                                        `card${cardNo}_title_hi` as keyof HomeHistoryContent
-                                    ] as string,
-                                    homeHistoryContent[
-                                        `card${cardNo}_title_mr` as keyof HomeHistoryContent
-                                    ] as string,
-                                    (lang, value) =>
-                                        setHomeHistoryContent({
-                                            ...homeHistoryContent,
-                                            [`card${cardNo}_title_${lang}`]:
-                                                value,
-                                        }),
-                                )}
-                                {renderLanguageTabs(
-                                    `Card ${cardNo} Description`,
-                                    homeHistoryContent[
-                                        `card${cardNo}_description_en` as keyof HomeHistoryContent
-                                    ] as string,
-                                    homeHistoryContent[
-                                        `card${cardNo}_description_hi` as keyof HomeHistoryContent
-                                    ] as string,
-                                    homeHistoryContent[
-                                        `card${cardNo}_description_mr` as keyof HomeHistoryContent
-                                    ] as string,
-                                    (lang, value) =>
-                                        setHomeHistoryContent({
-                                            ...homeHistoryContent,
-                                            [`card${cardNo}_description_${lang}`]:
-                                                value,
-                                        }),
-                                    true,
-                                )}
-                            </div>
-                        ))}
-
-                        <Button
-                            onClick={() => saveSection("home-history")}
-                            disabled={saving}
-                            className="w-full"
-                        >
-                            {saving
-                                ? "Saving..."
-                                : "Save Home Page History Section"}
+                            {saving ? "Saving..." : "Save Annual Events Section"}
                         </Button>
                     </CardContent>
                 </Card>

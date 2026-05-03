@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { toast } from "sonner";
@@ -106,7 +107,7 @@ const parseStoredKeys = (
 const PoojaAndDonationPageEditor = () => {
     const { setLoading: setGlobalLoading } = useLoader();
     const [activeSection, setActiveSection] = useState<
-        "hero" | "services" | "schedule" | "donation"
+        "hero" | "services" | "schedule" | "donation" | "donation_details"
     >("hero");
     const [heroContent, setHeroContent] = useState<HeroContent>({
         title_en: "",
@@ -157,16 +158,6 @@ const PoojaAndDonationPageEditor = () => {
             id: "services" as const,
             title: "Services",
             description: "Pooja services with details and pricing",
-        },
-        {
-            id: "schedule" as const,
-            title: "Schedule",
-            description: "Daily temple schedule and timings",
-        },
-        {
-            id: "donation" as const,
-            title: "Donations",
-            description: "Donation categories and amounts",
         },
     ];
 
@@ -283,6 +274,7 @@ const PoojaAndDonationPageEditor = () => {
 
             setDonationItems(donations);
             setPersistedDonationKeys(donationKeys);
+
         } catch (error) {
             toast.error("Failed to load content");
         } finally {
@@ -1390,6 +1382,7 @@ const PoojaAndDonationPageEditor = () => {
                     </CardContent>
                 </Card>
             )}
+
         </div>
     );
 };

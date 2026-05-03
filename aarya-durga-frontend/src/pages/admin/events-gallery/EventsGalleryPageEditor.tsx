@@ -16,8 +16,9 @@ import { toast } from "sonner";
 import client from "@/api/client";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { useLoader } from "@/contexts/LoaderContext";
-import { Pencil, Trash2, Plus } from "lucide-react";
+import { Pencil, Trash2, Plus, X, Upload } from "lucide-react";
 import { constructImageUrl } from "@/api/imageUrl";
+import media from "@/api/media";
 
 interface HeroContent {
     title_en: string;
@@ -32,6 +33,7 @@ interface EventGalleryImageForm {
     clientKey: string;
     image_id?: number;
     existingImageUrl?: string;
+    mime_type?: string;
 }
 
 interface TempleEventForm {
@@ -158,9 +160,9 @@ const convertTo12Hour = (time24: string): string => {
 
 const EventsGalleryPageEditor = () => {
     const { setLoading: setGlobalLoading } = useLoader();
-    const [activeSection, setActiveSection] = useState<
-        "hero" | "events" | "gallery"
-    >("hero");
+    const [activeSection, setActiveSection] = useState<"hero" | "events">(
+        "hero",
+    );
 
     const [heroContent, setHeroContent] = useState<HeroContent>({
         title_en: "",
@@ -175,24 +177,51 @@ const EventsGalleryPageEditor = () => {
         events: [],
     });
 
-    const [galleryContent, setGalleryContent] = useState<GalleryContent>({
-        title_en: "",
-        title_mr: "",
-        subtitle_en: "",
-        subtitle_mr: "",
-        images: [],
-    });
-
     const [persistedEventIds, setPersistedEventIds] = useState<number[]>([]);
-    const [persistedGalleryKeys, setPersistedGalleryKeys] = useState<string[]>(
-        [],
-    );
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [isEventModalOpen, setIsEventModalOpen] = useState(false);
     const [editingEvent, setEditingEvent] = useState<TempleEventForm | null>(
         null,
     );
+    const [galleryUploading, setGalleryUploading] = useState(false);
+    const [galleryDragging, setGalleryDragging] = useState(false);
+
+    const handleGalleryFilesUpload = async (files: FileList | File[]) => {
+        const fileArr = Array.from(files);
+        if (fileArr.length === 0) return;
+        setGalleryUploading(true);
+        try {
+            const uploaded = await Promise.all(
+                fileArr.map(async (file) => {
+                    const result: any = await media.upload(file, "event-1");
+                    return {
+                        clientKey: `gallery-${result.id}-${Date.now()}-${Math.random()}`,
+                        image_id: result.id as number,
+                        existingImageUrl: result.file_url
+                            ? constructImageUrl(result.file_url)
+                            : undefined,
+                        mime_type: result.mime_type as string | undefined,
+                    } as EventGalleryImageForm;
+                }),
+            );
+            setEditingEvent((currentEvent) =>
+                currentEvent
+                    ? {
+                          ...currentEvent,
+                          galleryImages: [
+                              ...currentEvent.galleryImages,
+                              ...uploaded,
+                          ],
+                      }
+                    : currentEvent,
+            );
+        } catch (error) {
+            toast.error("Failed to upload one or more files");
+        } finally {
+            setGalleryUploading(false);
+        }
+    };
 
     const sections = [
         {
@@ -204,11 +233,6 @@ const EventsGalleryPageEditor = () => {
             key: "events",
             label: "Temple Events",
             description: "Manage event cards, full details, and galleries",
-        },
-        {
-            key: "gallery",
-            label: "Gallery Images",
-            description: "Gallery title, subtitle & dynamic images",
         },
     ] as const;
 
@@ -286,33 +310,11 @@ const EventsGalleryPageEditor = () => {
                             : image.media?.url
                               ? constructImageUrl(image.media.url)
                               : undefined,
+                        mime_type: image.media?.mime_type,
                     })),
                 })),
             });
             setPersistedEventIds(eventData.map((event: any) => event.id));
-
-            const orderedGalleryKeys = getOrderedNumericKeys(
-                findContent("gallery_keys")?.content_en,
-                "gallery",
-                data,
-            );
-            setGalleryContent({
-                title_en: findContent("gallery_title")?.content_en || "",
-                title_mr: findContent("gallery_title")?.content_mr || "",
-                subtitle_en: findContent("gallery_subtitle")?.content_en || "",
-                subtitle_mr: findContent("gallery_subtitle")?.content_mr || "",
-                images: orderedGalleryKeys.map((galleryKey) => {
-                    const imageItem = findContent(`${galleryKey}_image`);
-                    return {
-                        key: galleryKey,
-                        image_id: imageItem?.image_id,
-                        existingImageUrl: imageItem?.image?.file_url
-                            ? constructImageUrl(imageItem.image.file_url)
-                            : undefined,
-                    };
-                }),
-            });
-            setPersistedGalleryKeys(orderedGalleryKeys);
         } catch (error) {
             toast.error("Failed to load content");
         } finally {
@@ -581,103 +583,6 @@ const EventsGalleryPageEditor = () => {
         }
     };
 
-    const addGalleryImage = () => {
-        const nextIndex =
-            galleryContent.images.length > 0
-                ? Math.max(
-                      ...galleryContent.images.map((image) => {
-                          const match = image.key.match(/^gallery_(\d+)$/);
-                          return match ? parseInt(match[1], 10) : 0;
-                      }),
-                  ) + 1
-                : 1;
-        setGalleryContent((prev) => ({
-            ...prev,
-            images: [
-                { key: `gallery_${nextIndex}`, image_id: undefined },
-                ...prev.images,
-            ],
-        }));
-    };
-
-    const removeGalleryImage = (key: string) => {
-        setGalleryContent((prev) => ({
-            ...prev,
-            images: prev.images.filter((image) => image.key !== key),
-        }));
-    };
-
-    const saveGallerySection = async () => {
-        setSaving(true);
-        try {
-            const updates: Array<{
-                endpoint: string;
-                data: Record<string, string | number>;
-            }> = [
-                {
-                    endpoint: "gallery_keys",
-                    data: {
-                        content_en: JSON.stringify(
-                            galleryContent.images.map((image) => image.key),
-                        ),
-                    },
-                },
-                {
-                    endpoint: "gallery_title",
-                    data: {
-                        content_en: galleryContent.title_en,
-                        content_hi: galleryContent.title_en,
-                        content_mr: galleryContent.title_mr,
-                    },
-                },
-                {
-                    endpoint: "gallery_subtitle",
-                    data: {
-                        content_en: galleryContent.subtitle_en,
-                        content_hi: galleryContent.subtitle_en,
-                        content_mr: galleryContent.subtitle_mr,
-                    },
-                },
-            ];
-
-            galleryContent.images.forEach((image) => {
-                if (image.image_id) {
-                    updates.push({
-                        endpoint: `${image.key}_image`,
-                        data: { image_id: image.image_id },
-                    });
-                }
-            });
-
-            const removedGalleryKeys = persistedGalleryKeys.filter(
-                (key) => !galleryContent.images.some((image) => image.key === key),
-            );
-
-            await Promise.all([
-                ...removedGalleryKeys.map((galleryKey) =>
-                    client.delete(
-                        `/admin/page-content/events_gallery/${galleryKey}_image`,
-                    ),
-                ),
-                ...updates.map((update) =>
-                    client.put(
-                        `/admin/page-content/events_gallery/${update.endpoint}`,
-                        update.data,
-                    ),
-                ),
-            ]);
-
-            setPersistedGalleryKeys(
-                galleryContent.images.map((image) => image.key),
-            );
-            toast.success("Gallery section saved successfully");
-        } catch (error) {
-            toast.error("Failed to save gallery section");
-        } finally {
-            setSaving(false);
-        }
-    };
-
     const renderLanguageTabs = (
         label: string,
         en: string,
@@ -734,15 +639,14 @@ const EventsGalleryPageEditor = () => {
         <div className="max-w-6xl space-y-6">
             <div>
                 <h1 className="font-heading text-3xl font-bold text-foreground">
-                    Events & Gallery Page Editor
+                    Events Page Editor
                 </h1>
                 <p className="mt-1 text-muted-foreground">
-                    Manage the Events page hero, detailed events, and gallery
-                    images
+                    Manage the Events page hero and detailed events
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {sections.map((section) => (
                     <Card
                         key={section.key}
@@ -1149,113 +1053,143 @@ const EventsGalleryPageEditor = () => {
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <h3 className="font-semibold text-foreground">
-                                        Event Detail Gallery Images
+                                        Event Detail Gallery Media
                                     </h3>
-                                    <Button
-                                        onClick={() =>
-                                            setEditingEvent((currentEvent) =>
-                                                currentEvent
-                                                    ? {
-                                                          ...currentEvent,
-                                                          galleryImages: [
-                                                              {
-                                                                  clientKey: `modal-gallery-${Date.now()}`,
-                                                                  image_id:
-                                                                      undefined,
-                                                                  existingImageUrl:
-                                                                      undefined,
-                                                              },
-                                                              ...currentEvent.galleryImages,
-                                                          ],
-                                                      }
-                                                    : currentEvent,
-                                            )
-                                        }
-                                        variant="outline"
-                                        size="sm"
-                                        className="gap-2"
-                                    >
-                                        <Plus size={16} /> Add Image
-                                    </Button>
+                                    <p className="text-xs text-muted-foreground">
+                                        Images & videos · drop multiple files
+                                    </p>
                                 </div>
 
-                                {editingEvent.galleryImages.length === 0 && (
-                                    <p className="text-sm text-muted-foreground">
-                                        Add one or more extra images for the
-                                        event details page.
-                                    </p>
-                                )}
-
-                                {editingEvent.galleryImages.map(
-                                    (galleryImage, galleryIndex) => (
-                                        <div
-                                            key={galleryImage.clientKey}
-                                            className="space-y-3 rounded-lg border bg-background p-4"
-                                        >
-                                            <div className="flex items-center justify-between">
-                                                <p className="text-sm font-medium text-foreground">
-                                                    Detail Image{" "}
-                                                    {galleryIndex + 1}
-                                                </p>
-                                                <Button
-                                                    onClick={() =>
-                                                        setEditingEvent(
-                                                            (
-                                                                currentEvent,
-                                                            ) =>
-                                                                currentEvent
-                                                                    ? {
-                                                                          ...currentEvent,
-                                                                          galleryImages:
-                                                                              currentEvent.galleryImages.filter(
-                                                                                  (
-                                                                                      image,
-                                                                                  ) =>
-                                                                                      image.clientKey !==
-                                                                                      galleryImage.clientKey,
-                                                                              ),
-                                                                      }
-                                                                    : currentEvent,
-                                                        )
-                                                    }
-                                                    variant="destructive"
-                                                    size="sm"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </Button>
-                                            </div>
-                                            <ImageUpload
-                                                onUpload={(mediaId: number) =>
-                                                    setEditingEvent(
-                                                        (currentEvent) =>
-                                                            currentEvent
-                                                                ? {
-                                                                      ...currentEvent,
-                                                                      galleryImages:
-                                                                          currentEvent.galleryImages.map(
-                                                                              (
-                                                                                  image,
-                                                                              ) =>
-                                                                                  image.clientKey ===
-                                                                                  galleryImage.clientKey
-                                                                                      ? {
-                                                                                            ...image,
-                                                                                            image_id:
-                                                                                                mediaId,
-                                                                                        }
-                                                                                      : image,
-                                                                          ),
-                                                                  }
-                                                                : currentEvent,
-                                                    )
+                                <div
+                                    onDragOver={(e) => {
+                                        e.preventDefault();
+                                        setGalleryDragging(true);
+                                    }}
+                                    onDragLeave={() => setGalleryDragging(false)}
+                                    onDrop={(e) => {
+                                        e.preventDefault();
+                                        setGalleryDragging(false);
+                                        if (e.dataTransfer.files?.length) {
+                                            handleGalleryFilesUpload(
+                                                e.dataTransfer.files,
+                                            );
+                                        }
+                                    }}
+                                    className={`relative border-2 border-dashed rounded-lg p-6 transition-colors ${
+                                        galleryDragging
+                                            ? "border-primary bg-primary/5"
+                                            : "border-border hover:border-primary/50"
+                                    }`}
+                                >
+                                    <div className="text-center">
+                                        <Upload className="mx-auto h-10 w-10 text-muted-foreground mb-2" />
+                                        <p className="text-sm font-medium">
+                                            Drag & drop images or videos here
+                                        </p>
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            or click to browse · select multiple
+                                        </p>
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            Images: JPG, PNG, GIF · Videos: MP4,
+                                            WEBM, MOV · Max 100 MB each
+                                        </p>
+                                        <input
+                                            type="file"
+                                            accept="image/*,video/*"
+                                            multiple
+                                            onChange={(e) => {
+                                                if (e.target.files?.length) {
+                                                    handleGalleryFilesUpload(
+                                                        e.target.files,
+                                                    );
+                                                    e.target.value = "";
                                                 }
-                                                existingImageUrl={
-                                                    galleryImage.existingImageUrl
-                                                }
-                                                section="event-1"
-                                            />
+                                            }}
+                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                        />
+                                    </div>
+                                    {galleryUploading && (
+                                        <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
+                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
                                         </div>
-                                    ),
+                                    )}
+                                </div>
+
+                                {editingEvent.galleryImages.length === 0 ? (
+                                    <p className="text-sm text-muted-foreground">
+                                        No media added yet.
+                                    </p>
+                                ) : (
+                                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+                                        {editingEvent.galleryImages.map(
+                                            (galleryImage) => {
+                                                const isVideo =
+                                                    galleryImage.mime_type?.startsWith(
+                                                        "video/",
+                                                    ) ||
+                                                    /\.(mp4|webm|mov|ogg|avi|mkv)(\?|$)/i.test(
+                                                        galleryImage.existingImageUrl ||
+                                                            "",
+                                                    );
+                                                return (
+                                                    <div
+                                                        key={galleryImage.clientKey}
+                                                        className="relative group aspect-square rounded-lg overflow-hidden border bg-muted"
+                                                    >
+                                                        {galleryImage.existingImageUrl ? (
+                                                            isVideo ? (
+                                                                <video
+                                                                    src={
+                                                                        galleryImage.existingImageUrl
+                                                                    }
+                                                                    className="w-full h-full object-cover"
+                                                                    muted
+                                                                    playsInline
+                                                                />
+                                                            ) : (
+                                                                <img
+                                                                    src={
+                                                                        galleryImage.existingImageUrl
+                                                                    }
+                                                                    alt=""
+                                                                    className="w-full h-full object-cover"
+                                                                />
+                                                            )
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">
+                                                                No preview
+                                                            </div>
+                                                        )}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                setEditingEvent(
+                                                                    (currentEvent) =>
+                                                                        currentEvent
+                                                                            ? {
+                                                                                  ...currentEvent,
+                                                                                  galleryImages:
+                                                                                      currentEvent.galleryImages.filter(
+                                                                                          (
+                                                                                              image,
+                                                                                          ) =>
+                                                                                              image.clientKey !==
+                                                                                              galleryImage.clientKey,
+                                                                                      ),
+                                                                              }
+                                                                            : currentEvent,
+                                                                )
+                                                            }
+                                                            className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-md"
+                                                            title="Remove"
+                                                        >
+                                                            <X size={14} />
+                                                        </button>
+                                                    </div>
+                                                );
+                                            },
+                                        )}
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -1270,99 +1204,6 @@ const EventsGalleryPageEditor = () => {
                 </DialogContent>
             </Dialog>
 
-            {activeSection === "gallery" && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Gallery Images Section</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        {renderLanguageTabs(
-                            "Section Title",
-                            galleryContent.title_en,
-                            galleryContent.title_mr,
-                            (lang, value) =>
-                                setGalleryContent((prev) => ({
-                                    ...prev,
-                                    [`title_${lang}`]: value,
-                                })),
-                        )}
-
-                        {renderLanguageTabs(
-                            "Section Subtitle",
-                            galleryContent.subtitle_en,
-                            galleryContent.subtitle_mr,
-                            (lang, value) =>
-                                setGalleryContent((prev) => ({
-                                    ...prev,
-                                    [`subtitle_${lang}`]: value,
-                                })),
-                            true,
-                        )}
-
-                        <div className="mt-8 flex items-center justify-between">
-                            <h3 className="text-lg font-semibold text-foreground">
-                                Gallery Images
-                            </h3>
-                            <Button
-                                onClick={addGalleryImage}
-                                variant="outline"
-                                size="sm"
-                                className="gap-2"
-                            >
-                                <Plus size={16} /> Add Image
-                            </Button>
-                        </div>
-
-                        {galleryContent.images.map((image, index) => (
-                            <div
-                                key={image.key}
-                                className="space-y-4 rounded-lg border bg-muted/30 p-6"
-                            >
-                                <div className="flex items-start justify-between">
-                                    <h4 className="font-semibold text-foreground">
-                                        Gallery Image {index + 1}
-                                    </h4>
-                                    <Button
-                                        onClick={() =>
-                                            removeGalleryImage(image.key)
-                                        }
-                                        variant="destructive"
-                                        size="sm"
-                                    >
-                                        <Trash2 size={16} />
-                                    </Button>
-                                </div>
-
-                                <ImageUpload
-                                    onUpload={(mediaId: number) =>
-                                        setGalleryContent((prev) => ({
-                                            ...prev,
-                                            images: prev.images.map((item) =>
-                                                item.key === image.key
-                                                    ? {
-                                                          ...item,
-                                                          image_id: mediaId,
-                                                      }
-                                                    : item,
-                                            ),
-                                        }))
-                                    }
-                                    existingImageUrl={image.existingImageUrl}
-                                    section={`gallery-${index + 1}`}
-                                />
-                            </div>
-                        ))}
-
-                        <Button
-                            onClick={saveGallerySection}
-                            disabled={saving}
-                            className="w-full"
-                        >
-                            {saving ? "Saving..." : "Save Gallery Section"}
-                        </Button>
-                    </CardContent>
-                </Card>
-            )}
         </div>
     );
 };

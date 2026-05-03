@@ -5,6 +5,13 @@ export interface ApiMedia {
     id: number;
     file_url?: string;
     url?: string;
+    mime_type?: string;
+}
+
+export interface EventGalleryItem {
+    url: string;
+    isVideo: boolean;
+    mime_type?: string;
 }
 
 export interface ApiEventImage {
@@ -83,6 +90,26 @@ export const getEventGalleryUrls = (event: ApiEvent) => {
             return path ? constructImageUrl(path) : "";
         })
         .filter(Boolean);
+};
+
+export const getEventGalleryItems = (event: ApiEvent): EventGalleryItem[] => {
+    const items = event.galleryImages || event.gallery_images || [];
+    return items
+        .map((image) => {
+            const path = image.media?.file_url || image.media?.url;
+            if (!path) return null;
+            const mime = image.media?.mime_type;
+            const isVideo =
+                mime?.startsWith("video/") === true ||
+                /\.(mp4|webm|mov|ogg|avi|mkv)(\?|$)/i.test(path);
+            const item: EventGalleryItem = {
+                url: constructImageUrl(path),
+                isVideo,
+                mime_type: mime,
+            };
+            return item;
+        })
+        .filter((item): item is EventGalleryItem => item !== null);
 };
 
 export const fetchPublicEvents = async () => {
