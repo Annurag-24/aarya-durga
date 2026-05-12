@@ -9,6 +9,7 @@ import {
   Flame,
   Images,
   Building2,
+  Camera,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -22,6 +23,7 @@ import { useAdminAuth } from '@/hooks/admin/useAdminAuth';
 
 const menuItems = [
   { label: 'Home Page', icon: Home, href: '/admin/home' },
+  { label: 'Daily Image', icon: Camera, href: '/admin/daily-image' },
   { label: 'Management', icon: Info, href: '/admin/about' },
   { label: 'History', icon: BookOpen, href: '/admin/history-editor' },
   { label: 'Pooja', icon: Flame, href: '/admin/pooja-donation-editor' },

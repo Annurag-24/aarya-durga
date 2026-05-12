@@ -47,6 +47,7 @@ import EventsGalleryPageEditor from "./pages/admin/events-gallery/EventsGalleryP
 import GalleryPageEditor from "./pages/admin/gallery/GalleryPageEditor";
 import FacilitiesPageEditor from "./pages/admin/facilities/FacilitiesPageEditor";
 import ContactPageEditor from "./pages/admin/contact/ContactPageEditor";
+import DailyImageEditor from "./pages/admin/daily-image/DailyImageEditor";
 
 const queryClient = new QueryClient();
 
@@ -103,6 +104,7 @@ const App = () => (
                         <Route path="events-gallery-editor" element={<EventsGalleryPageEditor />} />
                         <Route path="gallery-editor" element={<GalleryPageEditor />} />
                         <Route path="facilities-editor" element={<FacilitiesPageEditor />} />
+                        <Route path="daily-image" element={<DailyImageEditor />} />
                         <Route path="contact" element={<ContactPageEditor />} />
 
                         {/* Settings */}
