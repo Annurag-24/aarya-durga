@@ -128,7 +128,7 @@ const History = () => {
                               ? item.description_hi || item.description_en || ""
                               : item.description_en || "",
                 }));
-                setTimelineItems(items);
+                setTimelineItems(items.slice().reverse());
             } catch {
                 setTimelineItems([]);
             }

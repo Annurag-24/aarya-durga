@@ -56,7 +56,7 @@ const DailyImageEditor = () => {
     };
 
     return (
-        <div className="max-w-xl space-y-6">
+        <div className="w-full space-y-6">
             <div>
                 <h1 className="text-2xl font-heading font-bold text-foreground">Daily Image</h1>
                 <p className="text-sm text-muted-foreground mt-1">

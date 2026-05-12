@@ -61,7 +61,7 @@ const Gallery = () => {
                 setHeroTitle(getContent("hero_title"));
                 setHeroSubtitle(getContent("hero_subtitle"));
                 setHeroImage(getImg("hero_image"));
-                setAlbums(albumData);
+                setAlbums(albumData.slice().reverse());
             } catch (error) {
                 console.error("Failed to load gallery", error);
             } finally {

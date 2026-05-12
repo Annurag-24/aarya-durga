@@ -17,7 +17,7 @@ class FacilitiesSeeder extends Seeder
                 'filename' => 'facility-parking.jpg',
                 'title_en' => 'Devotee Parking',
                 'title_mr' => 'भक्त वाहनतळ',
-                'description_en' => '<p>Spacious and secure parking is available for all devotees and visitors arriving by car, two-wheeler or bus. The parking area is conveniently located close to the main temple entrance, with separate sections for two-wheelers and four-wheelers.</p><p>Volunteers are present during peak hours and festival days to guide vehicles, ensure orderly arrangement, and assist senior citizens and differently-abled devotees in reaching the temple comfortably.</p>',
+                'description_en' => '<p>Spacious and secure parking is available for all devotees and visitors arriving by car.</p>',
                 'description_mr' => '<p>कार, दुचाकी किंवा बसने येणाऱ्या सर्व भक्तांसाठी आणि अभ्यागतांसाठी प्रशस्त आणि सुरक्षित वाहनतळ उपलब्ध आहे. मुख्य मंदिर प्रवेशद्वाराजवळ सोयीस्करपणे स्थित असलेल्या या वाहनतळामध्ये दुचाकी आणि चारचाकी वाहनांसाठी स्वतंत्र विभाग आहेत.</p><p>गर्दीच्या वेळी आणि उत्सवाच्या दिवशी वाहनांना मार्गदर्शन करण्यासाठी, सुव्यवस्थित मांडणी सुनिश्चित करण्यासाठी आणि ज्येष्ठ नागरिक व दिव्यांग भक्तांना मंदिरापर्यंत आरामात पोहोचण्यास मदत करण्यासाठी स्वयंसेवक उपस्थित असतात.</p>',
             ],
             [

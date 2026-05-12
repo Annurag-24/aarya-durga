@@ -222,7 +222,7 @@ const PoojaDonation = () => {
                 })
                 .filter((s) => s.title);
 
-            setPoojas(services);
+            setPoojas(services.slice().reverse());
 
             // Process donations
             const sortedDonationNumbers = Array.from(donationNumbers).sort(
@@ -336,7 +336,7 @@ const PoojaDonation = () => {
                                         className="mb-4 flex-1 text-sm text-muted-foreground prose-p:text-muted-foreground prose-strong:text-foreground prose-em:text-muted-foreground"
                                     />
                                     <div className="flex items-center justify-between">
-                                        <span className="font-serif text-3xl font-extrabold tracking-tight text-primary">
+                                        <span className="font-body text-3xl font-bold text-primary">
                                             {(() => {
                                                 const raw = (pooja.price ?? "").toString().trim();
                                                 if (!raw) return raw;

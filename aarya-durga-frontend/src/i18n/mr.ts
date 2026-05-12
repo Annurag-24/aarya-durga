@@ -5,7 +5,7 @@ export const mr: Translations = {
     home: "मुख्यपृष्ठ",
     about: "व्यवस्थापन",
     history: "देवी इतिहास",
-    poojaDonation: "पूजा",
+    poojaDonation: "पूजा & देणगी",
     eventsGallery: "कार्यक्रम",
     gallery: "गॅलरी",
     contact: "संपर्क",

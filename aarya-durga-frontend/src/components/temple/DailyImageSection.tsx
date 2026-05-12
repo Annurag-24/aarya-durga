@@ -33,31 +33,29 @@ const DailyImageSection = () => {
             : data.caption_en;
 
     return (
-        <section className="py-12 bg-accent">
-            <div className="container mx-auto px-4 flex justify-center">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5 }}
-                    className="w-full max-w-lg overflow-hidden rounded-2xl shadow-xl bg-card"
-                >
-                    <img
-                        src={imageUrl}
-                        alt="Daily blessing"
-                        className="w-full h-72 object-cover"
-                    />
-                    {caption && (
-                        <div className="px-6 py-5 text-center">
-                            <div className="gold-line mx-auto mb-3" />
-                            <p className="font-body text-sm italic text-muted-foreground leading-relaxed">
-                                {caption}
-                            </p>
-                        </div>
-                    )}
-                </motion.div>
+        <motion.section
+            className="bg-accent pt-12"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+        >
+            <div className="container mx-auto px-4">
+                <img
+                    src={imageUrl}
+                    alt="Daily blessing"
+                    className="w-full max-h-[480px] object-cover rounded-2xl"
+                />
             </div>
-        </section>
+            {caption && (
+                <div className="py-5 text-center">
+                    <div className="gold-line mx-auto mb-3" />
+                    <p className="font-body text-sm italic text-muted-foreground leading-relaxed">
+                        {caption}
+                    </p>
+                </div>
+            )}
+        </motion.section>
     );
 };
 

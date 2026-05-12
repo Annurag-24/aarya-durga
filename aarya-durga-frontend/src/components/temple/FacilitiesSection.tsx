@@ -80,6 +80,7 @@ const FacilitiesSection = () => {
                             return (
                                 <motion.div
                                     key={facility.id}
+                                    className="h-full"
                                     initial={{ opacity: 0, y: 24 }}
                                     whileInView={{ opacity: 1, y: 0 }}
                                     viewport={{ once: true }}
@@ -117,7 +118,7 @@ const FacilitiesSection = () => {
                                             </>
                                         );
                                         const cardClass =
-                                            "group block overflow-hidden rounded-[1.5rem] border border-border bg-accent text-left shadow-sm";
+                                            "group flex flex-col h-full overflow-hidden rounded-[1.5rem] border border-border bg-accent text-left shadow-sm";
                                         if (facility.has_details_page) {
                                             return (
                                                 <Link

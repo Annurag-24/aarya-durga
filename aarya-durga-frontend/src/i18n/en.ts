@@ -5,7 +5,7 @@ export const en: Translations = {
         home: "Home",
         about: "Management",
         history: "Devi History",
-        poojaDonation: "Pooja",
+        poojaDonation: "Pooja & Donations",
         eventsGallery: "Events",
         gallery: "Gallery",
         contact: "Contact Us",

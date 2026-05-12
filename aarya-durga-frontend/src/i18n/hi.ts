@@ -5,7 +5,7 @@ export const hi: Translations = {
     home: "होम",
     about: "प्रबंधन",
     history: "देवी इतिहास",
-    poojaDonation: "पूजा",
+    poojaDonation: "पूजा & दान",
     eventsGallery: "कार्यक्रम",
     gallery: "गैलरी",
     contact: "संपर्क करें",

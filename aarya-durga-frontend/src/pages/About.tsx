@@ -111,7 +111,7 @@ const About = () => {
                 setCommitteeDesc(
                     getContent(aboutData, "committee_description"),
                 );
-                setCommitteeMembers(committeeMembersResponse.data || []);
+                setCommitteeMembers((committeeMembersResponse.data || []).slice().reverse());
             } catch (error) {
                 console.error("Error fetching about content:", error);
             } finally {
@@ -236,34 +236,31 @@ const About = () => {
                                                 </p>
                                                 <div className="mt-4 w-full">
                                                     <div className="mb-4 h-px w-full bg-border" />
-                                                    <div className="flex items-center justify-center gap-4">
+                                                    <div className="flex flex-col gap-3 w-full">
                                                         {member.phone && (
                                                             <a
                                                                 href={`tel:${member.phone}`}
-                                                                className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-secondary/40 text-primary transition-colors hover:bg-accent"
+                                                                className="flex items-center gap-3 text-primary transition-colors hover:text-primary/80"
                                                                 aria-label={`Call ${memberName}`}
                                                             >
-                                                                <Phone
-                                                                    size={18}
-                                                                />
+                                                                <span className="shrink-0 inline-flex h-11 w-11 items-center justify-center rounded-full border border-secondary/40 hover:bg-accent">
+                                                                    <Phone size={16} />
+                                                                </span>
+                                                                <span className="text-sm text-muted-foreground font-medium">{member.phone}</span>
                                                             </a>
                                                         )}
                                                         {address && (
                                                             <button
                                                                 onClick={() =>
-                                                                    setSelectedAddress(
-                                                                        {
-                                                                            name: memberName,
-                                                                            address,
-                                                                        },
-                                                                    )
+                                                                    setSelectedAddress({ name: memberName, address })
                                                                 }
-                                                                className="inline-flex h-12 w-12 items-center justify-center rounded-3xl border border-secondary/40 text-primary transition-colors hover:bg-accent"
+                                                                className="flex items-center gap-3 text-primary transition-colors hover:text-primary/80 text-left"
                                                                 aria-label={`View address for ${memberName}`}
                                                             >
-                                                                <MapPin
-                                                                    size={18}
-                                                                />
+                                                                <span className="shrink-0 inline-flex h-11 w-11 items-center justify-center rounded-full border border-secondary/40 hover:bg-accent">
+                                                                    <MapPin size={16} />
+                                                                </span>
+                                                                <span className="text-sm text-muted-foreground font-medium truncate">{address}</span>
                                                             </button>
                                                         )}
                                                     </div>

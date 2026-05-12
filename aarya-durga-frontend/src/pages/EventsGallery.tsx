@@ -91,7 +91,7 @@ const EventsGallery = () => {
                 setHeroSubtitle(getContent("hero_subtitle"));
                 setHeroImage(getImg("hero_image"));
                 setEventsTitle(getContent("events_title"));
-                setEvents(publicEvents);
+                setEvents(publicEvents.slice().reverse());
             } catch (error) {
                 console.error("Error fetching events gallery content:", error);
             } finally {
