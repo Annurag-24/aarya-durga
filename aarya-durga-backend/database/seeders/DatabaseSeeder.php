@@ -28,5 +28,6 @@ class DatabaseSeeder extends Seeder
         $this->call(ContactSubjectsSeeder::class);
         $this->call(ContactSubmissionSeeder::class);
         $this->call(LegalPagesSeeder::class);
+        $this->call(DailyImageSeeder::class);
     }
 }
