@@ -8,6 +8,7 @@ export const mr: Translations = {
     poojaDonation: "पूजा & देणगी",
     eventsGallery: "कार्यक्रम",
     gallery: "गॅलरी",
+    dailyImage: "दैनिक प्रतिमा",
     contact: "संपर्क",
     templeName: "आर्या दुर्गा मंदिर",
   },

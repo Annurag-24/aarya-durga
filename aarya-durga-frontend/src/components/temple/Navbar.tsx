@@ -25,6 +25,7 @@ const Navbar = () => {
     { label: t.nav.poojaDonation, href: "/pooja-donation" },
     { label: t.nav.eventsGallery, href: "/events-gallery" },
     { label: t.nav.gallery, href: "/gallery" },
+    { label: t.nav.dailyImage, href: "/daily-images" },
     { label: t.nav.contact, href: "/contact" },
   ];
 

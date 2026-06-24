@@ -48,6 +48,7 @@ import GalleryPageEditor from "./pages/admin/gallery/GalleryPageEditor";
 import FacilitiesPageEditor from "./pages/admin/facilities/FacilitiesPageEditor";
 import ContactPageEditor from "./pages/admin/contact/ContactPageEditor";
 import DailyImageEditor from "./pages/admin/daily-image/DailyImageEditor";
+import DailyImages from "./pages/DailyImages";
 
 const queryClient = new QueryClient();
 
@@ -76,6 +77,7 @@ const App = () => (
                 <Route path="/gallery/:slug" element={<AlbumDetails />} />
                 <Route path="/facilities/:slug" element={<FacilityDetails />} />
                 <Route path="/contact" element={<Contact />} />
+              <Route path="/daily-images" element={<DailyImages />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/terms-conditions" element={<TermsConditions />} />
 

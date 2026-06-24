@@ -8,12 +8,26 @@ use Illuminate\Http\Request;
 
 class DailyImageController extends Controller
 {
-    public function show()
+    private const DAYS = 15;
+
+    public function index()
     {
-        return response()->json(DailyImage::with('image')->firstOrCreate(['id' => 1]));
+        for ($d = 1; $d <= self::DAYS; $d++) {
+            DailyImage::firstOrCreate(['day_number' => $d]);
+        }
+
+        return response()->json(
+            DailyImage::with('image')->orderBy('day_number')->get()
+        );
     }
 
-    public function update(Request $request)
+    public function show(int $day)
+    {
+        $record = DailyImage::with('image')->firstOrCreate(['day_number' => $day]);
+        return response()->json($record);
+    }
+
+    public function update(Request $request, int $day)
     {
         $validated = $request->validate([
             'image_id'   => 'nullable|exists:media,id',
@@ -22,17 +36,39 @@ class DailyImageController extends Controller
             'caption_mr' => 'nullable|string|max:500',
         ]);
 
-        $record = DailyImage::firstOrCreate(['id' => 1]);
+        $record = DailyImage::firstOrCreate(['day_number' => $day]);
         $record->update($validated);
 
         return response()->json($record->load('image'));
     }
 
+    public function publicIndex()
+    {
+        return response()->json(
+            DailyImage::with('image')
+                ->whereNotNull('image_id')
+                ->orderBy('day_number')
+                ->get()
+        );
+    }
+
     public function publicShow()
     {
-        $record = DailyImage::with('image')->firstOrCreate(['id' => 1]);
+        $start = DailyImage::min('created_at');
+        if ($start) {
+            $daysElapsed = (int) floor((time() - strtotime($start)) / 86400);
+            $day = ($daysElapsed % self::DAYS) + 1;
+        } else {
+            $day = 1;
+        }
 
-        if (!$record->image) {
+        $record = DailyImage::with('image')->where('day_number', $day)->first();
+
+        if (!$record || !$record->image) {
+            $record = DailyImage::with('image')->whereNotNull('image_id')->orderBy('day_number')->first();
+        }
+
+        if (!$record || !$record->image) {
             return response()->json(['image' => null]);
         }
 

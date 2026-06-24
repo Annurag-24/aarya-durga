@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Upload, X } from 'lucide-react';
+import { Upload, X, Eye } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useUploadMedia } from '@/hooks/content/useMedia';
 import client from '@/api/client';
@@ -11,6 +12,7 @@ interface ImageUploadProps {
   preview?: string;
   existingImageUrl?: string;
   section?: string;
+  compact?: boolean;
 }
 
 interface UploadGuideline {
@@ -103,8 +105,9 @@ const getUploadGuideline = (section?: string): UploadGuideline => {
   return DEFAULT_GUIDELINE;
 };
 
-export const ImageUpload = ({ onUpload, onRemove, mediaId, preview, existingImageUrl, section }: ImageUploadProps) => {
+export const ImageUpload = ({ onUpload, onRemove, mediaId, preview, existingImageUrl, section, compact }: ImageUploadProps) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | undefined>(preview);
   const [existingImage, setExistingImage] = useState<string | undefined>(existingImageUrl);
   const uploadMutation = useUploadMedia();
@@ -151,52 +154,62 @@ export const ImageUpload = ({ onUpload, onRemove, mediaId, preview, existingImag
 
   return (
     <div className="space-y-3">
-      <div className="rounded-lg border bg-muted/30 px-4 py-3 text-xs text-muted-foreground">
-        <p>
-          Expected size: <span className="font-medium text-foreground">{guideline.dimensions}</span>
-        </p>
-        <p>
-          Max file size: <span className="font-medium text-foreground">{guideline.maxSizeMb} MB</span>
-        </p>
-        <p>
-          Format: <span className="font-medium text-foreground">{guideline.formats}</span>
-        </p>
-      </div>
+      {!compact && (
+        <div className="rounded-lg border bg-muted/30 px-4 py-3 text-xs text-muted-foreground">
+          <p>
+            Expected size: <span className="font-medium text-foreground">{guideline.dimensions}</span>
+          </p>
+          <p>
+            Max file size: <span className="font-medium text-foreground">{guideline.maxSizeMb} MB</span>
+          </p>
+          <p>
+            Format: <span className="font-medium text-foreground">{guideline.formats}</span>
+          </p>
+        </div>
+      )}
 
       <div
         onDragOver={() => setIsDragging(true)}
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
-        className={`relative border-2 border-dashed rounded-lg p-6 transition-colors ${
+        className={`relative border-2 border-dashed rounded-lg transition-colors ${compact ? 'h-40' : 'p-6'} ${
           isDragging
             ? 'border-primary bg-primary/5'
             : 'border-border hover:border-primary/50'
         }`}
       >
         {previewUrl || existingImage ? (
-          <div className="relative">
+          <div className={`relative group ${compact ? 'h-full' : ''}`}>
             <img
               src={previewUrl || existingImage}
               alt="Preview"
-              className="max-h-64 mx-auto rounded-lg"
+              className={compact ? 'w-full h-full object-cover rounded-lg' : 'max-h-64 mx-auto rounded-lg'}
             />
+            {/* Eye icon overlay */}
+            <button
+              onClick={(e) => { e.stopPropagation(); setLightboxOpen(true); }}
+              className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 transition-colors rounded-lg"
+              title="View full image"
+            >
+              <Eye className="text-white opacity-0 group-hover:opacity-100 transition-opacity" size={28} />
+            </button>
             <button
               onClick={() => {
                 setPreviewUrl(undefined);
                 setExistingImage(undefined);
                 onRemove?.();
               }}
-              className="absolute -top-2 -right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-lg"
+              className="absolute -top-2 -right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-lg z-10"
               title="Remove image"
             >
               <X size={18} />
             </button>
           </div>
         ) : (
-          <div className="text-center">
-            <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
-            <p className="text-sm font-medium">Drag and drop your image here</p>
-            <p className="text-xs text-muted-foreground mt-1">or click to browse</p>
+          <div className={`text-center ${compact ? 'absolute inset-0 flex flex-col items-center justify-center' : ''}`}>
+            <Upload className={`mx-auto text-muted-foreground mb-2 ${compact ? 'h-6 w-6' : 'h-12 w-12'}`} />
+            {!compact && <p className="text-sm font-medium">Drag and drop your image here</p>}
+            <p className="text-xs text-muted-foreground mt-1">{compact ? 'Click to upload' : 'or click to browse'}</p>
             <input
               type="file"
               accept="image/png,image/jpeg,image/jpg,image/gif"
@@ -216,6 +229,16 @@ export const ImageUpload = ({ onUpload, onRemove, mediaId, preview, existingImag
           </div>
         )}
       </div>
+
+      <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
+        <DialogContent className="max-w-5xl w-[95vw] p-0 bg-black border-0 overflow-hidden [&>button]:bg-white/15 [&>button]:hover:bg-white/30 [&>button]:text-white [&>button]:rounded-full [&>button]:p-2 [&>button]:opacity-100 [&>button>svg]:h-5 [&>button>svg]:w-5">
+          <img
+            src={previewUrl || existingImage}
+            alt="Preview"
+            className="w-full max-h-[90vh] object-contain"
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

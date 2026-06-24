@@ -1,7 +1,6 @@
 import { useEffect, useMemo } from "react";
 import Navbar from "@/components/temple/Navbar";
 import HeroSection from "@/components/temple/HeroSection";
-import DailyImageSection from "@/components/temple/DailyImageSection";
 import AboutSection from "@/components/temple/AboutSection";
 import HistorySection from "@/components/temple/HistorySection";
 import EventsSection from "@/components/temple/EventsSection";
@@ -51,7 +50,6 @@ const IndexContent = () => {
         <div className="min-h-screen">
             <Navbar />
             <HeroSection />
-            <DailyImageSection />
             <AboutSection />
             <HistorySection />
             <EventsSection />

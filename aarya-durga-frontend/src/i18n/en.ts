@@ -8,6 +8,7 @@ export const en: Translations = {
         poojaDonation: "Pooja & Donations",
         eventsGallery: "Events",
         gallery: "Gallery",
+        dailyImage: "Daily Image",
         contact: "Contact Us",
         templeName: "Aarya Durga Temple",
     },

@@ -10,6 +10,7 @@ class DailyImage extends Model
     protected $table = 'daily_image';
 
     protected $fillable = [
+        'day_number',
         'image_id',
         'caption_en',
         'caption_hi',

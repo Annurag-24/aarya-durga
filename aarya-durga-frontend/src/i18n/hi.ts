@@ -8,6 +8,7 @@ export const hi: Translations = {
     poojaDonation: "पूजा & दान",
     eventsGallery: "कार्यक्रम",
     gallery: "गैलरी",
+    dailyImage: "दैनिक छवि",
     contact: "संपर्क करें",
     templeName: "आर्या दुर्गा मंदिर",
   },

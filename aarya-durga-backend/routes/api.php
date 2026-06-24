@@ -75,8 +75,9 @@ Route::middleware('admin.auth')->prefix('admin')->group(function () {
     Route::post('/facilities/reorder', [\App\Http\Controllers\Admin\FacilityController::class, 'reorder']);
 
     // Daily Image
-    Route::get('/daily-image', [\App\Http\Controllers\Admin\DailyImageController::class, 'show']);
-    Route::put('/daily-image', [\App\Http\Controllers\Admin\DailyImageController::class, 'update']);
+    Route::get('/daily-image', [\App\Http\Controllers\Admin\DailyImageController::class, 'index']);
+    Route::get('/daily-image/{day}', [\App\Http\Controllers\Admin\DailyImageController::class, 'show'])->whereNumber('day');
+    Route::put('/daily-image/{day}', [\App\Http\Controllers\Admin\DailyImageController::class, 'update'])->whereNumber('day');
 
     // Core Values
     Route::apiResource('/core-values', \App\Http\Controllers\Admin\CoreValueController::class);
@@ -131,6 +132,7 @@ Route::prefix('public')->group(function () {
     Route::get('/facilities', [\App\Http\Controllers\Admin\FacilityController::class, 'publicIndex']);
     Route::get('/facilities/{slug}', [\App\Http\Controllers\Admin\FacilityController::class, 'publicShowBySlug']);
     Route::get('/daily-image', [\App\Http\Controllers\Admin\DailyImageController::class, 'publicShow']);
+    Route::get('/daily-images', [\App\Http\Controllers\Admin\DailyImageController::class, 'publicIndex']);
     Route::get('/page-content/{pageKey}', [\App\Http\Controllers\Admin\PageContentController::class, 'show']);
     Route::get('/page-content/{pageKey}/{sectionKey}', [\App\Http\Controllers\Admin\PageContentController::class, 'showSection']);
     Route::get('/quotes/{placement}', [\App\Http\Controllers\Admin\QuoteController::class, 'byPlacement']);

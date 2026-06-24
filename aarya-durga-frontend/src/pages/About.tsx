@@ -152,6 +152,7 @@ const About = () => {
                         />
                     </div>
                 </section>
+
                 <section className="py-20 bg-card">
                     <div className="container mx-auto px-4 text-center">
                         <div className="gold-line mx-auto mb-4" />
@@ -239,7 +240,7 @@ const About = () => {
                                                     <div className="flex flex-col gap-3 w-full">
                                                         {member.phone && (
                                                             <a
-                                                                href={`tel:${member.phone}`}
+                                                                href={`tel:${member.phone.startsWith('+91') ? member.phone : '+91' + member.phone}`}
                                                                 className="flex items-center gap-3 text-primary transition-colors hover:text-primary/80"
                                                                 aria-label={`Call ${memberName}`}
                                                             >
