@@ -41,8 +41,6 @@ interface TempleEventForm {
     clientKey: string;
     title_en: string;
     title_mr: string;
-    date_label_en: string;
-    date_label_mr: string;
     event_date: string;
     summary_en: string;
     summary_mr: string;
@@ -115,8 +113,6 @@ const emptyEvent = (index: number): TempleEventForm => ({
     clientKey: `new-event-${Date.now()}-${index}`,
     title_en: "",
     title_mr: "",
-    date_label_en: "",
-    date_label_mr: "",
     event_date: "",
     summary_en: "",
     summary_mr: "",
@@ -279,8 +275,6 @@ const EventsGalleryPageEditor = () => {
                     clientKey: `event-${event.id}`,
                     title_en: event.title_en || "",
                     title_mr: event.title_mr || "",
-                    date_label_en: event.date_label_en || "",
-                    date_label_mr: event.date_label_mr || "",
                     event_date: event.event_date || "",
                     summary_en: event.summary_en || "",
                     summary_mr: event.summary_mr || "",
@@ -402,9 +396,6 @@ const EventsGalleryPageEditor = () => {
                 title_en: eventToSave.title_en,
                 title_hi: eventToSave.title_en,
                 title_mr: eventToSave.title_mr,
-                date_label_en: eventToSave.date_label_en,
-                date_label_hi: eventToSave.date_label_en,
-                date_label_mr: eventToSave.date_label_mr,
                 event_date: eventToSave.event_date || null,
                 summary_en: eventToSave.summary_en,
                 summary_hi: eventToSave.summary_en,
@@ -527,9 +518,6 @@ const EventsGalleryPageEditor = () => {
                         title_en: event.title_en,
                         title_hi: event.title_en,
                         title_mr: event.title_mr,
-                        date_label_en: event.date_label_en,
-                        date_label_hi: event.date_label_en,
-                        date_label_mr: event.date_label_mr,
                         event_date: event.event_date || null,
                         summary_en: event.summary_en,
                         summary_hi: event.summary_en,
@@ -925,17 +913,6 @@ const EventsGalleryPageEditor = () => {
                                 </div>
 
                             </div>
-
-                            {renderLanguageTabs(
-                                "Date Label",
-                                editingEvent.date_label_en,
-                                editingEvent.date_label_mr,
-                                (lang, value) =>
-                                    updateEditingEvent((currentEvent) => ({
-                                        ...currentEvent,
-                                        [`date_label_${lang}`]: value,
-                                    })),
-                            )}
 
                             <div className="space-y-4">
                                 <h3 className="font-semibold text-foreground">

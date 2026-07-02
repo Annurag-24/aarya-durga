@@ -119,8 +119,7 @@ const EventDetails = () => {
         ? getLocalizedEventValue(event, "time", currentLanguage)
         : "";
     const dateLabel = event
-        ? getLocalizedEventValue(event, "date_label", currentLanguage) ||
-          (event.event_date
+        ? (event.event_date
               ? new Date(event.event_date).toLocaleDateString(
                     currentLanguage === "mr" ? "mr-IN" : "en-US",
                     {

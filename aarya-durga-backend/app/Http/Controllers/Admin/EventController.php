@@ -44,7 +44,6 @@ class EventController extends Controller
         $validated['summary_hi'] = $validated['summary_hi'] ?? ($validated['summary_en'] ?? null);
         $validated['description_hi'] = $validated['description_hi'] ?? ($validated['description_en'] ?? null);
         $validated['details_hi'] = $validated['details_hi'] ?? ($validated['details_en'] ?? null);
-        $validated['date_label_hi'] = $validated['date_label_hi'] ?? ($validated['date_label_en'] ?? null);
         $validated['location_hi'] = $validated['location_hi'] ?? ($validated['location_en'] ?? null);
         $validated['time_hi'] = $validated['time_hi'] ?? ($validated['time_en'] ?? null);
 
@@ -98,9 +97,6 @@ class EventController extends Controller
         if (array_key_exists('details_en', $validated) && !array_key_exists('details_hi', $validated)) {
             $validated['details_hi'] = $validated['details_en'];
         }
-        if (array_key_exists('date_label_en', $validated) && !array_key_exists('date_label_hi', $validated)) {
-            $validated['date_label_hi'] = $validated['date_label_en'];
-        }
         if (array_key_exists('location_en', $validated) && !array_key_exists('location_hi', $validated)) {
             $validated['location_hi'] = $validated['location_en'];
         }
@@ -149,9 +145,6 @@ class EventController extends Controller
             'title_hi' => 'nullable|string',
             'title_mr' => 'nullable|string',
             'slug' => ['nullable', 'string', $slugRule],
-            'date_label_en' => 'nullable|string',
-            'date_label_hi' => 'nullable|string',
-            'date_label_mr' => 'nullable|string',
             'event_date' => 'nullable|date',
             'description_en' => 'nullable|string',
             'description_hi' => 'nullable|string',

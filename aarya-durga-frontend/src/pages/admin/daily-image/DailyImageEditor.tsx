@@ -1,152 +1,270 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ChevronLeft, ChevronRight, Upload, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import client from "@/api/client";
-import { ImageUpload } from "@/components/admin/ImageUpload";
 import { constructImageUrl } from "@/api/imageUrl";
+import { useUploadMedia } from "@/hooks/content/useMedia";
+import { cn } from "@/lib/utils";
 
-interface DaySlot {
-    day: number;
-    image_id?: number;
-    existingImageUrl?: string;
-    caption_en: string;
-    caption_hi: string;
-    caption_mr: string;
+interface DayRecord {
+    image_date: string;
+    image_id?: number | null;
+    image?: { file_url?: string } | null;
 }
 
-const DAYS = 15;
+const WINDOW_DAYS = 15;
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTHS = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+];
 
-const emptySlot = (day: number): DaySlot => ({
-    day,
-    caption_en: "",
-    caption_hi: "",
-    caption_mr: "",
-});
+const toISO = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+};
+
+const startOfDay = (d: Date) => {
+    const n = new Date(d);
+    n.setHours(0, 0, 0, 0);
+    return n;
+};
+
+const sameDay = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
 
 const DailyImageEditor = () => {
-    const [slots, setSlots] = useState<DaySlot[]>(
-        Array.from({ length: DAYS }, (_, i) => emptySlot(i + 1))
+    const today = useMemo(() => startOfDay(new Date()), []);
+    const windowEnd = useMemo(() => {
+        const d = new Date(today);
+        d.setDate(d.getDate() + WINDOW_DAYS - 1);
+        return d;
+    }, [today]);
+
+    const [viewMonth, setViewMonth] = useState<Date>(
+        new Date(today.getFullYear(), today.getMonth(), 1)
     );
-    const [saving, setSaving] = useState<number | null>(null);
+    const [records, setRecords] = useState<Record<string, DayRecord>>({});
+    const [busyKey, setBusyKey] = useState<string | null>(null);
+    const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
+    const uploadMedia = useUploadMedia();
 
-    useEffect(() => {
-        client.get("/admin/daily-image").then((res) => {
-            const list = Array.isArray(res.data) ? res.data : [res.data];
-            setSlots((prev) =>
-                prev.map((s) => {
-                    const match = list.find((r) => r.day_number === s.day);
-                    if (!match) return s;
-                    return {
-                        ...s,
-                        image_id: match.image_id ?? undefined,
-                        existingImageUrl: match.image?.file_url
-                            ? constructImageUrl(match.image.file_url)
-                            : undefined,
-                        caption_en: match.caption_en ?? "",
-                        caption_hi: match.caption_hi ?? "",
-                        caption_mr: match.caption_mr ?? "",
-                    };
-                })
-            );
-        }).catch(() => {});
-    }, []);
-
-    const updateSlot = (day: number, patch: Partial<DaySlot>) => {
-        setSlots((prev) => prev.map((s) => (s.day === day ? { ...s, ...patch } : s)));
-    };
-
-    const handleSave = async (slot: DaySlot) => {
-        setSaving(slot.day);
+    const fetchRange = async () => {
         try {
-            await client.put(`/admin/daily-image/${slot.day}`, {
-                image_id: slot.image_id ?? null,
-                caption_en: slot.caption_en || null,
-                caption_hi: slot.caption_hi || null,
-                caption_mr: slot.caption_mr || null,
+            const res = await client.get("/admin/daily-image", {
+                params: { from: toISO(today), to: toISO(windowEnd) },
             });
-            toast.success(`Day ${slot.day} saved.`);
+            const list: DayRecord[] = Array.isArray(res.data) ? res.data : [];
+            const map: Record<string, DayRecord> = {};
+            for (const r of list) {
+                const key = (r.image_date || "").slice(0, 10);
+                if (key) map[key] = r;
+            }
+            setRecords(map);
         } catch {
-            toast.error("Failed to save. Please try again.");
-        } finally {
-            setSaving(null);
+            // ignore
         }
     };
+
+    useEffect(() => {
+        fetchRange();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const gridDays = useMemo(() => {
+        const first = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), 1);
+        const startWeekday = first.getDay();
+        const daysInMonth = new Date(
+            viewMonth.getFullYear(),
+            viewMonth.getMonth() + 1,
+            0
+        ).getDate();
+        const cells: (Date | null)[] = [];
+        for (let i = 0; i < startWeekday; i++) cells.push(null);
+        for (let d = 1; d <= daysInMonth; d++) {
+            cells.push(new Date(viewMonth.getFullYear(), viewMonth.getMonth(), d));
+        }
+        while (cells.length % 7 !== 0) cells.push(null);
+        return cells;
+    }, [viewMonth]);
+
+    const isEditable = (d: Date) => d >= today && d <= windowEnd;
+
+    const handleFile = async (date: Date, file: File) => {
+        const key = toISO(date);
+        setBusyKey(key);
+        try {
+            const media = await uploadMedia.mutateAsync({ file, section: `daily-${key}` });
+            const mediaId = (media as { id: number }).id;
+            const res = await client.put(`/admin/daily-image/by-date/${key}`, {
+                image_id: mediaId,
+            });
+            setRecords((prev) => ({ ...prev, [key]: res.data }));
+            toast.success(`Image saved for ${key}.`);
+        } catch {
+            toast.error("Failed to upload image.");
+        } finally {
+            setBusyKey(null);
+        }
+    };
+
+    const handleRemove = async (date: Date) => {
+        const key = toISO(date);
+        setBusyKey(key);
+        try {
+            const res = await client.put(`/admin/daily-image/by-date/${key}`, {
+                image_id: null,
+            });
+            setRecords((prev) => ({ ...prev, [key]: res.data }));
+            toast.success(`Image removed for ${key}.`);
+        } catch {
+            toast.error("Failed to remove image.");
+        } finally {
+            setBusyKey(null);
+        }
+    };
+
+    const prevMonth = () =>
+        setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() - 1, 1));
+    const nextMonth = () =>
+        setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 1));
+
+    const canGoPrev = viewMonth > new Date(today.getFullYear(), today.getMonth(), 1);
+    const canGoNext = viewMonth < new Date(windowEnd.getFullYear(), windowEnd.getMonth(), 1);
 
     return (
         <div className="w-full space-y-6">
             <div>
-                <h1 className="text-2xl font-heading font-bold text-foreground">Daily Image</h1>
+                <h1 className="text-2xl font-heading font-bold text-foreground py-2">Daily Image</h1>
                 <p className="text-sm text-muted-foreground mt-1">
-                    Upload images for each day of the month cycle (Day 1–{DAYS}).
+                    Click any date within the next {WINDOW_DAYS} days to upload an image. The uploaded
+                    image will appear in that day's cell.
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {slots.map((slot) => (
-                    <div key={slot.day} className="rounded-xl border border-border bg-card p-5 space-y-4">
-                        <p className="text-sm font-semibold text-foreground">Day {slot.day}</p>
+            <div className="rounded-xl border border-border bg-card p-5">
+                <div className="flex items-center justify-between mb-4">
+                    <Button variant="outline" size="icon" onClick={prevMonth} disabled={!canGoPrev}>
+                        <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <h2 className="text-lg font-heading font-semibold">
+                        {MONTHS[viewMonth.getMonth()]} {viewMonth.getFullYear()}
+                    </h2>
+                    <Button variant="outline" size="icon" onClick={nextMonth} disabled={!canGoNext}>
+                        <ChevronRight className="h-4 w-4" />
+                    </Button>
+                </div>
 
-                        <ImageUpload
-                            compact
-                            mediaId={slot.image_id}
-                            existingImageUrl={slot.existingImageUrl}
-                            onUpload={(mediaId) => updateSlot(slot.day, { image_id: mediaId })}
-                            onRemove={() => updateSlot(slot.day, { image_id: undefined, existingImageUrl: undefined })}
-                        />
-
-                        <div className="hidden space-y-2">
-                            <p className="text-xs font-medium text-muted-foreground">
-                                Caption <span className="font-normal">(optional)</span>
-                            </p>
-                            <Tabs defaultValue="en">
-                                <TabsList className="h-7">
-                                    <TabsTrigger value="en" className="text-xs px-2 py-1">EN</TabsTrigger>
-                                    <TabsTrigger value="hi" className="text-xs px-2 py-1">हि</TabsTrigger>
-                                    <TabsTrigger value="mr" className="text-xs px-2 py-1">म</TabsTrigger>
-                                </TabsList>
-                                <TabsContent value="en">
-                                    <Textarea
-                                        placeholder="English caption..."
-                                        value={slot.caption_en}
-                                        onChange={(e) => updateSlot(slot.day, { caption_en: e.target.value })}
-                                        rows={2}
-                                        className="text-sm"
-                                    />
-                                </TabsContent>
-                                <TabsContent value="hi">
-                                    <Textarea
-                                        placeholder="हिंदी कैप्शन..."
-                                        value={slot.caption_hi}
-                                        onChange={(e) => updateSlot(slot.day, { caption_hi: e.target.value })}
-                                        rows={2}
-                                        className="text-sm"
-                                    />
-                                </TabsContent>
-                                <TabsContent value="mr">
-                                    <Textarea
-                                        placeholder="मराठी मथळा..."
-                                        value={slot.caption_mr}
-                                        onChange={(e) => updateSlot(slot.day, { caption_mr: e.target.value })}
-                                        rows={2}
-                                        className="text-sm"
-                                    />
-                                </TabsContent>
-                            </Tabs>
-                        </div>
-
-                        <Button
-                            variant="temple"
-                            size="sm"
-                            className="w-full"
-                            onClick={() => handleSave(slot)}
-                            disabled={saving === slot.day}
+                <div className="grid grid-cols-7 gap-2 mb-2">
+                    {WEEKDAYS.map((d) => (
+                        <div
+                            key={d}
+                            className="text-xs font-medium text-muted-foreground text-center py-1"
                         >
-                            {saving === slot.day ? "Saving..." : `Save Day ${slot.day}`}
-                        </Button>
-                    </div>
-                ))}
+                            {d}
+                        </div>
+                    ))}
+                </div>
+
+                <div className="grid grid-cols-7 gap-2">
+                    {gridDays.map((date, idx) => {
+                        if (!date) {
+                            return <div key={`e-${idx}`} className="aspect-square" />;
+                        }
+                        const key = toISO(date);
+                        const record = records[key];
+                        const imageUrl = record?.image?.file_url
+                            ? constructImageUrl(record.image.file_url)
+                            : undefined;
+                        const editable = isEditable(date);
+                        const isToday = sameDay(date, today);
+                        const busy = busyKey === key;
+
+                        return (
+                            <div
+                                key={key}
+                                className={cn(
+                                    "aspect-square rounded-lg border relative overflow-hidden group",
+                                    editable
+                                        ? "border-border bg-background hover:border-primary cursor-pointer"
+                                        : "border-dashed border-border/50 bg-muted/30 opacity-60",
+                                    isToday && "ring-2 ring-primary"
+                                )}
+                                onClick={() => {
+                                    if (editable && !busy) fileInputs.current[key]?.click();
+                                }}
+                            >
+                                <input
+                                    ref={(el) => (fileInputs.current[key] = el)}
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                        const f = e.target.files?.[0];
+                                        if (f) handleFile(date, f);
+                                        e.target.value = "";
+                                    }}
+                                />
+
+                                {imageUrl && (
+                                    <img
+                                        src={imageUrl}
+                                        alt=""
+                                        className="absolute inset-0 h-full w-full object-cover"
+                                    />
+                                )}
+
+                                <div
+                                    className={cn(
+                                        "absolute top-1 left-2 text-sm font-semibold z-10",
+                                        imageUrl
+                                            ? "text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]"
+                                            : "text-foreground"
+                                    )}
+                                >
+                                    {date.getDate()}
+                                </div>
+
+                                {editable && !imageUrl && !busy && (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground group-hover:text-primary">
+                                        <Upload className="h-6 w-6 mb-1" />
+                                        <span className="text-[10px]">Upload</span>
+                                    </div>
+                                )}
+
+                                {editable && imageUrl && !busy && (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleRemove(date);
+                                        }}
+                                        className="absolute top-1 right-1 z-10 p-1 rounded bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                                        aria-label="Remove image"
+                                    >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                    </button>
+                                )}
+
+                                {busy && (
+                                    <div className="absolute inset-0 flex items-center justify-center bg-background/70 z-20">
+                                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <p className="text-xs text-muted-foreground mt-4">
+                    Editable window: {toISO(today)} – {toISO(windowEnd)} (15 days). Other dates are
+                    disabled.
+                </p>
             </div>
         </div>
     );

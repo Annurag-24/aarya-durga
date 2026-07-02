@@ -104,7 +104,10 @@ const About = () => {
                 setHeroMainSubtitle(
                     getContent(aboutData, "hero_main_subtitle"),
                 );
-                setHeroImage(getImg(homeData, "about_image"));
+                setHeroImage(
+                    getImg(aboutData, "hero_image") ||
+                        getImg(homeData, "about_image"),
+                );
 
                 // Committee section
                 setCommitteeTitle(getContent(aboutData, "committee_title"));
@@ -126,7 +129,7 @@ const About = () => {
         <HomePageProvider>
             <div className="min-h-screen">
                 <Navbar />
-                <section className="relative pt-16 min-h-[50vh] flex items-center justify-center overflow-hidden">
+                <section className="relative pt-16 h-[50vh] flex items-center justify-center overflow-hidden">
                     <div className="absolute inset-0">
                         <img
                             src={heroImage}

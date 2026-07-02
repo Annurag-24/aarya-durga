@@ -73,11 +73,6 @@ const EventsSection = () => {
                                 language as "en" | "mr",
                             );
                         const dateLabel =
-                            getLocalizedEventValue(
-                                event,
-                                "date_label",
-                                language as "en" | "mr",
-                            ) ||
                             (event.event_date
                                 ? new Date(event.event_date).toLocaleDateString(
                                       language === "mr" ? "mr-IN" : "en-US",

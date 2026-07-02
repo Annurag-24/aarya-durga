@@ -27,9 +27,6 @@ export interface ApiEvent {
     title_hi?: string;
     title_mr: string;
     slug?: string;
-    date_label_en?: string;
-    date_label_hi?: string;
-    date_label_mr?: string;
     event_date?: string;
     description_en?: string;
     description_hi?: string;
@@ -60,7 +57,6 @@ export const getLocalizedEventValue = (
     event: ApiEvent,
     baseKey:
         | "title"
-        | "date_label"
         | "description"
         | "summary"
         | "details"

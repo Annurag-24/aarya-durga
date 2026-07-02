@@ -9,10 +9,21 @@ import client from "@/api/client";
 import { constructImageUrl } from "@/api/imageUrl";
 
 interface DayImage {
-    day: number;
+    date: string;
     url: string;
     caption?: string;
 }
+
+const formatDate = (iso: string, lang: string) => {
+    const d = new Date(iso + "T00:00:00");
+    if (isNaN(d.getTime())) return iso;
+    const locale = lang === "hi" ? "hi-IN" : lang === "mr" ? "mr-IN" : "en-US";
+    return d.toLocaleDateString(locale, {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+    });
+};
 
 const DailyImages = () => {
     const { language } = useLanguage();
@@ -27,9 +38,9 @@ const DailyImages = () => {
                 const list = Array.isArray(res.data) ? res.data : [];
                 const lang = language as "en" | "hi" | "mr";
                 const mapped: DayImage[] = list
-                    .filter((r) => r.image?.file_url)
+                    .filter((r) => r.image?.file_url && r.image_date)
                     .map((r) => ({
-                        day: r.day_number,
+                        date: (r.image_date as string).slice(0, 10),
                         url: constructImageUrl(r.image.file_url),
                         caption:
                             lang === "mr" ? r.caption_mr || r.caption_en :
@@ -65,7 +76,7 @@ const DailyImages = () => {
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                             {images.map((img) => (
                                 <motion.div
-                                    key={img.day}
+                                    key={img.date}
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     transition={{ duration: 0.3 }}
@@ -74,10 +85,14 @@ const DailyImages = () => {
                                 >
                                     <img
                                         src={img.url}
-                                        alt={`Day ${img.day}`}
+                                        alt={img.date}
                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                     />
-                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent p-3 pt-8">
+                                        <p className="text-white text-sm font-medium drop-shadow">
+                                            {formatDate(img.date, language)}
+                                        </p>
+                                    </div>
                                 </motion.div>
                             ))}
                         </div>
@@ -106,9 +121,12 @@ const DailyImages = () => {
                                 animate={{ scale: 1 }}
                                 exit={{ scale: 0.8 }}
                                 src={selected.url}
-                                alt={`Day ${selected.day}`}
+                                alt={selected.date}
                                 className="max-w-full max-h-[80vh] rounded-lg object-contain"
                             />
+                            <p className="text-primary-foreground text-base font-medium">
+                                {formatDate(selected.date, language)}
+                            </p>
                             {selected.caption && (
                                 <p className="text-primary-foreground text-sm italic text-center max-w-lg">
                                     {selected.caption}

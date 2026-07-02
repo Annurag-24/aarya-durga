@@ -11,10 +11,15 @@ class DailyImage extends Model
 
     protected $fillable = [
         'day_number',
+        'image_date',
         'image_id',
         'caption_en',
         'caption_hi',
         'caption_mr',
+    ];
+
+    protected $casts = [
+        'image_date' => 'date',
     ];
 
     public function image(): BelongsTo

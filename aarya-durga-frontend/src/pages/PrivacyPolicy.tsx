@@ -51,7 +51,7 @@ const PrivacyPolicy = () => {
         <HomePageProvider>
             <div className="min-h-screen flex flex-col">
                 <Navbar />
-                <section className="relative pt-16 min-h-[50vh] flex items-center justify-center overflow-hidden">
+                <section className="relative pt-16 h-[50vh] flex items-center justify-center overflow-hidden">
                     <div className="absolute inset-0">
                         {heroImage && (
                             <img

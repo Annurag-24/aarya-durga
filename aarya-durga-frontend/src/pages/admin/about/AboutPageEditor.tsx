@@ -12,30 +12,15 @@ import { useLoader } from "@/contexts/LoaderContext";
 import { constructImageUrl } from "@/api/imageUrl";
 import { useImagesLoaded } from "@/hooks/useImagesLoaded";
 
-interface MissionContent {
+interface HeroContent {
     title_en: string;
     title_hi: string;
     title_mr: string;
-    description_en: string;
-    description_hi: string;
-    description_mr: string;
-}
-
-interface CoreValue {
-    key: string;
-    title_en: string;
-    title_hi: string;
-    title_mr: string;
-    description_en: string;
-    description_hi: string;
-    description_mr: string;
-}
-
-interface CoreValuesContent {
-    title_en: string;
-    title_hi: string;
-    title_mr: string;
-    values: CoreValue[];
+    subtitle_en: string;
+    subtitle_hi: string;
+    subtitle_mr: string;
+    image_id?: number;
+    existingImageUrl?: string;
 }
 
 interface CommitteeMemberForm {
@@ -66,8 +51,21 @@ interface CommitteeContent {
     members: CommitteeMemberForm[];
 }
 
+type SectionId = "hero" | "committee";
+
 const AboutPageEditor = () => {
     const { setLoading: setGlobalLoading } = useLoader();
+
+    const [activeSection, setActiveSection] = useState<SectionId>("hero");
+
+    const [heroContent, setHeroContent] = useState<HeroContent>({
+        title_en: "",
+        title_hi: "",
+        title_mr: "",
+        subtitle_en: "",
+        subtitle_hi: "",
+        subtitle_mr: "",
+    });
 
     const [committeeContent, setCommitteeContent] = useState<CommitteeContent>({
         title_en: "",
@@ -105,7 +103,7 @@ const AboutPageEditor = () => {
                 content_hi?: string;
                 content_mr?: string;
                 image_id?: number;
-                image?: { file_url: string };
+                image?: { file_url?: string };
             }>;
 
             const committeeMembersResponse = await client.get(
@@ -129,7 +127,28 @@ const AboutPageEditor = () => {
                     sort_order?: number;
                 }>;
 
-            // Committee
+            const heroTitleData = aboutData.find(
+                (item) => item.section_key === "hero_main_title",
+            );
+            const heroSubtitleData = aboutData.find(
+                (item) => item.section_key === "hero_main_subtitle",
+            );
+            const heroImageData = aboutData.find(
+                (item) => item.section_key === "hero_image",
+            );
+            setHeroContent({
+                title_en: heroTitleData?.content_en || "",
+                title_hi: heroTitleData?.content_hi || "",
+                title_mr: heroTitleData?.content_mr || "",
+                subtitle_en: heroSubtitleData?.content_en || "",
+                subtitle_hi: heroSubtitleData?.content_hi || "",
+                subtitle_mr: heroSubtitleData?.content_mr || "",
+                image_id: heroImageData?.image_id,
+                existingImageUrl: heroImageData?.image?.file_url
+                    ? constructImageUrl(heroImageData.image.file_url)
+                    : undefined,
+            });
+
             const committeeTitleData = aboutData.find(
                 (item) => item.section_key === "committee_title",
             );
@@ -301,6 +320,34 @@ const AboutPageEditor = () => {
         });
     };
 
+    const saveHeroSection = async () => {
+        setSaving(true);
+        try {
+            await Promise.all([
+                client.put("/admin/page-content/about/hero_main_title", {
+                    content_en: heroContent.title_en,
+                    content_hi: heroContent.title_hi,
+                    content_mr: heroContent.title_mr,
+                }),
+                client.put("/admin/page-content/about/hero_main_subtitle", {
+                    content_en: heroContent.subtitle_en,
+                    content_hi: heroContent.subtitle_hi,
+                    content_mr: heroContent.subtitle_mr,
+                }),
+                heroContent.image_id
+                    ? client.put("/admin/page-content/about/hero_image", {
+                          image_id: heroContent.image_id,
+                      })
+                    : Promise.resolve(),
+            ]);
+            toast.success("Hero section saved successfully");
+        } catch (error) {
+            toast.error("Failed to save hero section");
+        } finally {
+            setSaving(false);
+        }
+    };
+
     const saveCommitteeSection = async () => {
         setSaving(true);
         try {
@@ -419,21 +466,107 @@ const AboutPageEditor = () => {
         }
     };
 
+    const sections: Array<{ id: SectionId; title: string; description: string }> = [
+        {
+            id: "hero",
+            title: "Hero Section",
+            description: "Title, subtitle, background image",
+        },
+        {
+            id: "committee",
+            title: "Committee",
+            description: `${committeeContent.members.length} member${committeeContent.members.length === 1 ? "" : "s"}`,
+        },
+    ];
+
     return (
-        <div className="max-w-6xl space-y-6">
+        <div className="space-y-6">
             <div>
                 <h1 className="font-heading text-3xl font-bold text-foreground">
-                    Management
+                    About Page Editor
                 </h1>
                 <p className="text-muted-foreground mt-1">
-                    Manage committee title, description, and members in multiple languages
+                    Manage all About page sections in multiple languages
                 </p>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Committee</CardTitle>
-                </CardHeader>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+                {sections.map((section) => (
+                    <Card
+                        key={section.id}
+                        className={`cursor-pointer transition-all ${activeSection === section.id ? "ring-2 ring-primary" : ""}`}
+                        onClick={() => setActiveSection(section.id)}
+                    >
+                        <CardContent className="pt-6">
+                            <p className="font-semibold text-sm text-foreground">
+                                {section.title}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                                {section.description}
+                            </p>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+
+            {activeSection === "hero" && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Hero Section</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div>
+                            <h3 className="font-semibold mb-4">Hero Image</h3>
+                            <ImageUpload
+                                onUpload={(mediaId) =>
+                                    setHeroContent({
+                                        ...heroContent,
+                                        image_id: mediaId,
+                                    })
+                                }
+                                existingImageUrl={heroContent.existingImageUrl}
+                                section="about-hero"
+                            />
+                        </div>
+                        {renderLanguageTabs(
+                            "Title",
+                            heroContent.title_en,
+                            heroContent.title_hi,
+                            heroContent.title_mr,
+                            (lang, value) =>
+                                setHeroContent({
+                                    ...heroContent,
+                                    [`title_${lang}`]: value,
+                                }),
+                        )}
+                        {renderLanguageTabs(
+                            "Subtitle",
+                            heroContent.subtitle_en,
+                            heroContent.subtitle_hi,
+                            heroContent.subtitle_mr,
+                            (lang, value) =>
+                                setHeroContent({
+                                    ...heroContent,
+                                    [`subtitle_${lang}`]: value,
+                                }),
+                            true,
+                        )}
+                        <Button
+                            onClick={saveHeroSection}
+                            disabled={saving}
+                            className="w-full"
+                        >
+                            {saving ? "Saving..." : "Save Hero Section"}
+                        </Button>
+                    </CardContent>
+                </Card>
+            )}
+
+            {activeSection === "committee" && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Committee</CardTitle>
+                    </CardHeader>
                     <CardContent className="space-y-6">
                         {renderLanguageTabs(
                             "Committee Title",
@@ -598,8 +731,9 @@ const AboutPageEditor = () => {
                         >
                             {saving ? "Saving..." : "Save Committee Section"}
                         </Button>
-                </CardContent>
-            </Card>
+                    </CardContent>
+                </Card>
+            )}
         </div>
     );
 };

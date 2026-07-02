@@ -76,8 +76,8 @@ Route::middleware('admin.auth')->prefix('admin')->group(function () {
 
     // Daily Image
     Route::get('/daily-image', [\App\Http\Controllers\Admin\DailyImageController::class, 'index']);
-    Route::get('/daily-image/{day}', [\App\Http\Controllers\Admin\DailyImageController::class, 'show'])->whereNumber('day');
-    Route::put('/daily-image/{day}', [\App\Http\Controllers\Admin\DailyImageController::class, 'update'])->whereNumber('day');
+    Route::put('/daily-image/by-date/{date}', [\App\Http\Controllers\Admin\DailyImageController::class, 'upsertByDate']);
+    Route::delete('/daily-image/by-date/{date}', [\App\Http\Controllers\Admin\DailyImageController::class, 'destroyByDate']);
 
     // Core Values
     Route::apiResource('/core-values', \App\Http\Controllers\Admin\CoreValueController::class);
