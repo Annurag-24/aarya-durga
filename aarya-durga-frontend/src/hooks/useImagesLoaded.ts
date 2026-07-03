@@ -65,7 +65,8 @@ export const useImagesLoaded = (dependencies: any[] = []) => {
         // Small delay to ensure DOM is fully rendered with images
         const timer = setTimeout(checkImagesLoaded, 100);
         return () => clearTimeout(timer);
-    }, dependencies);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [JSON.stringify(dependencies)]);
 
     return imagesLoaded;
 };

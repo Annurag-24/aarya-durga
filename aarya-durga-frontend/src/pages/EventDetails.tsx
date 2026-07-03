@@ -123,6 +123,7 @@ const EventDetails = () => {
               ? new Date(event.event_date).toLocaleDateString(
                     currentLanguage === "mr" ? "mr-IN" : "en-US",
                     {
+                        weekday: "long",
                         year: "numeric",
                         month: "long",
                         day: "numeric",

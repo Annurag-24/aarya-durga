@@ -16,8 +16,7 @@ interface VisitData {
   address: string;
   phone: string;
   email: string;
-  latitude: string;
-  longitude: string;
+  mapEmbedUrl: string;
   imageUrl?: string;
 }
 
@@ -33,8 +32,7 @@ const VisitSection = () => {
     address: "",
     phone: "",
     email: "",
-    latitude: "",
-    longitude: "",
+    mapEmbedUrl: "",
   });
 
   useEffect(() => {
@@ -55,12 +53,22 @@ const VisitSection = () => {
         address: getContent('visit_address'),
         phone: getContent('visit_phone'),
         email: getContent('visit_email'),
-        latitude: getContent('visit_latitude'),
-        longitude: getContent('visit_longitude'),
+        mapEmbedUrl: getContent('visit_map_embed_url'),
         imageUrl,
       });
     }
   }, [pageData, language]);
+  const { mapEmbedUrl } = visitData;
+  const extractSrc = (val: string) => {
+    const match = val.match(/src="([^"]+)"/);
+    const url = match ? match[1] : val;
+    return url.replace(/!1d[\d.]+/, '!1d800');
+  };
+  const mapEmbedSrc = mapEmbedUrl ? extractSrc(mapEmbedUrl) : null;
+  const directionsUrl = mapEmbedUrl
+    ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent('Aaryadurga Mandir, Wagade, Maharashtra')}`
+    : null;
+
   return (
     <section id="visit" className="relative py-0 overflow-hidden">
       <div className="relative">
@@ -102,7 +110,8 @@ const VisitSection = () => {
                 <p className="font-semibold text-foreground">{visitData.templeName}</p>
                 <p>{visitData.address}</p>
               </div>
-              <Button variant="temple" size="sm" className="w-full" onClick={() => window.open('https://www.google.com/maps?cid=2975436080203355362&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAEYASAB&hl=en-US&source=embed', '_blank')}><Navigation size={14} className="mr-1" />{t.visitSection.getDirections}</Button>
+              <Button variant="temple" size="sm" className="w-full" onClick={() => directionsUrl && window.open(directionsUrl, '_blank')}
+              disabled={!directionsUrl}><Navigation size={14} className="mr-1" />{t.visitSection.getDirections}</Button>
             </motion.div>
             <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.3 }} className="bg-card/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-border/50">
               <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-5"><Phone className="text-primary" size={28} /></div>
@@ -121,7 +130,7 @@ const VisitSection = () => {
             </motion.div>
           </div>
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }} className="rounded-2xl overflow-hidden shadow-2xl border-2 border-primary-foreground/20 max-w-4xl mx-auto">
-            <iframe title="Temple Location" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3845.024046!2d73.4323744!3d16.7386302!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bea78f02bae4c2f%3A0x294adf59b466d4e2!2sShri%20Aarya%20Durga%20temple%20Devihasol!5e0!3m2!1sen!2sin!4v1" width="100%" height="300" style={{ border: 0 }} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+            {mapEmbedSrc && <iframe title="Temple Location" src={mapEmbedSrc} width="100%" height="300" style={{ border: 0 }} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" />}
           </motion.div>
         </div>
       </div>

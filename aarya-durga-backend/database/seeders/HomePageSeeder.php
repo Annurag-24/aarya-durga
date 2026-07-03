@@ -307,6 +307,15 @@ class HomePageSeeder extends Seeder
             ]
         );
 
+        PageContent::updateOrCreate(
+            ['page_key' => 'home', 'section_key' => 'visit_map_embed_url'],
+            [
+                'content_en' => '',
+                'content_hi' => '',
+                'content_mr' => '',
+            ]
+        );
+
         // Visit Section Background Image
         PageContent::updateOrCreate(
             ['page_key' => 'home', 'section_key' => 'visit_image'],

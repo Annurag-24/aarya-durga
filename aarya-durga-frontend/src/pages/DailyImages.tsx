@@ -19,6 +19,7 @@ const formatDate = (iso: string, lang: string) => {
     if (isNaN(d.getTime())) return iso;
     const locale = lang === "hi" ? "hi-IN" : lang === "mr" ? "mr-IN" : "en-US";
     return d.toLocaleDateString(locale, {
+        weekday: "short",
         day: "numeric",
         month: "short",
         year: "numeric",

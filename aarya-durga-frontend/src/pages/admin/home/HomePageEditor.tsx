@@ -52,12 +52,7 @@ interface VisitContent {
   email_en: string;
   email_hi: string;
   email_mr: string;
-  latitude_en: string;
-  latitude_hi: string;
-  latitude_mr: string;
-  longitude_en: string;
-  longitude_hi: string;
-  longitude_mr: string;
+  map_embed_url: string;
   image_id?: string;
   existingImageUrl?: string;
 }
@@ -203,12 +198,7 @@ const HomePageEditor = () => {
     address_en: '',
     address_hi: '',
     address_mr: '',
-    latitude_en: '',
-    latitude_hi: '',
-    latitude_mr: '',
-    longitude_en: '',
-    longitude_hi: '',
-    longitude_mr: '',
+    map_embed_url: '',
     image_id: undefined,
     existingImageUrl: undefined,
   });
@@ -370,8 +360,7 @@ const HomePageEditor = () => {
         const phoneData = response.data.find((item: any) => item.section_key === 'visit_phone');
         const emailData = response.data.find((item: any) => item.section_key === 'visit_email');
         const addressData = response.data.find((item: any) => item.section_key === 'visit_address');
-        const latitudeData = response.data.find((item: any) => item.section_key === 'visit_latitude');
-        const longitudeData = response.data.find((item: any) => item.section_key === 'visit_longitude');
+        const mapEmbedUrlData = response.data.find((item: any) => item.section_key === 'visit_map_embed_url');
         const imageData = response.data.find((item: any) => item.section_key === 'visit_image');
 
         // Construct image URL if image exists
@@ -405,12 +394,7 @@ const HomePageEditor = () => {
           address_en: addressData?.content_en || '',
           address_hi: addressData?.content_hi || '',
           address_mr: addressData?.content_mr || '',
-          latitude_en: latitudeData?.content_en || '',
-          latitude_hi: latitudeData?.content_hi || '',
-          latitude_mr: latitudeData?.content_mr || '',
-          longitude_en: longitudeData?.content_en || '',
-          longitude_hi: longitudeData?.content_hi || '',
-          longitude_mr: longitudeData?.content_mr || '',
+          map_embed_url: mapEmbedUrlData?.content_en || '',
           image_id: imageData?.image_id,
           existingImageUrl,
         });
@@ -552,12 +536,7 @@ const HomePageEditor = () => {
         address_en: '',
         address_hi: '',
         address_mr: '',
-        latitude_en: '',
-        latitude_hi: '',
-        latitude_mr: '',
-        longitude_en: '',
-        longitude_hi: '',
-        longitude_mr: '',
+        map_embed_url: '',
         image_id: undefined,
         existingImageUrl: undefined,
       });
@@ -886,37 +865,13 @@ const HomePageEditor = () => {
         }),
       ].filter(Boolean));
 
-      // Save latitude
-      await Promise.all([
-        visitContent.latitude_en && client.put(`/admin/page-content/home/visit_latitude`, {
+      // Save map embed URL
+      if (visitContent.map_embed_url) {
+        await client.put(`/admin/page-content/home/visit_map_embed_url`, {
           language: 'en',
-          content: visitContent.latitude_en,
-        }),
-        visitContent.latitude_hi && client.put(`/admin/page-content/home/visit_latitude`, {
-          language: 'hi',
-          content: visitContent.latitude_hi,
-        }),
-        visitContent.latitude_mr && client.put(`/admin/page-content/home/visit_latitude`, {
-          language: 'mr',
-          content: visitContent.latitude_mr,
-        }),
-      ].filter(Boolean));
-
-      // Save longitude
-      await Promise.all([
-        visitContent.longitude_en && client.put(`/admin/page-content/home/visit_longitude`, {
-          language: 'en',
-          content: visitContent.longitude_en,
-        }),
-        visitContent.longitude_hi && client.put(`/admin/page-content/home/visit_longitude`, {
-          language: 'hi',
-          content: visitContent.longitude_hi,
-        }),
-        visitContent.longitude_mr && client.put(`/admin/page-content/home/visit_longitude`, {
-          language: 'mr',
-          content: visitContent.longitude_mr,
-        }),
-      ].filter(Boolean));
+          content: visitContent.map_embed_url,
+        });
+      }
 
       // Save background image if present
       if (visitContent.image_id) {
@@ -1595,40 +1550,17 @@ const HomePageEditor = () => {
               </Tabs>
             </div>
 
-            {/* Latitude */}
+            {/* Google Maps Embed URL */}
             <div className="space-y-2">
-              <Label htmlFor="latitude">Latitude</Label>
+              <Label htmlFor="map_embed_url">Google Maps Embed URL</Label>
+              <p className="text-xs text-muted-foreground">
+                Go to Google Maps → find the temple → Share → Embed a map → paste the full embed code or just the URL
+              </p>
               <Input
-                id="latitude"
-                value={visitContent.latitude_en}
-                onChange={(e) =>
-                  setVisitContent({
-                    ...visitContent,
-                    latitude_en: e.target.value,
-                    latitude_hi: e.target.value,
-                    latitude_mr: e.target.value,
-                  })
-                }
-                placeholder="28.6139"
-                disabled={loading}
-              />
-            </div>
-
-            {/* Longitude */}
-            <div className="space-y-2">
-              <Label htmlFor="longitude">Longitude</Label>
-              <Input
-                id="longitude"
-                value={visitContent.longitude_en}
-                onChange={(e) =>
-                  setVisitContent({
-                    ...visitContent,
-                    longitude_en: e.target.value,
-                    longitude_hi: e.target.value,
-                    longitude_mr: e.target.value,
-                  })
-                }
-                placeholder="77.2090"
+                id="map_embed_url"
+                value={visitContent.map_embed_url}
+                onChange={(e) => setVisitContent({ ...visitContent, map_embed_url: e.target.value })}
+                placeholder="https://www.google.com/maps/embed?pb=..."
                 disabled={loading}
               />
             </div>

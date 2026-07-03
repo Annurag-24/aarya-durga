@@ -77,6 +77,7 @@ const EventsSection = () => {
                                 ? new Date(event.event_date).toLocaleDateString(
                                       language === "mr" ? "mr-IN" : "en-US",
                                       {
+                                          weekday: "short",
                                           year: "numeric",
                                           month: "short",
                                           day: "numeric",
