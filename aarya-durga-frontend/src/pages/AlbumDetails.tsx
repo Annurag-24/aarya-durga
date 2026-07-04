@@ -81,7 +81,7 @@ const AlbumDetails = () => {
                             <img
                                 src={cover}
                                 alt={name}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-contain"
                             />
                         )}
                         <div className="absolute inset-0 bg-gradient-to-b from-foreground/70 via-foreground/50 to-foreground/80" />
@@ -135,7 +135,7 @@ const AlbumDetails = () => {
                                                     muted
                                                     playsInline
                                                     preload="metadata"
-                                                    className="h-72 w-full bg-black object-cover pointer-events-none"
+                                                    className="h-72 w-full bg-black object-contain pointer-events-none"
                                                 />
                                                 <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
                                                     <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
@@ -147,7 +147,7 @@ const AlbumDetails = () => {
                                             <img
                                                 src={item.url}
                                                 alt={`${name} ${index + 1}`}
-                                                className="h-72 w-full object-cover transition-transform group-hover:scale-105"
+                                                className="h-72 w-full object-contain transition-transform group-hover:scale-105"
                                             />
                                         )}
                                     </motion.button>

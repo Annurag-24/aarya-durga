@@ -57,7 +57,7 @@ const PrivacyPolicy = () => {
                             <img
                                 src={heroImage}
                                 alt="Temple"
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-contain"
                             />
                         )}
                         <div className="absolute inset-0 bg-gradient-to-b from-foreground/70 via-foreground/50 to-foreground/80" />

@@ -40,6 +40,10 @@ const VisitSection = () => {
       const lang = language as 'en' | 'hi' | 'mr';
 
       const getContent = (key: string) => getContentByLanguage(findContentItem(pageData, key), lang);
+      const getContentFallback = (key: string) => {
+        const item = findContentItem(pageData, key);
+        return getContentByLanguage(item, lang) || getContentByLanguage(item, 'en');
+      };
 
       const imageItem = findContentItem(pageData, 'visit_image');
       const imageUrl = getImageUrl(imageItem);
@@ -53,7 +57,7 @@ const VisitSection = () => {
         address: getContent('visit_address'),
         phone: getContent('visit_phone'),
         email: getContent('visit_email'),
-        mapEmbedUrl: getContent('visit_map_embed_url'),
+        mapEmbedUrl: getContentFallback('visit_map_embed_url'),
         imageUrl,
       });
     }
@@ -73,7 +77,7 @@ const VisitSection = () => {
     <section id="visit" className="relative py-0 overflow-hidden">
       <div className="relative">
         <div className="absolute inset-0">
-          {visitData.imageUrl && <img src={visitData.imageUrl} alt="Temple view" className="w-full h-full object-cover" />}
+          {visitData.imageUrl && <img src={visitData.imageUrl} alt="Temple view" className="w-full h-full object-contain" />}
           <div className="absolute inset-0 bg-gradient-to-b from-primary/90 via-primary/80 to-primary/90" />
         </div>
         <div className="relative z-10 container mx-auto px-4 py-20">
@@ -129,9 +133,6 @@ const VisitSection = () => {
               <Link to="/contact" className="block mt-5"><Button variant="gold" size="sm" className="w-full">{t.visitSection.contactUs}</Button></Link>
             </motion.div>
           </div>
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }} className="rounded-2xl overflow-hidden shadow-2xl border-2 border-primary-foreground/20 max-w-4xl mx-auto">
-            {mapEmbedSrc && <iframe title="Temple Location" src={mapEmbedSrc} width="100%" height="300" style={{ border: 0 }} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" />}
-          </motion.div>
         </div>
       </div>
     </section>

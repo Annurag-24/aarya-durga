@@ -2,13 +2,13 @@ import { Translations } from "./types";
 
 export const mr: Translations = {
   nav: {
-    home: "मुख्यपृष्ठ",
+    home: "होम",
     about: "व्यवस्थापन",
     history: "देवी इतिहास",
     poojaDonation: "पूजा & देणगी",
     eventsGallery: "कार्यक्रम",
     gallery: "गॅलरी",
-    dailyImage: "दैनिक प्रतिमा",
+    dailyImage: "दैनिक पूजा",
     contact: "संपर्क",
     templeName: "आर्या दुर्गा मंदिर",
   },
@@ -47,7 +47,7 @@ export const mr: Translations = {
   footer: {
     templeInfo: "मंदिर माहिती",
     quickLinks: "जलद दुवे",
-    home: "मुख्यपृष्ठ",
+    home: "होम",
     about: "आमच्याबद्दल",
     history: "देवी इतिहास",
     events: "कार्यक्रम",

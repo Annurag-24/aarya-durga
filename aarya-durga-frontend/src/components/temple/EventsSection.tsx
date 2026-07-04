@@ -98,7 +98,7 @@ const EventsSection = () => {
                                     <img
                                         src={getEventCoverImageUrl(event)}
                                         alt={title}
-                                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                        className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
                                     />
                                 </div>
                                 <div className="p-5 text-left">

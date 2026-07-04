@@ -75,13 +75,13 @@ const Gallery = () => {
         <HomePageProvider>
             <div className="min-h-screen">
                 <Navbar />
-                <section className="relative pt-16 h-[850px] flex items-center justify-center overflow-hidden">
+                <section className="relative pt-16 h-[300px] flex items-center justify-center overflow-hidden">
                     <div className="absolute inset-0">
                         {heroImage && (
                             <img
                                 src={heroImage}
                                 alt="Gallery"
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-contain"
                             />
                         )}
                         <div className="absolute inset-0 bg-gradient-to-b from-foreground/70 via-foreground/50 to-foreground/80" />
@@ -139,7 +139,7 @@ const Gallery = () => {
                                                         <img
                                                             src={cover}
                                                             alt={name}
-                                                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                                            className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
                                                         />
                                                     ) : (
                                                         <div className="h-full w-full flex items-center justify-center text-sm text-muted-foreground">

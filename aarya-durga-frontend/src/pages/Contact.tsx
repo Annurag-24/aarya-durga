@@ -16,6 +16,7 @@ import {
 import { RichTextContent } from "@/components/global/RichTextContent";
 import { useLoader } from "@/contexts/LoaderContext";
 import { HomePageProvider } from "@/contexts/HomePageContext";
+import VisitSection from "@/components/temple/VisitSection";
 import { useImagesLoaded } from "@/hooks/useImagesLoaded";
 
 interface ContactSubject {
@@ -80,6 +81,7 @@ const getTravelIcon = (mode: string) => {
 const Contact = () => {
     const { t, language } = useLanguage();
     const { setLoading: setGlobalLoading } = useLoader();
+    const [mapEmbedUrl, setMapEmbedUrl] = useState<string | null>(null);
     const [heroTitle, setHeroTitle] = useState("");
     const [heroSubtitle, setHeroSubtitle] = useState("");
     const [heroImageUrl, setHeroImageUrl] = useState("");
@@ -164,6 +166,16 @@ const Contact = () => {
             } catch (error) {
                 // Fall back to i18n subjects if API fails
             }
+            // Fetch map embed URL from home page content
+            try {
+                const homeData = await fetchPageContent("home");
+                const mapItem = findContentItem(homeData, "visit_map_embed_url");
+                const rawVal = mapItem?.content_en || "";
+                const srcMatch = rawVal.match(/src="([^"]+)"/);
+                setMapEmbedUrl(srcMatch ? srcMatch[1] : rawVal || null);
+            } catch {
+                // map not available
+            }
         } catch (error) {
             // Error fetching contact page content
         } finally {
@@ -227,12 +239,12 @@ const Contact = () => {
         <HomePageProvider>
             <div className="min-h-screen">
                 <Navbar />
-                <section className="relative pt-16 h-[850px] flex items-center justify-center overflow-hidden">
+                <section className="relative pt-16 h-[300px] flex items-center justify-center overflow-hidden">
                     <div className="absolute inset-0">
                         <img
                             src={heroImageUrl}
                             alt="Temple"
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-contain"
                         />
                         <div className="absolute inset-0 bg-gradient-to-b from-foreground/70 via-foreground/50 to-foreground/80" />
                     </div>
@@ -254,6 +266,52 @@ const Contact = () => {
                     </div>
                 </section>
 
+                {howToReachItems.length > 0 && (
+                    <section className="py-16 bg-card">
+                        <div className="container mx-auto px-4">
+                            <div className="text-center mb-10">
+                                <div className="gold-line mx-auto mb-4" />
+                                <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground">
+                                    How to Reach Us
+                                </h2>
+                            </div>
+
+                            <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-2 xl:grid-cols-3">
+                                {howToReachItems.map((item, index) => {
+                                    const Icon = getTravelIcon(item.mode);
+
+                                    return (
+                                        <motion.div
+                                            key={`${item.mode}-${index}`}
+                                            initial={{ opacity: 0, y: 24 }}
+                                            whileInView={{ opacity: 1, y: 0 }}
+                                            viewport={{ once: true }}
+                                            transition={{
+                                                duration: 0.45,
+                                                delay: index * 0.08,
+                                            }}
+                                            className="rounded-2xl border border-border/80 bg-accent px-6 py-7 text-center shadow-md"
+                                        >
+                                            <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl bg-primary/10 text-primary">
+                                                <Icon size={34} />
+                                            </div>
+                                            <h3 className="font-heading text-xl font-bold text-foreground">
+                                                {item.title}
+                                            </h3>
+                                            <RichTextContent
+                                                content={item.description}
+                                                className="mx-auto mt-4 max-w-sm text-base leading-relaxed text-muted-foreground prose-p:text-muted-foreground prose-strong:text-foreground prose-em:text-muted-foreground"
+                                            />
+                                        </motion.div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </section>
+                )}
+
+                <VisitSection />
+
                 <section className="py-20 bg-accent mandala-bg">
                     <div className="container mx-auto px-4">
                         <div className="text-center mb-12">
@@ -265,11 +323,31 @@ const Contact = () => {
                                 {t.contactPage.sendMessageSubtitle}
                             </p>
                         </div>
+                        <div className="grid md:grid-cols-2 gap-8 items-stretch">
+                            {mapEmbedUrl && (
+                                <motion.div
+                                    initial={{ opacity: 0, x: -30 }}
+                                    whileInView={{ opacity: 1, x: 0 }}
+                                    viewport={{ once: true }}
+                                    className="rounded-2xl overflow-hidden shadow-xl border border-border min-h-[500px]"
+                                >
+                                    <iframe
+                                        src={mapEmbedUrl}
+                                        width="100%"
+                                        height="100%"
+                                        style={{ border: 0, minHeight: "500px" }}
+                                        allowFullScreen
+                                        loading="lazy"
+                                        referrerPolicy="no-referrer-when-downgrade"
+                                        title="Temple Location"
+                                    />
+                                </motion.div>
+                            )}
                         <motion.div
                             initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
-                            className="max-w-2xl mx-auto bg-card rounded-2xl p-8 md:p-10 shadow-xl border border-border"
+                            className="bg-card rounded-2xl p-8 md:p-10 shadow-xl border border-border"
                         >
                             <form onSubmit={handleSubmit} className="space-y-6">
                                 <div className="grid md:grid-cols-2 gap-6">
@@ -386,52 +464,9 @@ const Contact = () => {
                                 </Button>
                             </form>
                         </motion.div>
+                        </div>
                     </div>
                 </section>
-
-                {howToReachItems.length > 0 && (
-                    <section className="py-16 bg-card">
-                        <div className="container mx-auto px-4">
-                            <div className="text-center mb-10">
-                                <div className="gold-line mx-auto mb-4" />
-                                <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground">
-                                    How to Reach Us
-                                </h2>
-                            </div>
-
-                            <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-2 xl:grid-cols-3">
-                                {howToReachItems.map((item, index) => {
-                                    const Icon = getTravelIcon(item.mode);
-
-                                    return (
-                                        <motion.div
-                                            key={`${item.mode}-${index}`}
-                                            initial={{ opacity: 0, y: 24 }}
-                                            whileInView={{ opacity: 1, y: 0 }}
-                                            viewport={{ once: true }}
-                                            transition={{
-                                                duration: 0.45,
-                                                delay: index * 0.08,
-                                            }}
-                                            className="rounded-2xl border border-border/80 bg-accent px-6 py-7 text-center shadow-md"
-                                        >
-                                            <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl bg-primary/10 text-primary">
-                                                <Icon size={34} />
-                                            </div>
-                                            <h3 className="font-heading text-xl font-bold text-foreground">
-                                                {item.title}
-                                            </h3>
-                                            <RichTextContent
-                                                content={item.description}
-                                                className="mx-auto mt-4 max-w-sm text-base leading-relaxed text-muted-foreground prose-p:text-muted-foreground prose-strong:text-foreground prose-em:text-muted-foreground"
-                                            />
-                                        </motion.div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    </section>
-                )}
 
                 <Footer />
             </div>

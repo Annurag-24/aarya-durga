@@ -106,7 +106,7 @@ const GallerySection = () => {
                                     <img
                                         src={tile.src}
                                         alt={tile.albumName}
-                                        className="w-full h-48 md:h-64 object-cover group-hover:scale-110 transition-transform duration-500"
+                                        className="w-full h-48 md:h-64 object-contain group-hover:scale-110 transition-transform duration-500"
                                     />
                                     <span className="absolute top-2 right-2 max-w-[70%] truncate rounded-full bg-foreground/80 px-3 py-1 text-xs font-medium text-primary-foreground backdrop-blur">
                                         {tile.albumName}

@@ -8,6 +8,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import Navbar from "@/components/temple/Navbar";
+import AboutSection from "@/components/temple/AboutSection";
 import Footer from "@/components/temple/Footer";
 import { useLanguage } from "@/i18n/LanguageContext";
 import {
@@ -129,12 +130,12 @@ const About = () => {
         <HomePageProvider>
             <div className="min-h-screen">
                 <Navbar />
-                <section className="relative pt-16 h-[850px] flex items-center justify-center overflow-hidden">
+                <section className="relative pt-16 h-[300px] flex items-center justify-center overflow-hidden">
                     <div className="absolute inset-0">
                         <img
                             src={heroImage}
                             alt="Temple"
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-contain"
                         />
                         <div className="absolute inset-0 bg-gradient-to-b from-foreground/70 via-foreground/50 to-foreground/80" />
                     </div>
@@ -156,7 +157,9 @@ const About = () => {
                     </div>
                 </section>
 
-                <section className="py-20 bg-card">
+                <AboutSection showReadMore={false} showDailyImage={false} scrollableText />
+
+                <section className="py-20 bg-accent">
                     <div className="container mx-auto px-4 text-center">
                         <div className="gold-line mx-auto mb-4" />
                         <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-6">
@@ -216,7 +219,7 @@ const About = () => {
                                                     <img
                                                         src={imageUrl}
                                                         alt={memberName}
-                                                        className="h-full w-full object-cover"
+                                                        className="h-full w-full object-contain"
                                                     />
                                                 ) : (
                                                     <Users

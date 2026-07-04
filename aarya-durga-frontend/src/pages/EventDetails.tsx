@@ -143,7 +143,7 @@ const EventDetails = () => {
                             <img
                                 src={getEventCoverImageUrl(event)}
                                 alt={title}
-                                className="absolute inset-0 h-full w-full object-cover"
+                                className="absolute inset-0 h-full w-full object-contain"
                             />
                             <div className="absolute inset-0 bg-gradient-to-b from-foreground/80 via-foreground/60 to-foreground/90" />
                         </>
@@ -290,7 +290,7 @@ const EventDetails = () => {
                                                     muted
                                                     playsInline
                                                     preload="metadata"
-                                                    className="h-72 w-full bg-black object-cover pointer-events-none"
+                                                    className="h-72 w-full bg-black object-contain pointer-events-none"
                                                 />
                                                 <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
                                                     <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
@@ -302,7 +302,7 @@ const EventDetails = () => {
                                             <img
                                                 src={item.url}
                                                 alt={`${title} gallery ${index + 1}`}
-                                                className="h-72 w-full object-cover transition-transform group-hover:scale-105"
+                                                className="h-72 w-full object-contain transition-transform group-hover:scale-105"
                                             />
                                         )}
                                     </motion.button>

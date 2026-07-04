@@ -96,6 +96,7 @@ class DailyImageController extends Controller
 
         return response()->json([
             'image'      => $record->image,
+            'image_date' => $record->image_date,
             'caption_en' => $record->caption_en,
             'caption_hi' => $record->caption_hi,
             'caption_mr' => $record->caption_mr,

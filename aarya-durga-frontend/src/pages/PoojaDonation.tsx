@@ -263,12 +263,12 @@ const PoojaDonation = () => {
         <HomePageProvider>
             <div className="min-h-screen">
                 <Navbar />
-                <section className="relative pt-16 h-[850px] flex items-center justify-center overflow-hidden">
+                <section className="relative pt-16 h-[300px] flex items-center justify-center overflow-hidden">
                     <div className="absolute inset-0">
                         <img
                             src={heroImage}
                             alt="Pooja"
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-contain"
                         />
                         <div className="absolute inset-0 bg-gradient-to-b from-foreground/70 via-foreground/50 to-foreground/80" />
                     </div>
@@ -347,16 +347,6 @@ const PoojaDonation = () => {
                                                 return `${prefix}${formatted}${suffix}`;
                                             })()}
                                         </span>
-                                        <Button
-                                            variant="temple"
-                                            size="sm"
-                                            onClick={() => {
-                                                setModalType("pooja");
-                                                setBankModalOpen(true);
-                                            }}
-                                        >
-                                            {t.poojaPage.bookPooja}
-                                        </Button>
                                     </div>
                                 </motion.div>
                             ))}

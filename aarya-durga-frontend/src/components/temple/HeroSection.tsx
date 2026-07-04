@@ -32,19 +32,9 @@ const HeroSection = () => {
   return (
     <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
       <div className="absolute inset-0">
-        <img src={backgroundImage} alt="Aarya Durga Temple" className="w-full h-full object-cover" />
+        <img src={backgroundImage} alt="Aarya Durga Temple" className="w-full h-full object-contain" />
         <div className="absolute inset-0 bg-gradient-to-b from-foreground/70 via-foreground/50 to-foreground/80" />
       </div>
-      <motion.div
-        className="absolute top-20 left-10 text-4xl opacity-30"
-        animate={{ y: [-10, 10, -10] }}
-        transition={{ duration: 4, repeat: Infinity }}
-      >🪷</motion.div>
-      <motion.div
-        className="absolute bottom-32 right-16 text-3xl opacity-20"
-        animate={{ y: [10, -10, 10] }}
-        transition={{ duration: 5, repeat: Infinity }}
-      >🔔</motion.div>
       <div className="relative z-10 text-center px-4 max-w-3xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
           <div className="lotus-divider mb-6"><span className="text-3xl">🪷</span></div>

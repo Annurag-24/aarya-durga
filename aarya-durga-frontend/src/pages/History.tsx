@@ -194,12 +194,12 @@ const History = () => {
                 <Navbar />
 
                 {/* Hero Section */}
-                <section className="relative pt-16 h-[850px] flex items-center justify-center overflow-hidden">
+                <section className="relative pt-16 h-[300px] flex items-center justify-center overflow-hidden">
                     <div className="absolute inset-0">
                         <img
                             src={heroImage}
                             alt="Temple History"
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-contain"
                         />
                         <div className="absolute inset-0 bg-gradient-to-b from-foreground/70 via-foreground/50 to-foreground/80" />
                     </div>
@@ -234,7 +234,7 @@ const History = () => {
                                 <img
                                     src={originImage}
                                     alt="Ancient temple"
-                                    className="w-full h-[450px] object-cover"
+                                    className="w-full h-[450px] object-contain"
                                 />
                             </motion.div>
                             <motion.div

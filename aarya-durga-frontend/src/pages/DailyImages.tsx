@@ -87,7 +87,7 @@ const DailyImages = () => {
                                     <img
                                         src={img.url}
                                         alt={img.date}
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                                     />
                                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent p-3 pt-8">
                                         <p className="text-white text-sm font-medium drop-shadow">
