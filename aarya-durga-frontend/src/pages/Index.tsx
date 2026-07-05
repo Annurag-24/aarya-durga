@@ -55,7 +55,7 @@ const IndexContent = () => {
             <EventsSection />
             <GallerySection />
             <FacilitiesSection />
-            <VisitSection />
+            <VisitSection showMap />
             <Footer />
         </div>
     );

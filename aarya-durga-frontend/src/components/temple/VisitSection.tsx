@@ -20,7 +20,7 @@ interface VisitData {
   imageUrl?: string;
 }
 
-const VisitSection = () => {
+const VisitSection = ({ showMap = false }: { showMap?: boolean }) => {
   const { t, language } = useLanguage();
   const { pageData } = useHomePageData();
   const [visitData, setVisitData] = useState<VisitData>({
@@ -133,6 +133,27 @@ const VisitSection = () => {
               <Link to="/contact" className="block mt-5"><Button variant="gold" size="sm" className="w-full">{t.visitSection.contactUs}</Button></Link>
             </motion.div>
           </div>
+
+          {showMap && mapEmbedSrc && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="mt-6 rounded-xl overflow-hidden shadow-lg border border-primary/20 max-w-4xl mx-auto"
+            >
+              <iframe
+                src={mapEmbedSrc}
+                width="100%"
+                height="300"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Temple Location"
+              />
+            </motion.div>
+          )}
         </div>
       </div>
     </section>
