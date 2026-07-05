@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { GoogleReCaptchaProvider, useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Car, MessageSquare, Navigation, Plane, TrainFront } from "lucide-react";
@@ -78,8 +79,9 @@ const getTravelIcon = (mode: string) => {
     return Navigation;
 };
 
-const Contact = () => {
+const ContactInner = () => {
     const { t, language } = useLanguage();
+    const { executeRecaptcha } = useGoogleReCaptcha();
     const { setLoading: setGlobalLoading } = useLoader();
     const [mapEmbedUrl, setMapEmbedUrl] = useState<string | null>(null);
     const [heroTitle, setHeroTitle] = useState("");
@@ -195,10 +197,9 @@ const Contact = () => {
         }));
     };
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        // Validation
         if (
             !formData.name.trim() ||
             !formData.email.trim() ||
@@ -208,14 +209,21 @@ const Contact = () => {
             return;
         }
 
+        if (!executeRecaptcha) {
+            toast.error("reCAPTCHA not ready. Please try again.");
+            return;
+        }
+
         setIsSubmitting(true);
         try {
+            const recaptchaToken = await executeRecaptcha("contact_form");
             await client.post("/public/contact", {
                 name: formData.name,
                 email: formData.email,
                 phone: formData.phone || undefined,
                 subject: formData.subject || undefined,
                 message: formData.message,
+                recaptcha_token: recaptchaToken,
             });
 
             toast.success(
@@ -233,7 +241,7 @@ const Contact = () => {
         } finally {
             setIsSubmitting(false);
         }
-    };
+    }, [formData, executeRecaptcha]);
 
     return (
         <HomePageProvider>
@@ -473,5 +481,11 @@ const Contact = () => {
         </HomePageProvider>
     );
 };
+
+const Contact = () => (
+    <GoogleReCaptchaProvider reCaptchaKey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}>
+        <ContactInner />
+    </GoogleReCaptchaProvider>
+);
 
 export default Contact;

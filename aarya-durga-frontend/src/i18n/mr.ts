@@ -3,7 +3,7 @@ import { Translations } from "./types";
 export const mr: Translations = {
   nav: {
     home: "होम",
-    about: "व्यवस्थापन",
+    about: "आमच्याबद्दल",
     history: "देवी इतिहास",
     poojaDonation: "पूजा & देणगी",
     eventsGallery: "कार्यक्रम",
