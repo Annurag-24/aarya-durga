@@ -17,7 +17,7 @@ export const en: Translations = {
         subtitle: "Wagde, Kankavli – A Sacred Place of Devotion and Heritage",
         description:
             "Experience the divine presence of Goddess Durga and immerse yourself in centuries of tradition, spirituality, and community devotion.",
-        explore: "Explore Temple",
+        explore: "About Us",
         viewEvents: "View Events",
     },
     aboutSection: {
@@ -30,10 +30,11 @@ export const en: Translations = {
         viewAll: "View All Events",
     },
     gallerySection: {
-        title: "Temple Moments",
+        title: "Gallery",
+        viewAll: "View All Gallery",
     },
     visitSection: {
-        title: "Plan Your Visit",
+        title: "Plan Your Darshan",
         subtitle: "Experience the divine at Aarya Durga Temple",
         darshanTimings: "Darshan Timings",
         morningDarshan: "Morning Darshan",
@@ -167,6 +168,8 @@ export const en: Translations = {
             "Support grand celebrations during Navratri and other festivals.",
         suggested: "Suggested",
         donateNow: "Donate Now",
+        donationDetailsTitle: "Donation Details",
+        donationDetailsSubtitle: "Please use these details for your donation or temple offering",
         bannerQuote:
             "The greatest offering to divine power is a heart filled with devotion.",
     },
@@ -205,6 +208,7 @@ export const en: Translations = {
         message: "Message",
         messagePlaceholder: "Write your message here...",
         sendBtn: "Send Message",
+        howToReachTitle: "How to Reach Us",
     },
     auth: {
         loginTitle: "Sign In to Your Account",

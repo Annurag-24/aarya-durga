@@ -117,7 +117,7 @@ const GallerySection = () => {
                         <div className="mt-12">
                             <Link to="/gallery">
                                 <Button variant="temple" size="lg">
-                                    View All Gallery
+                                    {t.gallerySection.viewAll}
                                 </Button>
                             </Link>
                         </div>

@@ -47,20 +47,27 @@ const EventsGallery = () => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        return events.filter((event) => {
-            if (!event.event_date) {
-                return eventFilter === "upcoming";
-            }
+        return events
+            .filter((event) => {
+                if (!event.event_date) {
+                    return eventFilter === "upcoming";
+                }
 
-            const eventDate = new Date(event.event_date);
-            eventDate.setHours(0, 0, 0, 0);
+                const eventDate = new Date(event.event_date);
+                eventDate.setHours(0, 0, 0, 0);
 
-            if (eventFilter === "upcoming") {
-                return eventDate >= today;
-            }
+                if (eventFilter === "upcoming") {
+                    return eventDate >= today;
+                }
 
-            return eventDate < today;
-        });
+                return eventDate < today;
+            })
+            .sort((a, b) => {
+                if (!a.event_date) return 1;
+                if (!b.event_date) return -1;
+                const diff = new Date(a.event_date).getTime() - new Date(b.event_date).getTime();
+                return eventFilter === "upcoming" ? diff : -diff;
+            });
     }, [events, eventFilter]);
 
     useEffect(() => {

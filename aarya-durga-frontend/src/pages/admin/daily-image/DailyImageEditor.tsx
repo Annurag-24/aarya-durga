@@ -40,9 +40,9 @@ const sameDay = (a: Date, b: Date) =>
 
 const DailyImageEditor = () => {
     const today = useMemo(() => startOfDay(new Date()), []);
-    const windowEnd = useMemo(() => {
+    const windowStart = useMemo(() => {
         const d = new Date(today);
-        d.setDate(d.getDate() + WINDOW_DAYS - 1);
+        d.setDate(d.getDate() - (WINDOW_DAYS - 1));
         return d;
     }, [today]);
 
@@ -57,7 +57,7 @@ const DailyImageEditor = () => {
     const fetchRange = async () => {
         try {
             const res = await client.get("/admin/daily-image", {
-                params: { from: toISO(today), to: toISO(windowEnd) },
+                params: { from: toISO(windowStart), to: toISO(today) },
             });
             const list: DayRecord[] = Array.isArray(res.data) ? res.data : [];
             const map: Record<string, DayRecord> = {};
@@ -93,7 +93,7 @@ const DailyImageEditor = () => {
         return cells;
     }, [viewMonth]);
 
-    const isEditable = (d: Date) => d >= today && d <= windowEnd;
+    const isEditable = (d: Date) => d >= windowStart && d <= today;
 
     const handleFile = async (date: Date, file: File) => {
         const key = toISO(date);
@@ -134,15 +134,15 @@ const DailyImageEditor = () => {
     const nextMonth = () =>
         setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 1));
 
-    const canGoPrev = viewMonth > new Date(today.getFullYear(), today.getMonth(), 1);
-    const canGoNext = viewMonth < new Date(windowEnd.getFullYear(), windowEnd.getMonth(), 1);
+    const canGoPrev = viewMonth > new Date(windowStart.getFullYear(), windowStart.getMonth(), 1);
+    const canGoNext = viewMonth < new Date(today.getFullYear(), today.getMonth(), 1);
 
     return (
         <div className="w-full space-y-6">
             <div>
                 <h1 className="text-2xl font-heading font-bold text-foreground py-2">Daily Image</h1>
                 <p className="text-sm text-muted-foreground mt-1">
-                    Click any date within the next {WINDOW_DAYS} days to upload an image. The uploaded
+                    Click any date within the past {WINDOW_DAYS} days (including today) to upload an image. The uploaded
                     image will appear in that day's cell.
                 </p>
             </div>
@@ -262,7 +262,7 @@ const DailyImageEditor = () => {
                 </div>
 
                 <p className="text-xs text-muted-foreground mt-4">
-                    Editable window: {toISO(today)} – {toISO(windowEnd)} (15 days). Other dates are
+                    Editable window: {toISO(windowStart)} – {toISO(today)} (15 days). Other dates are
                     disabled.
                 </p>
             </div>

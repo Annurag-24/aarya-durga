@@ -15,7 +15,7 @@ import {
 } from "@/api/events";
 
 const EventsSection = () => {
-    const { language } = useLanguage();
+    const { t, language } = useLanguage();
     const { pageData, loading } = useEventsGalleryPageData();
     const [title, setTitle] = useState<string>("");
     const [events, setEvents] = useState<ApiEvent[]>([]);
@@ -126,7 +126,7 @@ const EventsSection = () => {
                 </div>
                 <Link to="/events-gallery">
                     <Button variant="temple" size="lg">
-                        View All Events
+                        {t.eventsSection.viewAll}
                     </Button>
                 </Link>
             </div>

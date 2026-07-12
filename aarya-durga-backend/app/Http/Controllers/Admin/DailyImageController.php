@@ -12,8 +12,9 @@ class DailyImageController extends Controller
 
     private function pruneExpired(): void
     {
+        $cutoff = date('Y-m-d', strtotime('today -' . (self::DAYS - 1) . ' days'));
         DailyImage::whereNotNull('image_date')
-            ->where('image_date', '<', date('Y-m-d'))
+            ->where('image_date', '<', $cutoff)
             ->delete();
     }
 
@@ -50,10 +51,10 @@ class DailyImageController extends Controller
         }
 
         $today = date('Y-m-d');
-        $windowEnd = date('Y-m-d', strtotime($today . ' +' . (self::DAYS - 1) . ' days'));
-        if ($date < $today || $date > $windowEnd) {
+        $windowStart = date('Y-m-d', strtotime('today -' . (self::DAYS - 1) . ' days'));
+        if ($date < $windowStart || $date > $today) {
             return response()->json([
-                'error' => "Date must be within {$today} and {$windowEnd}.",
+                'error' => "Date must be within {$windowStart} and {$today}.",
             ], 422);
         }
 
@@ -77,7 +78,7 @@ class DailyImageController extends Controller
             DailyImage::with('image')
                 ->whereNotNull('image_date')
                 ->whereNotNull('image_id')
-                ->orderBy('image_date')
+                ->orderBy('image_date', 'desc')
                 ->get()
         );
     }

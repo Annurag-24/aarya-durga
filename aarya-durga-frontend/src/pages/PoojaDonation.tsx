@@ -403,10 +403,10 @@ const PoojaDonation = () => {
                             <div className="text-center mb-12">
                                 <div className="gold-line mx-auto mb-4" />
                                 <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground">
-                                    Donation Details
+                                    {t.poojaPage.donationDetailsTitle}
                                 </h2>
                                 <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
-                                    Please use these details for your donation or temple offering
+                                    {t.poojaPage.donationDetailsSubtitle}
                                 </p>
                             </div>
                             <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">

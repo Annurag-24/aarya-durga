@@ -280,7 +280,7 @@ const ContactInner = () => {
                             <div className="text-center mb-10">
                                 <div className="gold-line mx-auto mb-4" />
                                 <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground">
-                                    How to Reach Us
+                                    {t.contactPage.howToReachTitle}
                                 </h2>
                             </div>
 

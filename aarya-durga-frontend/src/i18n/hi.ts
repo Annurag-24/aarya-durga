@@ -30,6 +30,7 @@ export const hi: Translations = {
   },
   gallerySection: {
     title: "मंदिर के पल",
+    viewAll: "सभी गैलरी देखें",
   },
   visitSection: {
     title: "दर्शन की योजना बनाएँ",
@@ -139,6 +140,8 @@ export const hi: Translations = {
     festivalFundDesc: "नवरात्रि और अन्य त्योहारों के दौरान भव्य उत्सवों का समर्थन करें।",
     suggested: "सुझावित",
     donateNow: "अभी दान करें",
+    donationDetailsTitle: "दान की जानकारी",
+    donationDetailsSubtitle: "दान या मंदिर में अर्पण के लिए इन विवरणों का उपयोग करें",
     bannerQuote: "दिव्य शक्ति को सबसे बड़ा अर्पण भक्ति से भरा हृदय है।",
   },
   eventsGalleryPage: {
@@ -165,6 +168,7 @@ export const hi: Translations = {
     message: "संदेश",
     messagePlaceholder: "अपना संदेश यहाँ लिखें...",
     sendBtn: "संदेश भेजें",
+    howToReachTitle: "हम तक कैसे पहुँचें",
   },
   auth: {
     loginTitle: "अपने खाते में साइन इन करें",

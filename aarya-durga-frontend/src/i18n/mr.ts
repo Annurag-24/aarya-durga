@@ -5,7 +5,7 @@ export const mr: Translations = {
     home: "होम",
     about: "आमच्याबद्दल",
     history: "देवी इतिहास",
-    poojaDonation: "पूजा & देणगी",
+    poojaDonation: "पूजा व देणगी",
     eventsGallery: "कार्यक्रम",
     gallery: "गॅलरी",
     dailyImage: "दैनिक पूजा",
@@ -16,7 +16,7 @@ export const mr: Translations = {
     title: "आर्या दुर्गा मंदिर",
     subtitle: "वागडे, कणकवली – भक्ती आणि वारशाचे पवित्र स्थान",
     description: "देवी दुर्गेच्या दिव्य उपस्थितीचा अनुभव घ्या आणि शतकानुशतकांच्या परंपरा, अध्यात्म आणि सामुदायिक भक्तीमध्ये स्वतःला विसर्जित करा।",
-    explore: "मंदिर पहा",
+    explore: "आमच्याबद्दल",
     viewEvents: "कार्यक्रम पहा",
   },
   aboutSection: {
@@ -29,10 +29,11 @@ export const mr: Translations = {
     viewAll: "सर्व कार्यक्रम पहा",
   },
   gallerySection: {
-    title: "मंदिराचे क्षण",
+    title: "गॅलरी",
+    viewAll: "सर्व गॅलरी पहा",
   },
   visitSection: {
-    title: "भेटीचे नियोजन करा",
+    title: "दर्शनाचे नियोजन करा",
     subtitle: "आर्या दुर्गा मंदिरात दिव्य अनुभव घ्या",
     darshanTimings: "दर्शन वेळ",
     morningDarshan: "सकाळचे दर्शन",
@@ -139,6 +140,8 @@ export const mr: Translations = {
     festivalFundDesc: "नवरात्र आणि इतर सणांदरम्यान भव्य उत्सवांना सहाय्य करा।",
     suggested: "सुचवलेले",
     donateNow: "आता दान करा",
+    donationDetailsTitle: "देणगीसाठी माहिती",
+    donationDetailsSubtitle: "देणगी देण्यासाठी किंवा मंदिरातील धार्मिक विधींसाठी दिलेल्या माहितीचा उपयोग करा.",
     bannerQuote: "दिव्य शक्तीला सर्वोत्तम अर्पण म्हणजे भक्तीने भरलेले हृदय।",
   },
   eventsGalleryPage: {
@@ -165,6 +168,7 @@ export const mr: Translations = {
     message: "संदेश",
     messagePlaceholder: "तुमचा संदेश येथे लिहा...",
     sendBtn: "संदेश पाठवा",
+    howToReachTitle: "कसे पोहचाल",
   },
   auth: {
     loginTitle: "तुमच्या खात्यात साइन इन करा",
