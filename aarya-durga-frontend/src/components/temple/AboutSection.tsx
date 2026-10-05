@@ -126,17 +126,19 @@ const AboutSection = ({ showReadMore = true, showDailyImage = true, scrollableTe
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.7, delay: 0.2 }}
-                        className="flex flex-col justify-center"
+                        className={`flex flex-col justify-between ${scrollableText ? "h-[400px]" : ""}`}
                     >
-                        <div className="gold-line mb-4" />
-                        {contextLoading ? (
-                            <Skeleton className="h-10 w-40 mb-6" />
-                        ) : (
-                            <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-6">
-                                {title}
-                            </h2>
-                        )}
-                        <div className={`space-y-4 mb-6 ${scrollableText ? "max-h-48 overflow-y-auto" : "line-clamp-5 overflow-hidden"}`}>
+                        <div>
+                            <div className="gold-line mb-4" />
+                            {contextLoading ? (
+                                <Skeleton className="h-10 w-40 mb-6" />
+                            ) : (
+                                <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-6">
+                                    {title}
+                                </h2>
+                            )}
+                        </div>
+                        <div className={`space-y-4 mb-6 ${scrollableText ? "flex-1 min-h-0 overflow-y-auto" : "line-clamp-[10] overflow-hidden"}`}>
                             {contextLoading ? (
                                 <>
                                     <Skeleton className="h-4 w-full" />
@@ -150,13 +152,13 @@ const AboutSection = ({ showReadMore = true, showDailyImage = true, scrollableTe
                                 />
                             )}
                         </div>
-                        {showReadMore && (
-                            <Link to="/about">
+                        {showReadMore ? (
+                            <Link to="/about" className="self-start">
                                 <Button variant="temple">
                                     {t.aboutSection.readMore}
                                 </Button>
                             </Link>
-                        )}
+                        ) : <div />}
                     </motion.div>
                 </div>
             </div>

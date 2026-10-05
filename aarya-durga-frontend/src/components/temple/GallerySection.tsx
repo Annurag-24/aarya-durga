@@ -100,14 +100,15 @@ const GallerySection = () => {
                                         duration: 0.4,
                                         delay: i * 0.1,
                                     }}
-                                    className="relative overflow-hidden rounded-lg cursor-pointer group"
+                                    className="relative overflow-hidden rounded-xl cursor-pointer group bg-card shadow-md hover:shadow-xl transition-shadow duration-300 ring-1 ring-border/50"
                                     onClick={() => setSelected(i)}
                                 >
                                     <img
                                         src={tile.src}
                                         alt={tile.albumName}
-                                        className="w-full h-48 md:h-64 object-contain group-hover:scale-110 transition-transform duration-500"
+                                        className="w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-500"
                                     />
+                                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 to-transparent" />
                                     <span className="absolute top-2 right-2 max-w-[70%] truncate rounded-full bg-foreground/80 px-3 py-1 text-xs font-medium text-primary-foreground backdrop-blur">
                                         {tile.albumName}
                                     </span>
