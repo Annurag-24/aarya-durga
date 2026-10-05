@@ -129,7 +129,6 @@ const AboutSection = ({ showReadMore = true, showDailyImage = true, scrollableTe
                         className={`flex flex-col justify-between ${scrollableText ? "h-[400px]" : ""}`}
                     >
                         <div>
-                            <div className="gold-line mb-4" />
                             {contextLoading ? (
                                 <Skeleton className="h-10 w-40 mb-6" />
                             ) : (
@@ -138,7 +137,7 @@ const AboutSection = ({ showReadMore = true, showDailyImage = true, scrollableTe
                                 </h2>
                             )}
                         </div>
-                        <div className={`space-y-4 mb-6 ${scrollableText ? "flex-1 min-h-0 overflow-y-auto" : "line-clamp-[10] overflow-hidden"}`}>
+                        <div className={`space-y-4 mb-6 ${scrollableText ? "flex-1 min-h-0 overflow-y-auto" : "line-clamp-[11] overflow-hidden"}`}>
                             {contextLoading ? (
                                 <>
                                     <Skeleton className="h-4 w-full" />
