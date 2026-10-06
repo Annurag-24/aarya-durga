@@ -16,13 +16,14 @@ concurrency:
 env:
     FRONTEND_DIR: aarya-durga-frontend
     BACKEND_DIR: aarya-durga-backend
-    FRONTEND_URL: https://aarya-durga.demosystem.in
-    BACKEND_URL: https://api.aarya-durga.demosystem.in
-    VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://api.aarya-durga.demosystem.in/api' }}
-    CPANEL_HOST: ${{ secrets.CPANEL_HOST || '9.12.109.208.host.secureserver.net' }}
-    CPANEL_USERNAME: ${{ secrets.CPANEL_USERNAME || 'demosystem' }}
-    CPANEL_FRONTEND_PATH: ${{ secrets.CPANEL_FRONTEND_PATH || '/home/demosystem/public_html/aarya-durga/aarya-durga-frontend/dist' }}
-    CPANEL_BACKEND_PATH: ${{ secrets.CPANEL_BACKEND_PATH || '/home/demosystem/public_html/aarya-durga/aarya-durga-backend' }}
+    FRONTEND_URL: https://aaryadurgakankavli.org
+    BACKEND_URL: https://api.aaryadurgakankavli.org
+    VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://api.aaryadurgakankavli.org/api' }}
+    CPANEL_HOST: ${{ secrets.CPANEL_HOST || '97.74.83.112' }}
+    CPANEL_USERNAME: ${{ secrets.CPANEL_USERNAME || 'aaryadurgakankav' }}
+    CPANEL_FRONTEND_PATH: ${{ secrets.CPANEL_FRONTEND_PATH || '/home/aaryadurgakankav/public_html' }}
+    CPANEL_BACKEND_PATH: ${{ secrets.CPANEL_BACKEND_PATH || '/home/aaryadurgakankav/aarya-durga/aarya-durga-backend' }}
+    REMOTE_PHP: ${{ secrets.REMOTE_PHP || '/opt/cpanel/ea-php82/root/usr/bin/php' }}
     SSH_PORT: ${{ secrets.CPANEL_SSH_PORT || '22' }}
 
 jobs:
@@ -49,6 +50,8 @@ jobs:
               working-directory: ${{ env.FRONTEND_DIR }}
               env:
                   VITE_API_URL: ${{ env.VITE_API_URL }}
+                  VITE_APP_URL: ${{ env.FRONTEND_URL }}
+                  VITE_RECAPTCHA_SITE_KEY: ${{ secrets.VITE_RECAPTCHA_SITE_KEY }}
               run: |
                   npm run build
 
@@ -184,6 +187,11 @@ jobs:
                   CPANEL_FRONTEND_PATH: ${{ env.CPANEL_FRONTEND_PATH }}
               run: |
                   rsync -az --delete \
+                    --exclude='api.aaryadurgakankavli.org' \
+                    --exclude='.well-known' \
+                    --exclude='cgi-bin' \
+                    --exclude='.htaccess' \
+                    --exclude='php.ini' \
                     -e "ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
                     frontend-dist/ \
                     "$CPANEL_USERNAME@$CPANEL_HOST:$CPANEL_FRONTEND_PATH/"
@@ -226,9 +234,11 @@ jobs:
                     # Remove stale cached container/config files from previous deploys.
                     rm -f bootstrap/cache/*.php
 
-                    php artisan migrate --force
-                    php artisan config:cache
-                    php artisan view:cache
-                    php artisan storage:link || true
+                    PHP="${{ env.REMOTE_PHP }}"
+                    \$PHP artisan migrate --force
+                    \$PHP artisan config:cache
+                    \$PHP artisan route:cache
+                    \$PHP artisan view:cache
+                    \$PHP artisan storage:link || true
                     chmod -R ug+rwx storage bootstrap/cache || true
                   EOF
