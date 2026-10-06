@@ -186,6 +186,8 @@ jobs:
                   CPANEL_USERNAME: ${{ env.CPANEL_USERNAME }}
                   CPANEL_FRONTEND_PATH: ${{ env.CPANEL_FRONTEND_PATH }}
               run: |
+                  # Make sure .htaccess is present (artifact upload can drop dotfiles)
+                  cp aarya-durga-frontend/public/.htaccess frontend-dist/.htaccess
                   rsync -az --delete \
                     --exclude='api.aaryadurgakankavli.org' \
                     --exclude='.well-known' \
