@@ -13,18 +13,15 @@ interface LanguageContextType {
 }
 
 const LanguageContext = createContext<LanguageContextType>({
-  language: "en",
+  language: "mr",
   setLanguage: () => { },
-  t: en,
+  t: translationsMap.mr,
 });
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [language, setLanguage] = useState<Language>(() => {
     const saved = localStorage.getItem("temple-lang") as Language | null;
-    if (saved === "hi") {
-      return "en";
-    }
-    return saved && translationsMap[saved] ? saved : "en";
+    return saved && translationsMap[saved] ? saved : "mr";
   });
 
   const handleSetLanguage = (lang: Language) => {
