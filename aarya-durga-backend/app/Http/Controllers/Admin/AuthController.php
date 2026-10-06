@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Auth;
 
@@ -17,10 +18,23 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
-        $credentials = $request->validate([
+        $data = $request->validate([
             'email' => 'required|email',
             'password' => 'required|string|min:6',
+            'recaptcha_token' => 'required|string',
         ]);
+
+        $recaptchaResponse = Http::withoutVerifying()->asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+            'secret' => config('services.recaptcha.secret'),
+            'response' => $data['recaptcha_token'],
+            'remoteip' => $request->ip(),
+        ])->json();
+
+        if (!($recaptchaResponse['success'] ?? false) || ($recaptchaResponse['score'] ?? 0) < 0.5) {
+            return response()->json(['error' => 'reCAPTCHA verification failed'], 422);
+        }
+
+        $credentials = ['email' => $data['email'], 'password' => $data['password']];
 
         if (!$token = auth('admin')->attempt($credentials)) {
             return response()->json(['error' => 'Invalid credentials'], 401);

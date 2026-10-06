@@ -8,9 +8,11 @@ import { useAdminAuth } from '@/hooks/admin/useAdminAuth';
 import AuthLayout from '@/components/auth/AuthLayout';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import { GoogleReCaptchaProvider, useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
-const AdminLogin = () => {
+const AdminLoginForm = () => {
   const { adminLogin } = useAdminAuth();
+  const { executeRecaptcha } = useGoogleReCaptcha();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -23,7 +25,13 @@ const AdminLogin = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await adminLogin(formData.email, formData.password);
+      if (!executeRecaptcha) {
+        toast.error('reCAPTCHA not ready, please retry.');
+        setLoading(false);
+        return;
+      }
+      const recaptchaToken = await executeRecaptcha('admin_login');
+      await adminLogin(formData.email, formData.password, recaptchaToken);
       toast.success('Welcome to Admin Portal!', {
         description: 'You have successfully signed in.',
       });
@@ -137,5 +145,11 @@ const AdminLogin = () => {
     </AuthLayout>
   );
 };
+
+const AdminLogin = () => (
+  <GoogleReCaptchaProvider reCaptchaKey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}>
+    <AdminLoginForm />
+  </GoogleReCaptchaProvider>
+);
 
 export default AdminLogin;

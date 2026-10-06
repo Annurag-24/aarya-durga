@@ -18,8 +18,8 @@ export interface AdminUser {
 }
 
 const auth = {
-  login: async (email: string, password: string): Promise<AuthResponse> => {
-    const response = await client.post('/admin/auth/login', { email, password });
+  login: async (email: string, password: string, recaptcha_token: string): Promise<AuthResponse> => {
+    const response = await client.post('/admin/auth/login', { email, password, recaptcha_token });
     return response.data;
   },
 

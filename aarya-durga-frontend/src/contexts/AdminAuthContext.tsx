@@ -5,7 +5,7 @@ export interface AdminAuthContextType {
   admin: AdminUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  adminLogin: (email: string, password: string) => Promise<void>;
+  adminLogin: (email: string, password: string, recaptchaToken: string) => Promise<void>;
   adminLogout: () => Promise<void>;
 }
 
@@ -33,8 +33,8 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     hydrate();
   }, []);
 
-  const adminLogin = async (email: string, password: string) => {
-    const response = await auth.login(email, password);
+  const adminLogin = async (email: string, password: string, recaptchaToken: string) => {
+    const response = await auth.login(email, password, recaptchaToken);
     localStorage.setItem('admin_token', response.access_token);
     setAdmin(response.admin);
   };
