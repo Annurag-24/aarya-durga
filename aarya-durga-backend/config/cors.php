@@ -20,7 +20,8 @@ return [
         'http://localhost:5173',
         'http://localhost:8080',
         'http://localhost:3000',
-        'https://aarya-durga.demosystem.in',
+        'https://aaryadurgakankavli.org',
+        'https://www.aaryadurgakankavli.org',
     ],
 
     'allowed_origins_patterns' => [
