@@ -190,7 +190,6 @@ jobs:
                     --exclude='api.aaryadurgakankavli.org' \
                     --exclude='.well-known' \
                     --exclude='cgi-bin' \
-                    --exclude='.htaccess' \
                     --exclude='php.ini' \
                     -e "ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
                     frontend-dist/ \
