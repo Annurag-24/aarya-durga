@@ -34,6 +34,16 @@ const EventDetails = () => {
         [event],
     );
 
+    const coverUrl = event ? getEventCoverImageUrl(event) : "";
+    const mediaItems = useMemo(
+        () =>
+            coverUrl
+                ? [{ url: coverUrl, isVideo: false }, ...galleryItems]
+                : galleryItems,
+        [coverUrl, galleryItems],
+    );
+    const galleryOffset = coverUrl ? 1 : 0;
+
     const imageUrls = useMemo(() => {
         if (!event) {
             return [];
@@ -254,6 +264,19 @@ const EventDetails = () => {
                                     </div>
                                 )}
                             </div>
+                            {coverUrl && (
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveMediaIndex(0)}
+                                    className="mt-8 block w-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                                >
+                                    <img
+                                        src={coverUrl}
+                                        alt={title}
+                                        className="h-56 w-full object-contain transition-transform hover:scale-105"
+                                    />
+                                </button>
+                            )}
                         </aside>
                     </div>
                 </section>
@@ -272,7 +295,7 @@ const EventDetails = () => {
                                 {galleryItems.map((item, index) => (
                                     <motion.button
                                         type="button"
-                                        onClick={() => setActiveMediaIndex(index)}
+                                        onClick={() => setActiveMediaIndex(index + galleryOffset)}
                                         key={`${item.url}-${index}`}
                                         initial={{ opacity: 0, y: 24 }}
                                         whileInView={{ opacity: 1, y: 0 }}
@@ -320,11 +343,11 @@ const EventDetails = () => {
                 >
                     <DialogContent className="max-w-5xl w-[95vw] p-0 bg-black border-0 overflow-hidden [&>button]:bg-white/15 [&>button]:hover:bg-white/30 [&>button]:text-white [&>button]:rounded-full [&>button]:p-2 [&>button]:opacity-100 [&>button>svg]:h-5 [&>button>svg]:w-5">
                         {activeMediaIndex !== null &&
-                            galleryItems[activeMediaIndex] && (
+                            mediaItems[activeMediaIndex] && (
                                 <div className="relative flex items-center justify-center bg-black">
-                                    {galleryItems[activeMediaIndex].isVideo ? (
+                                    {mediaItems[activeMediaIndex].isVideo ? (
                                         <video
-                                            src={galleryItems[activeMediaIndex].url}
+                                            src={mediaItems[activeMediaIndex].url}
                                             controls
                                             autoPlay
                                             playsInline
@@ -332,7 +355,7 @@ const EventDetails = () => {
                                         />
                                     ) : (
                                         <img
-                                            src={galleryItems[activeMediaIndex].url}
+                                            src={mediaItems[activeMediaIndex].url}
                                             alt={`${title} gallery ${activeMediaIndex + 1}`}
                                             className="w-full max-h-[85vh] object-contain bg-black"
                                         />

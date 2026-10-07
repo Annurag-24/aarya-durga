@@ -119,6 +119,9 @@ interface FooterContent {
   social_label_en: string;
   social_label_hi: string;
   social_label_mr: string;
+  temple_info_title_en: string;
+  temple_info_title_hi: string;
+  temple_info_title_mr: string;
   facebook_link_en: string;
   facebook_link_hi: string;
   facebook_link_mr: string;
@@ -222,6 +225,9 @@ const HomePageEditor = () => {
     social_label_en: '',
     social_label_hi: '',
     social_label_mr: '',
+    temple_info_title_en: '',
+    temple_info_title_hi: '',
+    temple_info_title_mr: '',
     facebook_link_en: '',
     facebook_link_hi: '',
     facebook_link_mr: '',
@@ -400,6 +406,7 @@ const HomePageEditor = () => {
         });
       } else if (sectionKey === 'footer') {
         const socialLabelData = response.data.find((item: any) => item.section_key === 'footer_social_label');
+        const templeInfoTitleData = response.data.find((item: any) => item.section_key === 'footer_temple_info_title');
         const facebookData = response.data.find((item: any) => item.section_key === 'footer_facebook_link');
         const youtubeData = response.data.find((item: any) => item.section_key === 'footer_youtube_link');
         const instagramData = response.data.find((item: any) => item.section_key === 'footer_instagram_link');
@@ -409,6 +416,9 @@ const HomePageEditor = () => {
           social_label_en: socialLabelData?.content_en || '',
           social_label_hi: socialLabelData?.content_hi || '',
           social_label_mr: socialLabelData?.content_mr || '',
+          temple_info_title_en: templeInfoTitleData?.content_en || '',
+          temple_info_title_hi: templeInfoTitleData?.content_hi || '',
+          temple_info_title_mr: templeInfoTitleData?.content_mr || '',
           facebook_link_en: facebookData?.content_en || '',
           facebook_link_hi: facebookData?.content_hi || '',
           facebook_link_mr: facebookData?.content_mr || '',
@@ -544,6 +554,9 @@ const HomePageEditor = () => {
         social_label_en: '',
         social_label_hi: '',
         social_label_mr: '',
+        temple_info_title_en: '',
+        temple_info_title_hi: '',
+        temple_info_title_mr: '',
         facebook_link_en: '',
         facebook_link_hi: '',
         facebook_link_mr: '',
@@ -569,15 +582,15 @@ const HomePageEditor = () => {
       // Save title
       if (heroContent.title_en || heroContent.title_hi || heroContent.title_mr) {
         await Promise.all([
-          heroContent.title_en && client.put(`/admin/page-content/home/hero_title`, {
+          client.put(`/admin/page-content/home/hero_title`, {
             language: 'en',
             content: heroContent.title_en,
           }),
-          heroContent.title_hi && client.put(`/admin/page-content/home/hero_title`, {
+          client.put(`/admin/page-content/home/hero_title`, {
             language: 'hi',
             content: heroContent.title_hi,
           }),
-          heroContent.title_mr && client.put(`/admin/page-content/home/hero_title`, {
+          client.put(`/admin/page-content/home/hero_title`, {
             language: 'mr',
             content: heroContent.title_mr,
           }),
@@ -587,15 +600,15 @@ const HomePageEditor = () => {
       // Save subtitle
       if (heroContent.subtitle_en || heroContent.subtitle_hi || heroContent.subtitle_mr) {
         await Promise.all([
-          heroContent.subtitle_en && client.put(`/admin/page-content/home/hero_subtitle`, {
+          client.put(`/admin/page-content/home/hero_subtitle`, {
             language: 'en',
             content: heroContent.subtitle_en,
           }),
-          heroContent.subtitle_hi && client.put(`/admin/page-content/home/hero_subtitle`, {
+          client.put(`/admin/page-content/home/hero_subtitle`, {
             language: 'hi',
             content: heroContent.subtitle_hi,
           }),
-          heroContent.subtitle_mr && client.put(`/admin/page-content/home/hero_subtitle`, {
+          client.put(`/admin/page-content/home/hero_subtitle`, {
             language: 'mr',
             content: heroContent.subtitle_mr,
           }),
@@ -605,15 +618,15 @@ const HomePageEditor = () => {
       // Save description
       if (heroContent.description_en || heroContent.description_hi || heroContent.description_mr) {
         await Promise.all([
-          heroContent.description_en && client.put(`/admin/page-content/home/hero_description`, {
+          client.put(`/admin/page-content/home/hero_description`, {
             language: 'en',
             content: heroContent.description_en,
           }),
-          heroContent.description_hi && client.put(`/admin/page-content/home/hero_description`, {
+          client.put(`/admin/page-content/home/hero_description`, {
             language: 'hi',
             content: heroContent.description_hi,
           }),
-          heroContent.description_mr && client.put(`/admin/page-content/home/hero_description`, {
+          client.put(`/admin/page-content/home/hero_description`, {
             language: 'mr',
             content: heroContent.description_mr,
           }),
@@ -665,9 +678,9 @@ const HomePageEditor = () => {
 
       if (aboutUsContent.title_en || aboutUsContent.title_hi || aboutUsContent.title_mr) {
         await Promise.all([
-          aboutUsContent.title_en && client.put(`/admin/page-content/home/about_title`, { language: 'en', content: aboutUsContent.title_en }),
-          aboutUsContent.title_hi && client.put(`/admin/page-content/home/about_title`, { language: 'hi', content: aboutUsContent.title_hi }),
-          aboutUsContent.title_mr && client.put(`/admin/page-content/home/about_title`, { language: 'mr', content: aboutUsContent.title_mr }),
+          client.put(`/admin/page-content/home/about_title`, { language: 'en', content: aboutUsContent.title_en }),
+          client.put(`/admin/page-content/home/about_title`, { language: 'hi', content: aboutUsContent.title_hi }),
+          client.put(`/admin/page-content/home/about_title`, { language: 'mr', content: aboutUsContent.title_mr }),
         ].filter(Boolean));
       }
 
@@ -741,30 +754,30 @@ const HomePageEditor = () => {
     try {
       // Save morning darshan times
       await Promise.all([
-        visitContent.darshan_morning_start_en && client.put(`/admin/page-content/home/visit_darshan_morning_start`, {
+        client.put(`/admin/page-content/home/visit_darshan_morning_start`, {
           language: 'en',
           content: visitContent.darshan_morning_start_en,
         }),
-        visitContent.darshan_morning_start_hi && client.put(`/admin/page-content/home/visit_darshan_morning_start`, {
+        client.put(`/admin/page-content/home/visit_darshan_morning_start`, {
           language: 'hi',
           content: visitContent.darshan_morning_start_hi,
         }),
-        visitContent.darshan_morning_start_mr && client.put(`/admin/page-content/home/visit_darshan_morning_start`, {
+        client.put(`/admin/page-content/home/visit_darshan_morning_start`, {
           language: 'mr',
           content: visitContent.darshan_morning_start_mr,
         }),
       ].filter(Boolean));
 
       await Promise.all([
-        visitContent.darshan_morning_end_en && client.put(`/admin/page-content/home/visit_darshan_morning_end`, {
+        client.put(`/admin/page-content/home/visit_darshan_morning_end`, {
           language: 'en',
           content: visitContent.darshan_morning_end_en,
         }),
-        visitContent.darshan_morning_end_hi && client.put(`/admin/page-content/home/visit_darshan_morning_end`, {
+        client.put(`/admin/page-content/home/visit_darshan_morning_end`, {
           language: 'hi',
           content: visitContent.darshan_morning_end_hi,
         }),
-        visitContent.darshan_morning_end_mr && client.put(`/admin/page-content/home/visit_darshan_morning_end`, {
+        client.put(`/admin/page-content/home/visit_darshan_morning_end`, {
           language: 'mr',
           content: visitContent.darshan_morning_end_mr,
         }),
@@ -772,30 +785,30 @@ const HomePageEditor = () => {
 
       // Save evening darshan times
       await Promise.all([
-        visitContent.darshan_evening_start_en && client.put(`/admin/page-content/home/visit_darshan_evening_start`, {
+        client.put(`/admin/page-content/home/visit_darshan_evening_start`, {
           language: 'en',
           content: visitContent.darshan_evening_start_en,
         }),
-        visitContent.darshan_evening_start_hi && client.put(`/admin/page-content/home/visit_darshan_evening_start`, {
+        client.put(`/admin/page-content/home/visit_darshan_evening_start`, {
           language: 'hi',
           content: visitContent.darshan_evening_start_hi,
         }),
-        visitContent.darshan_evening_start_mr && client.put(`/admin/page-content/home/visit_darshan_evening_start`, {
+        client.put(`/admin/page-content/home/visit_darshan_evening_start`, {
           language: 'mr',
           content: visitContent.darshan_evening_start_mr,
         }),
       ].filter(Boolean));
 
       await Promise.all([
-        visitContent.darshan_evening_end_en && client.put(`/admin/page-content/home/visit_darshan_evening_end`, {
+        client.put(`/admin/page-content/home/visit_darshan_evening_end`, {
           language: 'en',
           content: visitContent.darshan_evening_end_en,
         }),
-        visitContent.darshan_evening_end_hi && client.put(`/admin/page-content/home/visit_darshan_evening_end`, {
+        client.put(`/admin/page-content/home/visit_darshan_evening_end`, {
           language: 'hi',
           content: visitContent.darshan_evening_end_hi,
         }),
-        visitContent.darshan_evening_end_mr && client.put(`/admin/page-content/home/visit_darshan_evening_end`, {
+        client.put(`/admin/page-content/home/visit_darshan_evening_end`, {
           language: 'mr',
           content: visitContent.darshan_evening_end_mr,
         }),
@@ -803,15 +816,15 @@ const HomePageEditor = () => {
 
       // Save temple name
       await Promise.all([
-        visitContent.temple_name_en && client.put(`/admin/page-content/home/visit_temple_name`, {
+        client.put(`/admin/page-content/home/visit_temple_name`, {
           language: 'en',
           content: visitContent.temple_name_en,
         }),
-        visitContent.temple_name_hi && client.put(`/admin/page-content/home/visit_temple_name`, {
+        client.put(`/admin/page-content/home/visit_temple_name`, {
           language: 'hi',
           content: visitContent.temple_name_hi,
         }),
-        visitContent.temple_name_mr && client.put(`/admin/page-content/home/visit_temple_name`, {
+        client.put(`/admin/page-content/home/visit_temple_name`, {
           language: 'mr',
           content: visitContent.temple_name_mr,
         }),
@@ -819,15 +832,15 @@ const HomePageEditor = () => {
 
       // Save phone
       await Promise.all([
-        visitContent.phone_en && client.put(`/admin/page-content/home/visit_phone`, {
+        client.put(`/admin/page-content/home/visit_phone`, {
           language: 'en',
           content: visitContent.phone_en,
         }),
-        visitContent.phone_hi && client.put(`/admin/page-content/home/visit_phone`, {
+        client.put(`/admin/page-content/home/visit_phone`, {
           language: 'hi',
           content: visitContent.phone_hi,
         }),
-        visitContent.phone_mr && client.put(`/admin/page-content/home/visit_phone`, {
+        client.put(`/admin/page-content/home/visit_phone`, {
           language: 'mr',
           content: visitContent.phone_mr,
         }),
@@ -835,15 +848,15 @@ const HomePageEditor = () => {
 
       // Save email
       await Promise.all([
-        visitContent.email_en && client.put(`/admin/page-content/home/visit_email`, {
+        client.put(`/admin/page-content/home/visit_email`, {
           language: 'en',
           content: visitContent.email_en,
         }),
-        visitContent.email_hi && client.put(`/admin/page-content/home/visit_email`, {
+        client.put(`/admin/page-content/home/visit_email`, {
           language: 'hi',
           content: visitContent.email_hi,
         }),
-        visitContent.email_mr && client.put(`/admin/page-content/home/visit_email`, {
+        client.put(`/admin/page-content/home/visit_email`, {
           language: 'mr',
           content: visitContent.email_mr,
         }),
@@ -851,15 +864,15 @@ const HomePageEditor = () => {
 
       // Save address
       await Promise.all([
-        visitContent.address_en && client.put(`/admin/page-content/home/visit_address`, {
+        client.put(`/admin/page-content/home/visit_address`, {
           language: 'en',
           content: visitContent.address_en,
         }),
-        visitContent.address_hi && client.put(`/admin/page-content/home/visit_address`, {
+        client.put(`/admin/page-content/home/visit_address`, {
           language: 'hi',
           content: visitContent.address_hi,
         }),
-        visitContent.address_mr && client.put(`/admin/page-content/home/visit_address`, {
+        client.put(`/admin/page-content/home/visit_address`, {
           language: 'mr',
           content: visitContent.address_mr,
         }),
@@ -919,17 +932,33 @@ const HomePageEditor = () => {
   const saveFooter = async () => {
     setSaving(true);
     try {
+      // Save temple info title
+      await Promise.all([
+        client.put(`/admin/page-content/home/footer_temple_info_title`, {
+          language: 'en',
+          content: footerContent.temple_info_title_en,
+        }),
+        client.put(`/admin/page-content/home/footer_temple_info_title`, {
+          language: 'hi',
+          content: footerContent.temple_info_title_hi,
+        }),
+        client.put(`/admin/page-content/home/footer_temple_info_title`, {
+          language: 'mr',
+          content: footerContent.temple_info_title_mr,
+        }),
+      ]);
+
       // Save social label
       await Promise.all([
-        footerContent.social_label_en && client.put(`/admin/page-content/home/footer_social_label`, {
+        client.put(`/admin/page-content/home/footer_social_label`, {
           language: 'en',
           content: footerContent.social_label_en,
         }),
-        footerContent.social_label_hi && client.put(`/admin/page-content/home/footer_social_label`, {
+        client.put(`/admin/page-content/home/footer_social_label`, {
           language: 'hi',
           content: footerContent.social_label_hi,
         }),
-        footerContent.social_label_mr && client.put(`/admin/page-content/home/footer_social_label`, {
+        client.put(`/admin/page-content/home/footer_social_label`, {
           language: 'mr',
           content: footerContent.social_label_mr,
         }),
@@ -937,15 +966,15 @@ const HomePageEditor = () => {
 
       // Save facebook link
       await Promise.all([
-        footerContent.facebook_link_en && client.put(`/admin/page-content/home/footer_facebook_link`, {
+        client.put(`/admin/page-content/home/footer_facebook_link`, {
           language: 'en',
           content: footerContent.facebook_link_en,
         }),
-        footerContent.facebook_link_hi && client.put(`/admin/page-content/home/footer_facebook_link`, {
+        client.put(`/admin/page-content/home/footer_facebook_link`, {
           language: 'hi',
           content: footerContent.facebook_link_hi,
         }),
-        footerContent.facebook_link_mr && client.put(`/admin/page-content/home/footer_facebook_link`, {
+        client.put(`/admin/page-content/home/footer_facebook_link`, {
           language: 'mr',
           content: footerContent.facebook_link_mr,
         }),
@@ -953,15 +982,15 @@ const HomePageEditor = () => {
 
       // Save youtube link
       await Promise.all([
-        footerContent.youtube_link_en && client.put(`/admin/page-content/home/footer_youtube_link`, {
+        client.put(`/admin/page-content/home/footer_youtube_link`, {
           language: 'en',
           content: footerContent.youtube_link_en,
         }),
-        footerContent.youtube_link_hi && client.put(`/admin/page-content/home/footer_youtube_link`, {
+        client.put(`/admin/page-content/home/footer_youtube_link`, {
           language: 'hi',
           content: footerContent.youtube_link_hi,
         }),
-        footerContent.youtube_link_mr && client.put(`/admin/page-content/home/footer_youtube_link`, {
+        client.put(`/admin/page-content/home/footer_youtube_link`, {
           language: 'mr',
           content: footerContent.youtube_link_mr,
         }),
@@ -969,31 +998,31 @@ const HomePageEditor = () => {
 
       // Save instagram link
       await Promise.all([
-        footerContent.instagram_link_en && client.put(`/admin/page-content/home/footer_instagram_link`, {
+        client.put(`/admin/page-content/home/footer_instagram_link`, {
           language: 'en',
-          content: footerContent.instagram_link_en,
+          content: footerContent.instagram_link_en ?? '',
         }),
-        footerContent.instagram_link_hi && client.put(`/admin/page-content/home/footer_instagram_link`, {
+        client.put(`/admin/page-content/home/footer_instagram_link`, {
           language: 'hi',
-          content: footerContent.instagram_link_hi,
+          content: footerContent.instagram_link_hi ?? '',
         }),
-        footerContent.instagram_link_mr && client.put(`/admin/page-content/home/footer_instagram_link`, {
+        client.put(`/admin/page-content/home/footer_instagram_link`, {
           language: 'mr',
-          content: footerContent.instagram_link_mr,
+          content: footerContent.instagram_link_mr ?? '',
         }),
-      ].filter(Boolean));
+      ]);
 
       // Save copyright
       await Promise.all([
-        footerContent.copyright_en && client.put(`/admin/page-content/home/footer_copyright`, {
+        client.put(`/admin/page-content/home/footer_copyright`, {
           language: 'en',
           content: footerContent.copyright_en,
         }),
-        footerContent.copyright_hi && client.put(`/admin/page-content/home/footer_copyright`, {
+        client.put(`/admin/page-content/home/footer_copyright`, {
           language: 'hi',
           content: footerContent.copyright_hi,
         }),
-        footerContent.copyright_mr && client.put(`/admin/page-content/home/footer_copyright`, {
+        client.put(`/admin/page-content/home/footer_copyright`, {
           language: 'mr',
           content: footerContent.copyright_mr,
         }),
@@ -1697,6 +1726,51 @@ const HomePageEditor = () => {
             <CardTitle>Footer Section</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Temple Information Title */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-foreground">Temple Information Title</h3>
+              <Tabs defaultValue="en" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="en">English</TabsTrigger>
+                  <TabsTrigger value="hi">हिन्दी</TabsTrigger>
+                  <TabsTrigger value="mr">मराठी</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="en" className="space-y-2 mt-4">
+                  <Input
+                    value={footerContent.temple_info_title_en}
+                    onChange={(e) =>
+                      setFooterContent({ ...footerContent, temple_info_title_en: e.target.value })
+                    }
+                    placeholder="Temple Information"
+                    disabled={loading}
+                  />
+                </TabsContent>
+
+                <TabsContent value="hi" className="space-y-2 mt-4">
+                  <Input
+                    value={footerContent.temple_info_title_hi}
+                    onChange={(e) =>
+                      setFooterContent({ ...footerContent, temple_info_title_hi: e.target.value })
+                    }
+                    placeholder="मंदिर जानकारी"
+                    disabled={loading}
+                  />
+                </TabsContent>
+
+                <TabsContent value="mr" className="space-y-2 mt-4">
+                  <Input
+                    value={footerContent.temple_info_title_mr}
+                    onChange={(e) =>
+                      setFooterContent({ ...footerContent, temple_info_title_mr: e.target.value })
+                    }
+                    placeholder="मंदिर माहिती"
+                    disabled={loading}
+                  />
+                </TabsContent>
+              </Tabs>
+            </div>
+
             {/* Social Section Label */}
             <div className="space-y-4">
               <h3 className="font-semibold text-foreground">Social Section Label</h3>

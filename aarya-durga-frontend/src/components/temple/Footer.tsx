@@ -9,6 +9,7 @@ interface FooterData {
   address: string;
   phone: string;
   email: string;
+  templeInfoTitle: string;
   socialLabel: string;
   facebookLink: string;
   youtubeLink: string;
@@ -23,6 +24,7 @@ const Footer = () => {
     address: "",
     phone: "",
     email: "",
+    templeInfoTitle: "",
     socialLabel: "",
     facebookLink: "",
     youtubeLink: "",
@@ -41,6 +43,7 @@ const Footer = () => {
       const address = getContent('visit_address');
       const phone = getContent('visit_phone');
       const email = getContent('visit_email');
+      const templeInfoTitle = getContent('footer_temple_info_title');
       const socialLabel = getContent('footer_social_label');
       const facebook = getContent('footer_facebook_link');
       const youtube = getContent('footer_youtube_link');
@@ -51,6 +54,7 @@ const Footer = () => {
         address,
         phone,
         email,
+        templeInfoTitle,
         socialLabel,
         facebookLink: facebook,
         youtubeLink: youtube,
@@ -73,7 +77,7 @@ const Footer = () => {
       <div className="container mx-auto px-4 py-12">
         <div className="grid md:grid-cols-3 gap-8">
           <div>
-            <h3 className="font-heading text-xl font-semibold mb-4">{t.footer.templeInfo}</h3>
+            <h3 className="font-heading text-xl font-semibold mb-4">{footerData.templeInfoTitle || t.footer.templeInfo}</h3>
             <div className="space-y-2 text-primary-foreground/80 text-sm">
               <p className="flex items-center gap-2"><MapPin size={14} /> {footerData.address}</p>
               <p className="flex items-center gap-2"><Phone size={14} /> {footerData.phone}</p>

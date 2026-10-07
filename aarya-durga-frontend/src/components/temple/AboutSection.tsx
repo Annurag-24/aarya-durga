@@ -69,7 +69,7 @@ const AboutSection = ({ showReadMore = true, showDailyImage = true, scrollableTe
     return (
         <section id="about" className="py-20 bg-card">
             <div className="container mx-auto px-4">
-                <div className={`grid gap-8 items-stretch ${showDailyImage && dailyImage ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
+                <div className={`grid gap-8 items-stretch ${showDailyImage && dailyImage ? "md:grid-cols-3" : "md:grid-cols-4"}`}>
                     {/* Daily Image */}
                     {showDailyImage && dailyImage && (
                         <motion.div
@@ -111,7 +111,7 @@ const AboutSection = ({ showReadMore = true, showDailyImage = true, scrollableTe
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.7, delay: dailyImage ? 0.1 : 0 }}
-                        className="rounded-lg overflow-hidden shadow-xl"
+                        className={`rounded-lg overflow-hidden shadow-xl ${showDailyImage && dailyImage ? "" : "md:col-span-1"}`}
                     >
                         <img
                             src={image}
@@ -126,7 +126,7 @@ const AboutSection = ({ showReadMore = true, showDailyImage = true, scrollableTe
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.7, delay: 0.2 }}
-                        className={`flex flex-col justify-between ${scrollableText ? "h-[400px]" : ""}`}
+                        className={`flex flex-col justify-between ${showDailyImage && dailyImage ? "" : "md:col-span-3"} ${scrollableText ? "h-[400px]" : ""}`}
                     >
                         <div>
                             {contextLoading ? (

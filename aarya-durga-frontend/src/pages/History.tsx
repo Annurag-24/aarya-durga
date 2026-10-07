@@ -8,6 +8,7 @@ import {
     BookOpen,
     Mountain,
     Sparkles,
+    ArrowDown,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import Navbar from "@/components/temple/Navbar";
@@ -263,6 +264,16 @@ const History = () => {
                                             content={originP2}
                                             className="text-muted-foreground"
                                         />
+                                        <a
+                                            href="#timeline"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                document.getElementById('timeline')?.scrollIntoView({ behavior: 'smooth' });
+                                            }}
+                                            className="inline-flex items-center gap-2 mt-6 px-5 py-2.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                                        >
+                                            {language === 'mr' ? 'अधिक पहा' : language === 'hi' ? 'और देखें' : 'Show More'} <ArrowDown className="h-4 w-4" />
+                                        </a>
                                     </>
                                 )}
                             </motion.div>
@@ -271,7 +282,7 @@ const History = () => {
                 </section>
 
                 {/* Timeline Section */}
-                <section className="py-20 bg-accent mandala-bg">
+                <section id="timeline" className="py-20 bg-accent mandala-bg scroll-mt-24">
                     <div className="container mx-auto px-4">
                         <div className="text-center mb-16">
                             <div className="gold-line mx-auto mb-4" />
