@@ -108,6 +108,9 @@ jobs:
             - backend-build
 
         steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
             - name: Download frontend artifact
               uses: actions/download-artifact@v4
               with:
