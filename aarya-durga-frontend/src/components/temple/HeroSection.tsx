@@ -1,6 +1,4 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { usePageText } from "@/hooks/content/usePageContent";
@@ -30,12 +28,12 @@ const HeroSection = () => {
   }, [pageData]);
 
   return (
-    <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section id="home" className="relative min-h-screen flex items-end overflow-hidden">
       <div className="absolute inset-0">
         <img src={backgroundImage} alt="Aarya Durga Temple" className="w-full h-full object-contain" />
         <div className="absolute inset-0 bg-gradient-to-b from-foreground/70 via-foreground/50 to-foreground/80" />
       </div>
-      <div className="relative z-10 text-center px-4 max-w-3xl mx-auto">
+      <div className="relative z-10 text-center px-4 max-w-3xl mx-auto w-full pb-16">
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
           <div className="lotus-divider mb-6"><span className="text-3xl">🪷</span></div>
           {titleLoading ? (
@@ -53,17 +51,13 @@ const HeroSection = () => {
             </p>
           )}
           {descriptionLoading ? (
-            <Skeleton className="h-6 w-full mx-auto mb-8 bg-primary-foreground/20" />
+            <Skeleton className="h-6 w-full mx-auto bg-primary-foreground/20" />
           ) : (
             <RichTextContent
               content={descriptionText || t.hero.description}
-              className="mx-auto mb-8 max-w-2xl text-base font-body text-primary-foreground/80 md:text-lg prose-p:text-primary-foreground/80 prose-strong:text-primary-foreground prose-em:text-primary-foreground/90"
+              className="mx-auto max-w-2xl text-base font-body text-primary-foreground/80 md:text-lg prose-p:text-primary-foreground/80 prose-strong:text-primary-foreground prose-em:text-primary-foreground/90"
             />
           )}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/about"><Button variant="hero" size="lg">{t.hero.explore}</Button></Link>
-            <Link to="/events-gallery"><Button variant="heroOutline" size="lg">{t.hero.viewEvents}</Button></Link>
-          </div>
         </motion.div>
       </div>
     </section>
